@@ -1,0 +1,40 @@
+[project]
+name = 'anyrun-sdk'
+version = '1.0.0'
+description = 'This is the official Python client library for ANY.RUN. Automate management of ANY.RUN REST endpoints'
+authors = [
+    {name = 'Semen Shalnev', email = 'support@any.run'}
+]
+license = {text = 'Apache v2.0'}
+readme = 'README.md'
+classifiers = [
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Topic :: Software Development :: Libraries',
+    'Typing :: Typed'
+]
+requires-python = '>=3.9'
+dependencies = [
+    'aiohttp==3.11.12'
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing framework.
+    'pytest==8.3.4',
+    'pytest-asyncio==0.25.3'
+]
+
+[project.urls]
+'Homepage' = 'https://github.com/anyrun/anyrun-sdk'
+'Examples' = 'https://github.com/anyrun/anyrun-sdk/examples'
+
+[build-system]
+requires = ['setuptools >= 61.0']
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools.packages.find]
+include = ["anyrun*"]

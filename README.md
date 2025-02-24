@@ -44,7 +44,7 @@ if __name__ == '__main__':
     api_key = os.getenv('ANY_RUN_FEEDS_API_KEY')
     main()
 ```
-You can find additional usage examples [here](https://github.com/anyrun/anyrun-sdk/examples)
+You can find additional usage examples [here](https://github.com/anyrun/anyrun-sdk/tree/main/examples)
 
 #  Installation Guide
 

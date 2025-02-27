@@ -1,6 +1,6 @@
 [project]
 name = 'anyrun-sdk'
-version = '1.0.0'
+version = '1.1.0'
 description = 'This is the official Python client library for ANY.RUN. Automate management of ANY.RUN REST endpoints'
 authors = [
     {name = 'Semen Shalnev', email = 'anyrun-integrations@any.run'}
@@ -25,12 +25,13 @@ dependencies = [
 dev = [
     # Testing framework.
     'pytest==8.3.4',
-    'pytest-asyncio==0.25.3'
+    'pytest-asyncio==0.25.3',
+    'pytest-cov==6.0.0'
 ]
 
 [project.urls]
 'Homepage' = 'https://github.com/anyrun/anyrun-sdk'
-'Examples' = 'https://github.com/anyrun/anyrun-sdk/examples'
+'Examples' = 'https://github.com/anyrun/anyrun-sdk/tree/main/examples'
 
 [build-system]
 requires = ['setuptools >= 61.0']

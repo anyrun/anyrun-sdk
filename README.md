@@ -1,6 +1,6 @@
 <p align="center">
     <a href="#readme">
-        <img alt="ANY.RUN logo" src="static/logo.svg">
+        <img alt="ANY.RUN logo" src="https://raw.githubusercontent.com/anyrun/anyrun-sdk/e67d9827941a90d92f98d48ac89bbb08c0be5a27/static/logo.svg">
     </a>
 </p>
 
@@ -17,7 +17,7 @@ Available features:
   * MISP 
   * STIX
   * Network iocs
-
+* Automate Lookup and YARA search management
 * Built-in objects iterator
 * Synchronous and asynchronous interface
 
@@ -27,16 +27,15 @@ Available features:
 import os
 from pprint import pprint
 
-from anyrun.connectors.threat_intelligence import FeedsConnector
+from anyrun.connectors import FeedsConnector
 
 
 def main():
     # Initialize the connector object
-    connector = FeedsConnector(api_key)
-    
-    # Process request to ANY.RUN feeds endpoint
-    feeds = connector.get_stix(url=False, period='month', limit=500)
-    pprint(feeds)
+    with FeedsConnector(api_key) as connector:
+      # Process request to ANY.RUN feeds endpoint
+      feeds = connector.get_stix(url=False, period='month', limit=500)
+      pprint(feeds)
 
 
 if __name__ == '__main__':
@@ -50,7 +49,7 @@ You can find additional usage examples [here](https://github.com/anyrun/anyrun-s
 
 #### You can install the SDK using pip or any other package manager
 ```console
-$ pip3 install anyrun-sdk
+$ pip install anyrun-sdk
 ```
 
 #### Also, you can install the SDK manually using setup.py module
@@ -119,9 +118,15 @@ $ python -m pip install -e '.[dev]'
 
 #### 3. Run tests
 ```console
-$ pytest tests
+$ pytest tests -x
+$ pytest --cov=anyrun --cov-report=term-missing
 ```
 
 # Backward Compatibility
 
 The SDK supports Python 3.9 and higher
+
+# Useful links
+
+[TI Lookup query Guide](https://intelligence.any.run/TI_Lookup_Query_Guide_v4.pdf)  
+[ANY.RUN API documentation](https://any.run/api-documentation/#api-Request-Request)

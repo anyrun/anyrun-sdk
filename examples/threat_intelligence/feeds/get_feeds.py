@@ -1,7 +1,7 @@
 import os
 from pprint import pprint
 
-from anyrun.connectors.threat_intelligence import FeedsConnector
+from anyrun.connectors import FeedsConnector
 
 
 def main():

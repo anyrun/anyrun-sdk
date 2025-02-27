@@ -1,13 +1,14 @@
 import os
 import asyncio
 
-from anyrun.connectors.threat_intelligence import FeedsConnector, FeedsIterator
+from anyrun.connectors import FeedsConnector
+from anyrun.iterators import FeedsIterator
 
 
 async def main():
 
     async with FeedsConnector(api_key) as connector:
-        async for feed in FeedsIterator(connector, url=False, domain=False, chunk_size=50):
+        async for feed in FeedsIterator.network_iocs(connector, url=False, domain=False, chunk_size=50):
             print(feed)
 
 

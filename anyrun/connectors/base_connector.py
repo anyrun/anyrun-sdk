@@ -24,7 +24,7 @@ class AnyRunConnector:
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
     ) -> None:
         """
-        :param api_key: ANY.RUN Feeds API Key in format: Basic <base64_api_key>
+        :param api_key: ANY.RUN Feeds API Key in format: Basic <base64_auth>
         :param user_agent: User-Agent header value
         :param trust_env: Trust environment settings for proxy configuration
         :param verify_ssl: Perform SSL certificate validation for HTTPS requests
@@ -59,20 +59,32 @@ class AnyRunConnector:
     async def __aexit__(self, item_type, value, traceback) -> None:
         await self._close_session()
 
-    async def make_request_async(self, method: str, url: str, ssl: bool = False) -> dict:
+    async def make_request_async(
+            self,
+            method: str,
+            url: str,
+            ssl: bool = False,
+            json: Optional[dict] = None,
+    ) -> dict:
         """
         Provides async interface for making any request
 
         :param method: HTTP method
         :param url: Request url
         :param ssl: Enable/disable ssl verification
+        :param json: Request body
         :return: Api response
         :raises RunTimeException: If the connector was executed outside the context manager
         """
         try:
-            response: aiohttp.ClientResponse = await self._session.request(method, url, ssl=ssl)
+            response: aiohttp.ClientResponse = await self._session.request(method, url, ssl=ssl, json=json)
         except AttributeError:
-            raise RunTimeException('The connector object must be executed using the context manager')
+            raise RunTimeException(
+                {
+                    'status': 'error',
+                    'description': 'The connector object must be executed using the context manager'
+                }
+            )
 
         response_data = await response.json()
         return await self._check_response_status(response_data, response.status)
@@ -115,26 +127,31 @@ class AnyRunConnector:
 
         :param response_data: API response
         :return: The collection of IOCs
+        :raises RunTimeException: If status code 200 is not received
         """
-
         if status== HTTPStatus.OK:
             return response_data
 
-        return {
-            'status': 'error',
-            'code': response_data.get('code') or 400,
-            'description': response_data.get('message')
-        }
+        raise RunTimeException(
+            {
+                'status': 'error',
+                'code': response_data.get('code') or HTTPStatus.BAD_REQUEST,
+                'description': response_data.get('message')
+            }
+        )
 
     @staticmethod
     def _api_key_validator(api_key: str) -> None:
         """
-        Checks if api key format is valid
+        Checks if API key format is valid
 
         :param api_key:
-        :raises RunTimeException: If api key format is not valid
+        :raises RunTimeException: If API key format is not valid
         """
         if not isinstance(api_key, str):
-            raise RunTimeException('The ANY.RUN api key must be a valid string')
-        if not api_key.startswith('Basic'):
-            raise RunTimeException('You should use the basic authorization format')
+            raise RunTimeException(
+                {
+                    'status': 'error',
+                    'description': 'The ANY.RUN api key must be a valid string'
+                }
+            )

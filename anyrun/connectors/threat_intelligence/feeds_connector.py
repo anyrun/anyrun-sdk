@@ -10,7 +10,7 @@ from anyrun.utils.utility_functions import execute_synchronously
 
 class FeedsConnector(AnyRunConnector):
     """
-    Provides ANY.RUN TI Feeds endpoint management.
+    Provides ANY.RUN TI Feeds endpoints management.
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
@@ -25,7 +25,7 @@ class FeedsConnector(AnyRunConnector):
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
     ) -> None:
         """
-        :param api_key: ANY.RUN Feeds API Key in format: Basic <base64_api_key>
+        :param api_key: ANY.RUN Feeds API Key in format: Basic <base64_auth>
         :param user_agent: User-Agent header value
         :param trust_env: Trust environment settings for proxy configuration
         :param verify_ssl: Perform SSL certificate validation for HTTPS requests
@@ -77,7 +77,7 @@ class FeedsConnector(AnyRunConnector):
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
         :param ssl: Enable/disable ssl verification
-        :return: Response in **json** format
+        :return: API response in **stix** format
         """
         return execute_synchronously(
             self.get_stix_async,
@@ -128,7 +128,7 @@ class FeedsConnector(AnyRunConnector):
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
         :param ssl: Enable/disable ssl verification
-        :return: Response in **json** format
+        :return: API response in **stix** format
         """
         url = await self._generate_feeds_url(
             'stix',
@@ -150,6 +150,7 @@ class FeedsConnector(AnyRunConnector):
 
         response_data = await self.make_request_async('GET', url, ssl=ssl)
         return response_data.get('data').get('objects')
+
 
     def get_misp(
             self,
@@ -179,7 +180,7 @@ class FeedsConnector(AnyRunConnector):
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
         :param ssl: Enable/disable ssl verification
-        :return: Response in **json** format
+        :return: API response in **misp** format
         """
         return execute_synchronously(
             self.get_misp_async,
@@ -224,7 +225,7 @@ class FeedsConnector(AnyRunConnector):
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
         :param ssl: Enable/disable ssl verification
-        :return: Response in **json** format
+        :return: API response in **misp** format
         """
         url = await self._generate_feeds_url(
             'misp',
@@ -241,6 +242,7 @@ class FeedsConnector(AnyRunConnector):
                 'page': page
             }
         )
+        
         response_data = await self.make_request_async('GET', url, ssl=ssl)
         return response_data.get('data')
 
@@ -272,7 +274,7 @@ class FeedsConnector(AnyRunConnector):
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
         :param ssl: Enable/disable ssl verification
-        :return: Response in **json** format
+        :return: API response in **network_iocs** format
         """
         return execute_synchronously(
             self.get_network_iocs_async,
@@ -317,7 +319,7 @@ class FeedsConnector(AnyRunConnector):
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
         :param ssl: Enable/disable ssl verification
-        :return: Response in **json** format
+        :return: API response in **network_iocs** format
         """
         url = await self._generate_feeds_url(
             'network_iocs',
@@ -337,7 +339,6 @@ class FeedsConnector(AnyRunConnector):
 
         response_data = await self.make_request_async('GET', url, ssl=ssl)
         return response_data.get('data')
-
 
     async def _generate_feeds_url(self, feed_format: str, params: dict) -> str:
         """

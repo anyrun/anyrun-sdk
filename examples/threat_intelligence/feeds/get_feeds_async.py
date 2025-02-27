@@ -2,7 +2,7 @@ import os
 import asyncio
 from datetime import datetime, timedelta
 
-from anyrun.connectors.threat_intelligence import FeedsConnector
+from anyrun.connectors import FeedsConnector
 
 
 async def show_feeds(connector: FeedsConnector, page_number: int, timestamp: int) -> None:

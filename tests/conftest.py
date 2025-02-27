@@ -3,7 +3,7 @@ import pytest
 
 @pytest.fixture(scope='function')
 def query_params_config() -> dict:
-    return {
+    params = {
                 'ip': 'true',
                 'url': 'true',
                 'domain': 'true',
@@ -17,6 +17,9 @@ def query_params_config() -> dict:
                 'limit': 100,
              }
 
+    yield params
+    del params
+
 
 class MockFeedsConnector:
     async def get_stix_async(self, page: int = 1, **kwargs) -> list:
@@ -27,7 +30,6 @@ class MockFeedsConnector:
 
     async def get_network_iocs_async(self, page: int = 1, **kwargs) -> list:
         return await self._misp_response() if page <= 1 else await self._empty_response()
-
 
     @staticmethod
     async def _empty_response():

@@ -1,12 +1,13 @@
 import os
 
-from anyrun.connectors.threat_intelligence import FeedsConnector, FeedsIterator
+from anyrun.connectors import FeedsConnector
+from anyrun.iterators import FeedsIterator
 
 
 def main():
 
     with FeedsConnector(api_key) as connector:
-        for feed in FeedsIterator(connector, feed_format='network_iocs', period='week', chunk_size=5):
+        for feed in FeedsIterator.stix(connector, period='week', chunk_size=5):
             print(feed)
 
 

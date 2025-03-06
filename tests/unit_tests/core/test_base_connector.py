@@ -12,7 +12,7 @@ async def test_check_make_request_async_raises_exception_if_connector_is_execute
     base_connector = AnyRunConnector('mock_api_key')
 
     with pytest.raises(RunTimeException) as exception:
-        await base_connector.make_request_async('GET', 'https://any.run')
+        await base_connector._make_request_async('GET', 'https://any.run')
 
     assert exception.value.description == 'The connector object must be executed using the context manager'
 

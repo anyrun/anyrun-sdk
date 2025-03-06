@@ -4,14 +4,14 @@ from pprint import pprint
 from anyrun.connectors import YaraLookupConnector
 
 
-def yara_rule() -> str:
+def load_yara_rule() -> str:
     with open('yara_lookup_rule_sample.txt', 'r') as file:
         return file.read()
 
 
 def main():
     with YaraLookupConnector(api_key) as connector:
-        lookup_result = connector.get_yara(yara_rule())
+        lookup_result = connector.get_yara(load_yara_rule(), stix=True)
         pprint(lookup_result)
 
 

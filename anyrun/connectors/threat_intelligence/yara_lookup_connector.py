@@ -1,11 +1,12 @@
-from typing import Optional
+from uuid import UUID
+from typing import Optional, Iterator, AsyncIterator
 
 import aiohttp
 import asyncio
 
 from anyrun.connectors.base_connector import AnyRunConnector
 from anyrun.utils.config import Config
-from anyrun.utils.utility_functions import execute_synchronously
+from anyrun.utils.utility_functions import execute_synchronously, execute_async_iterator
 
 class YaraLookupConnector(AnyRunConnector):
     """
@@ -24,7 +25,7 @@ class YaraLookupConnector(AnyRunConnector):
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
     ) -> None:
         """
-        :param api_key: ANY.RUN Feeds API Key in format: API-KEY <api_key>
+        :param api_key: ANY.RUN API Key in format: API-KEY <api_key>
         :param user_agent: User-Agent header value
         :param trust_env: Trust environment settings for proxy configuration
         :param verify_ssl: Perform SSL certificate validation for HTTPS requests
@@ -44,112 +45,164 @@ class YaraLookupConnector(AnyRunConnector):
             timeout
         )
 
-    def get_yara(
-            self,
-            yara_rule: str,
-            stix: bool = False,
-            ssl: bool = False
-    ) -> list[Optional[dict]]:
+    def run_yara_search(self, yara_rule: str) -> str:
         """
-        Returns YARA search matches
-
+         Initializes a new search according to the specified YARA rule
+`
         :param yara_rule: Valid YARA rule
-        :param stix: Enable/disable receiving matches in stix format
-        :param ssl: Enable/disable ssl verification
-        :return: API response in specified format. Returns an empty list if no matches are found
+        :return: Search ID
         """
-        return execute_synchronously(self.get_yara_async, yara_rule, stix, ssl)
+        return execute_synchronously(self.run_yara_search_async, yara_rule)
 
-    async def get_yara_async(
-            self,
-            yara_rule: str,
-            stix: bool = False,
-            ssl: bool = False
-    ) -> list[Optional[dict]]:
+    async def run_yara_search_async(self, yara_rule: str) -> UUID:
         """
-        Returns YARA search matches
-
+        Initializes a new search according to the specified YARA rule
+`
         :param yara_rule: Valid YARA rule
-        :param stix: Enable/disable receiving matches in stix format
-        :param ssl: Enable/disable ssl verification
-        :return: API response in specified format. Returns an empty list if no matches are found
-        """
-        search_id = await self._initialize_search_async(yara_rule, ssl)
-        search_matches = await self._get_search_matches_async(search_id, ssl)
-
-        if search_matches > 0:
-            if stix:
-                return await self._get_stix_search_result_async(search_id, ssl)
-            return await self._get_search_result_async(search_id, ssl)
-        return []
-
-    async def _initialize_search_async(self, yara_rule: str, ssl: bool = False) -> str:
-        """
-        Executes initial request to yara-lookup and gets the search ID
-
-        :param yara_rule: Valid YARA rule
-        :param ssl: Enable/disable ssl verification
         :return: Search ID
         """
         url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search'
         body = {'query': yara_rule}
 
-        response_data = await self.make_request_async('POST', url, ssl=ssl, json=body)
+        response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('queryId')
 
-    async def _get_search_matches_async(self, search_id: str, ssl: bool = False) -> int:
+    def get_search_status(self, search_uuid: UUID, simplify: bool = True) -> Iterator[dict]:
         """
-        Gets the number of search matches
+        Returns a synchronous iterator to process the actual status until the task is completed.
 
-        :param search_id: Search ID
-        :param ssl: Enable/disable ssl verification
+        :param search_uuid: Search ID
+        :param simplify: Returns a simplified dict with the current search status
         :return: Number of matches
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_id}/count'
 
-        response_data = await self._wait_for_search_complete('GET', url, ssl=ssl)
-        return response_data.get('foundMatches')
+        return execute_async_iterator(self.get_search_status_async(search_uuid, simplify))
 
-    async def _wait_for_search_complete(self, method: str, url: str, ssl: bool = False) -> dict:
+    async def get_search_status_async(self, search_uuid: UUID, simplify: bool = True) -> AsyncIterator[dict]:
         """
-        Makes request to get the matches count. If search is not completed, sleep for the specified time and
-        repeats the request. Returns the number of search matches if search is complete
+        Returns an asynchronous iterator to process the actual status until the task is completed.
 
-        :param method: HTTP method
-        :param url: ANY.RUN yara-lookup endpoint url
-        :param ssl: Enable/disable ssl verification
+        :param search_uuid: Search ID
+        :param simplify: Returns a simplified dict with the current search status
         :return: Number of matches
         """
+        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/count'
+
         while True:
-            response_data = await self.make_request_async(method, url, ssl=ssl)
+            response_data = await self._make_request_async('GET', url)
 
             if response_data.get('searchInfo').get('status') == 'done':
-                return response_data
+                yield await self._prepare_response(response_data, simplify)
+                break
+            else:
+                yield await self._prepare_response(response_data, simplify)
 
             await asyncio.sleep(Config.DEFAULT_WAITING_TIMEOUT_IN_SECONDS)
 
-    async def _get_search_result_async(self, search_id: str, ssl: bool = False) -> list[Optional[dict]]:
+    def get_search_result(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
         """
-        Returns YARA search matches in json format
+        Returns a list of YARA search matches
 
-        :param search_id: Search ID
-        :param ssl: ssl: Enable/disable ssl verification
+        :param search_uuid: Search ID
+        :param simplify: Return None if no threats has been detected
         :return: API response in specified format. Returns an empty list if no matches are found
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_id}'
+        return execute_synchronously(self.get_search_result_async, search_uuid, simplify)
 
-        response_data = await self.make_request_async('GET', url, ssl)
-        return response_data.get('matches')
-
-    async def _get_stix_search_result_async(self, search_id: str, ssl: bool = False) -> list[Optional[dict]]:
+    async def get_search_result_async(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
         """
-        Returns YARA search matches in stix format
+        Returns a list of YARA search matches
 
-        :param search_id: Search ID
-        :param ssl: ssl: Enable/disable ssl verification
+        :param search_uuid: Search ID
+        :param simplify: Return None if no threats has been detected
         :return: API response in specified format. Returns an empty list if no matches are found
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_id}/download/stix'
+        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}'
 
-        response_data = await self.make_request_async('GET', url, ssl)
-        return response_data.get('data').get('objects')
+        response_data = await self._make_request_async('GET', url)
+        matches = response_data.get('matches')
+
+        if simplify and not matches:
+            return
+        return matches
+
+    def get_stix_search_result(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
+        """
+        Returns a list of YARA search matches in stix format
+
+        :param search_uuid: Search ID
+        :param simplify: Returns None if no threats has been detected
+        :return: API response in specified format. Returns an empty list if no matches are found
+        """
+        return execute_synchronously(self.get_stix_search_result_async, search_uuid, simplify)
+
+    async def get_stix_search_result_async(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
+        """
+        Returns a list of YARA search matches in stix format
+
+        :param search_uuid: Search ID
+        :param simplify: Returns None if no threats has been detected
+        :return: API response in specified format. Returns an empty list if no matches are found
+        """
+        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/download/stix'
+
+        response_data = await self._make_request_async('GET', url)
+        objects = response_data.get('data').get('objects')
+
+        if simplify and not objects:
+            return
+        return objects
+
+    def get_yara(self, yara_rule: str, stix: bool = False) -> list[Optional[dict]]:
+        """
+        Automate YARA search methods management. Returns a complete list of YARA search matches
+
+        :param yara_rule: Valid YARA rule
+        :param stix: Enable/disable receiving matches in stix format
+        :return: API response in specified format. Returns an empty list if no matches are found
+        """
+        return execute_synchronously(self.get_yara_async, yara_rule, stix)
+
+    async def get_yara_async(self, yara_rule: str, stix: bool = False) -> list[Optional[dict]]:
+        """
+        Automate YARA search methods management. Returns a complete list of YARA search matches
+
+        :param yara_rule: Valid YARA rule
+        :param stix: Enable/disable receiving matches in stix format
+        :return: API response in specified format. Returns an empty list if no matches are found
+        """
+        search_uuid = await self.run_yara_search_async(yara_rule)
+
+        # Wait for the search to complete
+        async for _ in self.get_search_status_async(search_uuid):
+             pass
+
+        if stix:
+            return await self.get_search_result_async(search_uuid)
+        return await self.get_stix_search_result_async(search_uuid)
+
+    async def _prepare_response(self, response: dict, simplify: bool) -> dict:
+        """
+        Simplifies response structure if **simplify** parameter is specified
+
+        :param response: Response dict
+        :param simplify: Returns a simplified dict with the remaining scan time and the current task status
+        :return: Response dict
+        """
+        if simplify:
+            return {
+                'status': await self._resolve_task_status(response.get('searchInfo').get('status'))
+            }
+        return response
+
+    @staticmethod
+    async def _resolve_task_status(status: Optional[str]) -> Optional[str]:
+        """ Converts status code string representation """
+        if status:
+            if status == 'new':
+                return 'PREPARING'
+            if status == 'processing':
+                return 'RUNNING'
+            if status == 'done':
+                return 'COMPLETED'
+            return 'FAILED'

@@ -4,7 +4,6 @@ import asyncio
 import aiofiles
 
 from anyrun.connectors import YaraLookupConnector
-from anyrun.iterators import YaraIterator
 
 
 async def load_yara_rule() -> str:
@@ -14,8 +13,13 @@ async def load_yara_rule() -> str:
 
 async def main():
     async with YaraLookupConnector(api_key) as connector:
-        async for match in YaraIterator.stix(connector, await load_yara_rule()):
-            print(match)
+        search_id = await connector.run_yara_search_async(await load_yara_rule())
+
+        async for status in connector.get_search_status_async(search_id):
+            print(status)
+
+        report = await connector.get_stix_search_result_async(search_id, simplify=True)
+        print(report if report else 'No threats were found during the analysis')
 
 
 if __name__ == '__main__':

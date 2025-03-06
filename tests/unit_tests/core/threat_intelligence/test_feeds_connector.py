@@ -1,6 +1,6 @@
 import pytest
 
-from anyrun.connectors.threat_intelligence.feeds_connector import FeedsConnector
+from anyrun.connectors import FeedsConnector
 
 
 @pytest.mark.asyncio

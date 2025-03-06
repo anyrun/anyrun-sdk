@@ -1,6 +1,6 @@
 import pytest
 
-from anyrun.connectors.threat_intelligence.lookup_connector import LookupConnector
+from anyrun.connectors import LookupConnector
 
 
 @pytest.mark.asyncio

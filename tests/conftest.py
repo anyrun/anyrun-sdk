@@ -58,3 +58,12 @@ class MockFeedsConnector:
             {"IOC": "175.106.101.98"},
             {"IOC": "174.106.101.98"}
         ]
+
+class MockAiohttpClientResponse:
+    def __init__(self, content_type: str):
+        self.content_type = content_type
+        self.status = 401
+
+    @staticmethod
+    async def json() -> dict:
+        return {'message': 'Error message'}

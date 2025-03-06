@@ -4,14 +4,14 @@ from anyrun.connectors import YaraLookupConnector
 from anyrun.iterators import YaraIterator
 
 
-def yara_rule() -> str:
+def load_yara_rule() -> str:
     with open('yara_lookup_rule_sample.txt', 'r') as file:
         return file.read()
 
 
 def main():
     with YaraLookupConnector(api_key) as connector:
-        for match in YaraIterator.json(connector, yara_rule()):
+        for match in YaraIterator.json(connector, load_yara_rule()):
             print(match)
 
 

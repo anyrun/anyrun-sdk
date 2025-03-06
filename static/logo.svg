@@ -3,14 +3,12 @@
     <style>
       div {
         background-color: #022044;
-        height: 100%;
         padding-top: 150px;
         text-align: center;
       }
     </style>
 
    <div xmlns="http://www.w3.org/1999/xhtml">
-      asd
    </div>
   </foreignObject>
 

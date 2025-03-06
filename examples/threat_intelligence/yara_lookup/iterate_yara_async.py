@@ -1,18 +1,20 @@
 import os
 import asyncio
 
+import aiofiles
+
 from anyrun.connectors import YaraLookupConnector
 from anyrun.iterators import YaraIterator
 
-# You should use the aiofiles package instead
-async def yara_rule() -> str:
-    with open('yara_lookup_rule_sample.txt', 'r') as file:
-        return file.read()
+
+async def load_yara_rule() -> str:
+    async with aiofiles.open('yara_lookup_rule_sample.txt', 'r') as file:
+        return await file.read()
 
 
 async def main():
     async with YaraLookupConnector(api_key) as connector:
-        async for match in YaraIterator.stix(connector, await yara_rule()):
+        async for match in YaraIterator.stix(connector, await load_yara_rule()):
             print(match)
 
 

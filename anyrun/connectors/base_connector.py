@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Optional
+from typing import Optional, Union
 from typing_extensions import Self
 
 import aiohttp
@@ -59,25 +59,33 @@ class AnyRunConnector:
     async def __aexit__(self, item_type, value, traceback) -> None:
         await self._close_session()
 
-    async def make_request_async(
+    async def _make_request_async(
             self,
             method: str,
             url: str,
-            ssl: bool = False,
             json: Optional[dict] = None,
-    ) -> dict:
+            data: Union[dict, aiohttp.MultipartWriter, None] = None,
+            parse_response: bool = True
+    ) -> Union[dict, aiohttp.ClientResponse]:
         """
         Provides async interface for making any request
 
         :param method: HTTP method
         :param url: Request url
-        :param ssl: Enable/disable ssl verification
-        :param json: Request body
+        :param json: Request json
+        :param data: Request data
+        :param parse_response: Enable/disable API response parsing. If enabled, returns response.json() object dict
+            else aiohttp.ClientResponse instance
         :return: Api response
         :raises RunTimeException: If the connector was executed outside the context manager
         """
         try:
-            response: aiohttp.ClientResponse = await self._session.request(method, url, ssl=ssl, json=json)
+            response: aiohttp.ClientResponse = await self._session.request(
+                method,
+                url,
+                json=json,
+                data=data
+            )
         except AttributeError:
             raise RunTimeException(
                 {
@@ -86,8 +94,10 @@ class AnyRunConnector:
                 }
             )
 
-        response_data = await response.json()
-        return await self._check_response_status(response_data, response.status)
+        if parse_response:
+            response_data = await response.json()
+            return await self._check_response_status(response_data, response.status)
+        return response
 
     def _setup_connector(self) -> None:
         if not self._connector and self._verify_ssl:
@@ -98,7 +108,6 @@ class AnyRunConnector:
     def _setup_headers(self, api_key: str, user_agent: str) -> None:
         self._headers = {
             'Authorization': api_key,
-            'Content-Type': 'application/json',
             'User-Agent': f'{user_agent}:{Config.SDK_USER_AGENT}'
         }
 
@@ -129,7 +138,7 @@ class AnyRunConnector:
         :return: The collection of IOCs
         :raises RunTimeException: If status code 200 is not received
         """
-        if status== HTTPStatus.OK:
+        if status in (HTTPStatus.OK, HTTPStatus.CREATED, HTTPStatus.ACCEPTED):
             return response_data
 
         raise RunTimeException(

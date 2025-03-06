@@ -7,41 +7,70 @@
 ______________________________________________________________________
 
 # ANY.RUN SDK
-This is the official Python client library for ANY.RUN.  
+This is the official Python client library for [ANY.RUN](https://any.run/).  
 With this library you can interact with the ANY.RUN REST API and automate your workflow quickly and efficiently.
 
-Available features:
+# Available features
 
-* Automate ANY.RUN Threat Intelligence Feeds management.  
-  Supports the following feed formats:
+### TI Feeds API  
+  Supports the following feed formats for search:
   * MISP 
   * STIX
-  * Network iocs
-* Automate Lookup and YARA search management
+  * Network iocs 
+
+### TI Lookup API
+  * Look up URLs and file hashes
+  * Get threat intelligence data
+  * Check indicators of compromise
+
+### TI YARA API
+  * Search for new IOC using YARA rules
+  * Monitor Search progress in real-time
+  * Get detailed analysis results
+
+### Sandbox API
+  * Submit files and URLs for analysis
+  * Monitor analysis progress in real-time
+  * Get detailed analysis results
+  * Manage analysis tasks 
+
+### Other features
 * Built-in objects iterator
-* Synchronous and asynchronous interface
+* Built-in exception handling
+* The same synchronous and asynchronous interface
+* Supports Python 3.9-3.13
 
 # The library public interface overview
 
 ```python
 import os
-from pprint import pprint
 
-from anyrun.connectors import FeedsConnector
+from anyrun.connectors import SandBoxConnector
 
 
 def main():
-    # Initialize the connector object
-    with FeedsConnector(api_key) as connector:
-      # Process request to ANY.RUN feeds endpoint
-      feeds = connector.get_stix(url=False, period='month', limit=500)
-      pprint(feeds)
+    with SandBoxConnector(api_key) as connector:
+        # Initialize the url analysis
+        task_id = connector.run_url_analysis('https://any.run')
+        print(f'Analysis successfully initialized. Task uuid: {task_id}')
+        
+        # View analysis status in real time
+        for status in connector.get_task_status(task_id):
+            print(status)
+        
+        # Get report results
+        report = connector.get_analysis_report(task_id, simplify=True)
+        print(report if report else 'No threats were found during the analysis')
+        
+        # Remove the task from history
+        connector.delete_task(task_id)
 
 
 if __name__ == '__main__':
     # Setup ANY.RUN api key
-    api_key = os.getenv('ANY_RUN_FEEDS_API_KEY')
+    api_key = os.getenv('ANY_RUN_Sandbox_API_KEY')
     main()
+
 ```
 You can find additional usage examples [here](https://github.com/anyrun/anyrun-sdk/tree/main/examples)
 
@@ -52,79 +81,15 @@ You can find additional usage examples [here](https://github.com/anyrun/anyrun-s
 $ pip install anyrun-sdk
 ```
 
-#### Also, you can install the SDK manually using setup.py module
+#### Also, you can install the SDK manually using pyproject.toml
 ```console
 $ git clone git@github.com:anyrun/anyrun-sdk.git
 $ cd anyrun-sdk
 $ python -m pip install .
 ```
 
-
-# Contribution Guide
-
-There are a several conventions you must follow to add source code to the project
-
-#### 1. Clone project repository using one of the following ways
-```console
-$ git clone git@github.com:anyrun/anyrun-sdk.git
-$ git clone https://github.com/anyrun/anyrun-sdk.git
-```
-
-#### 2. Jump into the project directory
-```console
-$ cd anyrun-sdk
-```
-
-#### 4. Create a new local branch
-```console
-$ git checkout -b <branch_title>
-
-Branch title template: feature/public/[TaskShortDescription]
-```
-* **TaskShortDescription** - Feature name. Includes only lower case words separated by dashes
-
-#### 5. Commit your changes
-```console
-$ git add .
-$ git commit -m <commit_title>
-
-Commit title template: [ImpactType]([ImpactScope]): [CommitChanges]
-```
-* **ImpactType** 
-  * feat - To implement a new feature
-  * fix - To fix some bugs
-  * tests - To add some tests
-* **ImpactScope** - The part of the project in free form that is affected by the commit 
-  * general - To add global changes
-  * logs - To add logs changes
-  * and other...
-
-* **CommitChanges** - The main changes. Includes only lower case words separated by spaces. 
-Multiple changes could be written separated by commas
-
-#### 6. Open a new pull request
-
-# Running tests
-
-#### 1. Jump into the project directory
-```console
-$ cd anyrun-sdk
-```
-
-#### 2. Install dev requirements
-```console
-$ python -m pip install -e '.[dev]'
-```
-
-#### 3. Run tests
-```console
-$ pytest tests -x
-$ pytest --cov=anyrun --cov-report=term-missing
-```
-
-# Backward Compatibility
-
-The SDK supports Python 3.9 and higher
+# Contributing
+We welcome contributions! Please see our [Contributing Guide](https://github.com/anyrun/anyrun-sdk/blob/main/CONTRIBUTING.md) for details.
 
 # Useful links
 

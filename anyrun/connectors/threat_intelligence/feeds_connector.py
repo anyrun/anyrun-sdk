@@ -25,7 +25,7 @@ class FeedsConnector(AnyRunConnector):
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
     ) -> None:
         """
-        :param api_key: ANY.RUN Feeds API Key in format: Basic <base64_auth>
+        :param api_key: ANY.RUN API Key in format: Basic <base64_auth>
         :param user_agent: User-Agent header value
         :param trust_env: Trust environment settings for proxy configuration
         :param verify_ssl: Perform SSL certificate validation for HTTPS requests
@@ -58,8 +58,7 @@ class FeedsConnector(AnyRunConnector):
             date_from: Optional[int] = None,
             date_to: Optional[int] = None,
             limit: int = 100,
-            page: int = 1,
-            ssl: bool = False
+            page: int = 1
     ) -> list[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds stix objects according to the specified query parameters
@@ -76,8 +75,7 @@ class FeedsConnector(AnyRunConnector):
         :param date_to: Ending of the time period for receiving IOCs in timestamp format
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
-        :param ssl: Enable/disable ssl verification
-        :return: API response in **stix** format
+        :return: The list of feeds in **stix** format
         """
         return execute_synchronously(
             self.get_stix_async,
@@ -92,8 +90,7 @@ class FeedsConnector(AnyRunConnector):
             date_from,
             date_to,
             limit,
-            page,
-            ssl
+            page
         )
 
     async def get_stix_async(
@@ -109,8 +106,7 @@ class FeedsConnector(AnyRunConnector):
             date_from: Optional[int] = None,
             date_to: Optional[int] = None,
             limit: int = 100,
-            page: int = 1,
-            ssl: bool = False
+            page: int = 1
     ) -> list[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds stix objects according to the specified query parameters
@@ -127,8 +123,7 @@ class FeedsConnector(AnyRunConnector):
         :param date_to: Ending of the time period for receiving IOCs in timestamp format
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
-        :param ssl: Enable/disable ssl verification
-        :return: API response in **stix** format
+        :return: The list of feeds in **stix** format
         """
         url = await self._generate_feeds_url(
             'stix',
@@ -148,7 +143,7 @@ class FeedsConnector(AnyRunConnector):
              }
         )
 
-        response_data = await self.make_request_async('GET', url, ssl=ssl)
+        response_data = await self._make_request_async('GET', url)
         return response_data.get('data').get('objects')
 
 
@@ -163,8 +158,7 @@ class FeedsConnector(AnyRunConnector):
             date_from: Optional[int] = None,
             date_to: Optional[int] = None,
             limit: int = 100,
-            page: int = 1,
-            ssl: bool = False
+            page: int = 1
     ) -> list[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds misp objects according to the specified query parameters
@@ -179,8 +173,7 @@ class FeedsConnector(AnyRunConnector):
         :param date_to: Ending of the time period for receiving IOCs in timestamp format
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
-        :param ssl: Enable/disable ssl verification
-        :return: API response in **misp** format
+        :return: The list of feeds in **misp** format
         """
         return execute_synchronously(
             self.get_misp_async,
@@ -193,8 +186,7 @@ class FeedsConnector(AnyRunConnector):
             date_from,
             date_to,
             limit,
-            page,
-            ssl
+            page
         )
 
     async def get_misp_async(
@@ -208,8 +200,7 @@ class FeedsConnector(AnyRunConnector):
             date_from: Optional[int] = None,
             date_to: Optional[int] = None,
             limit: int = 100,
-            page: int = 1,
-            ssl: bool = False
+            page: int = 1
     ) -> list[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds misp objects according to the specified query parameters
@@ -224,8 +215,7 @@ class FeedsConnector(AnyRunConnector):
         :param date_to: Ending of the time period for receiving IOCs in timestamp format
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
-        :param ssl: Enable/disable ssl verification
-        :return: API response in **misp** format
+        :return: The list of feeds in **misp** format
         """
         url = await self._generate_feeds_url(
             'misp',
@@ -243,7 +233,7 @@ class FeedsConnector(AnyRunConnector):
             }
         )
         
-        response_data = await self.make_request_async('GET', url, ssl=ssl)
+        response_data = await self._make_request_async('GET', url)
         return response_data.get('data')
 
     def get_network_iocs(
@@ -257,8 +247,7 @@ class FeedsConnector(AnyRunConnector):
             date_from: Optional[int] = None,
             date_to: Optional[int] = None,
             limit: int = 100,
-            page: int = 1,
-            ssl: bool = False
+            page: int = 1
     ) -> list[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds network iocs objects according to the specified query parameters
@@ -273,8 +262,7 @@ class FeedsConnector(AnyRunConnector):
         :param date_to: Ending of the time period for receiving IOCs in timestamp format
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
-        :param ssl: Enable/disable ssl verification
-        :return: API response in **network_iocs** format
+        :return: The list of feeds in **network_iocs** format
         """
         return execute_synchronously(
             self.get_network_iocs_async,
@@ -287,8 +275,7 @@ class FeedsConnector(AnyRunConnector):
             date_from,
             date_to,
             limit,
-            page,
-            ssl
+            page
         )
 
     async def get_network_iocs_async(
@@ -302,8 +289,7 @@ class FeedsConnector(AnyRunConnector):
             date_from: Optional[int] = None,
             date_to: Optional[int] = None,
             limit: int = 100,
-            page: int = 1,
-            ssl: bool = False
+            page: int = 1
     ) -> list[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds network iocs objects according to the specified query parameters
@@ -318,8 +304,7 @@ class FeedsConnector(AnyRunConnector):
         :param date_to: Ending of the time period for receiving IOCs in timestamp format
         :param limit: Number of tasks on a page. Default, all IOCs are included
         :param page: Page number. The last page marker is a response with a single **identity** object
-        :param ssl: Enable/disable ssl verification
-        :return: API response in **network_iocs** format
+        :return: The list of feeds in **network_iocs** format
         """
         url = await self._generate_feeds_url(
             'network_iocs',
@@ -337,7 +322,7 @@ class FeedsConnector(AnyRunConnector):
             }
         )
 
-        response_data = await self.make_request_async('GET', url, ssl=ssl)
+        response_data = await self._make_request_async('GET', url)
         return response_data.get('data')
 
     async def _generate_feeds_url(self, feed_format: str, params: dict) -> str:
@@ -360,4 +345,4 @@ class FeedsConnector(AnyRunConnector):
     @staticmethod
     async def _parse_boolean(param: Any) -> Union[str, Any]:
         """ Converts a boolean value to a lowercase string """
-        return  str(param).lower() if str(param) in ("True", "False") else param
+        return str(param).lower() if str(param) in ("True", "False") else param

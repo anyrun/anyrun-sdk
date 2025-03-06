@@ -25,7 +25,7 @@ class LookupConnector(AnyRunConnector):
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
     ) -> None:
         """
-        :param api_key: ANY.RUN Feeds API Key in format: API-KEY <api_key>
+        :param api_key: ANY.RUN API Key in format: API-KEY <api_key>
         :param user_agent: User-Agent header value
         :param trust_env: Trust environment settings for proxy configuration
         :param verify_ssl: Perform SSL certificate validation for HTTPS requests
@@ -92,8 +92,7 @@ class LookupConnector(AnyRunConnector):
             http_request_content_type: Optional[str] = None,
             http_response_content_type: Optional[str] = None,
             http_request_file_type: Optional[str] = None,
-            http_response_file_type: Optional[str] = None,
-            ssl: bool = False
+            http_response_file_type: Optional[str] = None
     ) -> dict:
         """
         Returns Lookup object according to the specified query parameters.
@@ -169,7 +168,6 @@ class LookupConnector(AnyRunConnector):
             "binary"
         :param http_response_file_type: The file type of the file being downloaded in the HTTP response. Example:
             "binary"
-        :param ssl: Enable/disable ssl verification
         :return: API response in **json** format
         """
         return execute_synchronously(
@@ -219,8 +217,7 @@ class LookupConnector(AnyRunConnector):
             http_request_content_type=http_request_content_type,
             http_response_content_type=http_response_content_type,
             http_request_file_type=http_request_file_type,
-            http_response_file_type=http_response_file_type,
-            ssl=ssl,
+            http_response_file_type=http_response_file_type
         )
 
     async def get_intelligence_async(
@@ -270,8 +267,7 @@ class LookupConnector(AnyRunConnector):
             http_request_content_type: Optional[str] = None,
             http_response_content_type: Optional[str] = None,
             http_request_file_type: Optional[str] = None,
-            http_response_file_type: Optional[str] = None,
-            ssl: bool = False,
+            http_response_file_type: Optional[str] = None
     ) -> dict:
         """
         Returns Lookup object according to the specified query parameters.
@@ -338,7 +334,7 @@ class LookupConnector(AnyRunConnector):
         :param sync_object_name: The name or identifier of the synchronization object used. Example: "rmc"
         :param sync_object_type: The type of synchronization object used. Example: "mutex"
         :param sync_object_operation: The operation performed on the synchronization object. Example: "create"
-        :param url: The URL called by the process. Example: "http://192.168.37.128:8880/zv8u"
+        :param url: The URL called by the process. Example: (http/https)://(your-link)
         :param http_request_content_type: The content type of the HTTP request sent to the server. Example:
             "application/json"
         :param http_response_content_type: The content type of the HTTP response received from the server. Example:
@@ -347,7 +343,6 @@ class LookupConnector(AnyRunConnector):
             "binary"
         :param http_response_file_type: The file type of the file being downloaded in the HTTP response. Example:
             "binary"
-        :param ssl: Enable/disable ssl verification
         :return: API response in **json** format
         """
         body = await self._generate_request_body(
@@ -402,7 +397,7 @@ class LookupConnector(AnyRunConnector):
         )
         
         lookup_url = f'{Config.ANY_RUN_API_URL}/intelligence/search'
-        response_data = await self.make_request_async('POST', lookup_url, ssl=ssl, json=body)
+        response_data = await self._make_request_async('POST', lookup_url, json=body)
         return response_data
 
     async def _generate_request_body(

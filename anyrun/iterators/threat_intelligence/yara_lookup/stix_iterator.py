@@ -9,8 +9,7 @@ class StixYaraIterator(BaseIterator):
             self,
             connector: YaraLookupConnector,
             yara_rule: str,
-            chunk_size: int = 1,
-            ssl: bool = False,
+            chunk_size: int = 1
     ) -> None:
         """
         Iterates through the yara search matches. Returns matches in **stix** format
@@ -19,9 +18,8 @@ class StixYaraIterator(BaseIterator):
         :param yara_rule: Valid YARA rule
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         """
-        super().__init__(connector, chunk_size=chunk_size, ssl=ssl)
+        super().__init__(connector, chunk_size=chunk_size)
 
         self._yara_rule = yara_rule
 
@@ -31,5 +29,5 @@ class StixYaraIterator(BaseIterator):
         if self._pages_counter > 1:
             return
 
-        self._buffer = await self._connector.get_yara_async(self._yara_rule, ssl=self._ssl, stix=True)
+        self._buffer = await self._connector.get_yara_async(self._yara_rule, stix=True)
         self._pages_counter += 1

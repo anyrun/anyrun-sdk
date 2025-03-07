@@ -8,8 +8,7 @@ class YaraIterator:
     def stix(
             connector: YaraLookupConnector,
             yara_rule: str,
-            chunk_size: int = 1,
-            ssl: bool = False,
+            chunk_size: int = 1
     ) -> StixYaraIterator:
         """
         Iterates through the yara search matches. Returns matches in **json** format
@@ -18,13 +17,11 @@ class YaraIterator:
         :param yara_rule: Valid YARA rule
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         :return: StixYaraIterator instance
         """
         return StixYaraIterator(
             connector=connector,
             chunk_size=chunk_size,
-            ssl=ssl,
             yara_rule=yara_rule
         )
 
@@ -32,8 +29,7 @@ class YaraIterator:
     def json(
             connector: YaraLookupConnector,
             yara_rule: str,
-            chunk_size: int = 1,
-            ssl: bool = False,
+            chunk_size: int = 1
     ) -> JsonYaraIterator:
         """
         Iterates through the yara search matches. Returns matches in **json** format
@@ -42,11 +38,9 @@ class YaraIterator:
         :param yara_rule: Valid YARA rule
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         """
         return JsonYaraIterator(
             connector=connector,
             chunk_size=chunk_size,
-            ssl=ssl,
             yara_rule=yara_rule
         )

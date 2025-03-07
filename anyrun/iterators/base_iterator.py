@@ -12,8 +12,7 @@ class BaseIterator:
     def __init__(
             self,
             connector: Union[FeedsConnector, YaraLookupConnector],
-            chunk_size: int = 1,
-            ssl: bool = False,
+            chunk_size: int = 1
     ) -> None:
         """
         Iterates through the feeds objects.
@@ -21,11 +20,9 @@ class BaseIterator:
         :param connector: Connector instance
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         """
 
         self._connector = connector
-        self._ssl = ssl
         self._chunk_size = chunk_size
 
         self._buffer: list[Optional[dict]] = []

@@ -10,7 +10,6 @@ class FeedsIterator:
     def stix(
             connector: FeedsConnector,
             chunk_size: int = 1,
-            ssl: bool = False,
             ip: bool = True,
             url: bool = True,
             domain: bool = True,
@@ -29,7 +28,6 @@ class FeedsIterator:
         :param connector: Connector instance
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         :param ip: Enable or disable the IP type from the feed
         :param url: Enable or disable the URL type from the feed
         :param domain: Enable or disable the Domain type from the feed
@@ -46,7 +44,6 @@ class FeedsIterator:
         return StixFeedsIterator(
             connector=connector,
             chunk_size=chunk_size,
-            ssl=ssl,
             ip=ip,
             url=url,
             domain=domain,
@@ -64,7 +61,6 @@ class FeedsIterator:
     def misp(
             connector: FeedsConnector,
             chunk_size: int = 1,
-            ssl: bool = False,
             ip: bool = True,
             url: bool = True,
             domain: bool = True,
@@ -81,7 +77,6 @@ class FeedsIterator:
         :param connector: Connector instance
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         :param ip: Enable or disable the IP type from the feed
         :param url: Enable or disable the URL type from the feed
         :param domain: Enable or disable the Domain type from the feed
@@ -96,7 +91,6 @@ class FeedsIterator:
         return MispFeedsIterator(
             connector=connector,
             chunk_size=chunk_size,
-            ssl=ssl,
             ip=ip,
             url=url,
             domain=domain,
@@ -112,7 +106,6 @@ class FeedsIterator:
     def network_iocs(
             connector: FeedsConnector,
             chunk_size: int = 1,
-            ssl: bool = False,
             ip: bool = True,
             url: bool = True,
             domain: bool = True,
@@ -129,7 +122,6 @@ class FeedsIterator:
         :param connector: Connector instance
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         :param ip: Enable or disable the IP type from the feed
         :param url: Enable or disable the URL type from the feed
         :param domain: Enable or disable the Domain type from the feed
@@ -144,7 +136,6 @@ class FeedsIterator:
         return NetworkIOCsFeedsIterator(
             connector=connector,
             chunk_size=chunk_size,
-            ssl=ssl,
             ip=ip,
             url=url,
             domain=domain,

@@ -10,7 +10,6 @@ class StixFeedsIterator(BaseIterator):
             self,
             connector: FeedsConnector,
             chunk_size: int = 1,
-            ssl: bool = False,
             ip: bool = True,
             url: bool = True,
             domain: bool = True,
@@ -29,7 +28,6 @@ class StixFeedsIterator(BaseIterator):
         :param connector: Connector instance
         :param chunk_size: The number of feed objects to be retrieved each iteration.
             If greater than one, returns the list of objects
-        :param ssl: Enable/disable ssl verification
         :param ip: Enable or disable the IP type from the feed
         :param url: Enable or disable the URL type from the feed
         :param domain: Enable or disable the Domain type from the feed
@@ -42,7 +40,7 @@ class StixFeedsIterator(BaseIterator):
         :param date_to: Ending of the time period for receiving IOCs in timestamp format
         :param limit: Number of tasks on a page. Default, all IOCs are included
         """
-        super().__init__(connector, chunk_size=chunk_size, ssl=ssl)
+        super().__init__(connector, chunk_size=chunk_size)
 
         self._query_params = {
             'ip': ip,
@@ -63,8 +61,7 @@ class StixFeedsIterator(BaseIterator):
         """ Overrides parent method using TI Feeds requests """
         self._buffer = await self._connector.get_stix_async(
             **self._query_params,
-            page=self._pages_counter,
-            ssl=self._ssl
+            page=self._pages_counter
         )
 
         self._pages_counter += 1

@@ -84,7 +84,8 @@ class AnyRunConnector:
                 method,
                 url,
                 json=json,
-                data=data
+                data=data,
+                ssl=self._verify_ssl
             )
         except AttributeError:
             raise RunTimeException(

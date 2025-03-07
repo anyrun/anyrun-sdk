@@ -21,7 +21,7 @@ async def test_generate_multipart_request_body_correctly_saves_file_payload():
 
 
 @pytest.mark.asyncio
-async def test_generate_multipart_request_body_deletes_none_parameters():
+async def test_generate_multipart_request_body_deletes_none_and_false_parameters():
     connector = SandBoxConnector('mock_api_key')
 
     multipart_body = await connector._generate_multipart_request_body(
@@ -42,10 +42,10 @@ async def test_generate_multipart_request_body_deletes_none_parameters():
     )
 
     # Check if obj_ext_cmd parameter is not in payload
-    assert parsed_body_payload == '"obj_ext_extension":False,"obj_type":file'
+    assert parsed_body_payload == '"obj_type":file'
 
 @pytest.mark.asyncio
-async def test_generate_request_body_deletes_none_parameters():
+async def test_generate_request_body_deletes_none_and_false_parameters():
     connector = SandBoxConnector('mock_api_key')
 
     body = await connector._generate_request_body(
@@ -55,7 +55,7 @@ async def test_generate_request_body_deletes_none_parameters():
     )
 
     assert 'obj_ext_cmd' not in body
-    assert 'obj_ext_extension' in body
+    assert 'obj_ext_extension' not in body
 
 
 @pytest.mark.asyncio

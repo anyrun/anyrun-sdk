@@ -294,7 +294,7 @@ class SandBoxConnector(AnyRunConnector):
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> str:
+    ) -> UUID:
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -302,7 +302,7 @@ class SandBoxConnector(AnyRunConnector):
         :param file: File to analyse. Path to file, or bytes object
         :param env_os: Operation System. Supports: **windows, linux**
         :param env_version: Version of OS. Supports: 7, 10, 11 for **windows** and 22.04.2 for **linux**
-        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 32 for **linux**
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 64 for **linux**
         :param env_type: Environment preset type. Supports clean, office, complete for **windows** and
             office for **linux**
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -384,7 +384,7 @@ class SandBoxConnector(AnyRunConnector):
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> str:
+    ) -> UUID:
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -392,7 +392,7 @@ class SandBoxConnector(AnyRunConnector):
         :param file: File to analyse. Path to file, or bytes object
         :param env_os: Operation System. Supports: **windows, linux**
         :param env_version: Version of OS. Supports: 7, 10, 11 for **windows** and 22.04.2 for **linux**
-        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 32 for **linux**
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 64 for **linux**
         :param env_type: Environment preset type. Supports clean, office, complete for **windows** and
             office for **linux**
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -474,7 +474,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_browser: str = 'Microsoft Edge',
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> str:
+    ) -> UUID:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -482,7 +482,7 @@ class SandBoxConnector(AnyRunConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_os: Operation System. Supports: **windows, linux**
         :param env_version: Version of OS. Supports: 7, 10, 11 for **windows** and 22.04.2 for **linux**
-        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 32 for **linux**
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 64 for **linux**
         :param env_type: Environment preset type. Supports clean, office, complete for **windows** and
             office for **linux**
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -553,7 +553,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_browser: str = 'Microsoft Edge',
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> str:
+    ) -> UUID:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -561,7 +561,7 @@ class SandBoxConnector(AnyRunConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_os: Operation System. Supports: **windows, linux**
         :param env_version: Version of OS. Supports: 7, 10, 11 for **windows** and 22.04.2 for **linux**
-        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 32 for **linux**
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 64 for **linux**
         :param env_type: Environment preset type. Supports clean, office, complete for **windows** and
             office for **linux**
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -639,7 +639,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
             task_rerun_uuid: Optional[str] = None
-    ) -> str:
+    ) -> UUID:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -647,7 +647,7 @@ class SandBoxConnector(AnyRunConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_os: Operation System. Supports: **windows, linux**
         :param env_version: Version of OS. Supports: 7, 10, 11 for **windows** and 22.04.2 for **linux**
-        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 32 for **linux**
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 64 for **linux**
         :param env_type: Environment preset type. Supports clean, office, complete for **windows** and
             office for **linux**
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -726,7 +726,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
             task_rerun_uuid: Optional[str] = None
-    ) -> str:
+    ) -> UUID:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -734,7 +734,7 @@ class SandBoxConnector(AnyRunConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_os: Operation System. Supports: **windows, linux**
         :param env_version: Version of OS. Supports: 7, 10, 11 for **windows** and 22.04.2 for **linux**
-        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 32 for **linux**
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for **windows** and 64 for **linux**
         :param env_type: Environment preset type. Supports clean, office, complete for **windows** and
             office for **linux**
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -819,7 +819,7 @@ class SandBoxConnector(AnyRunConnector):
 
         # Prepare analysis settings payload
         for param, value in params.items():
-            if value is not None:
+            if value:
                 part = form_data.append(str(value))
                 part.set_content_disposition('form-data', name=param)
 
@@ -837,7 +837,7 @@ class SandBoxConnector(AnyRunConnector):
         :param params: Dictionary with task settings
         :return: Request payload stored in dictionary
         """
-        request_body = {param: value for param, value in params.items() if value is not None}
+        request_body = {param: value for param, value in params.items() if value}
         return await self._set_task_object_type(request_body, object_type)
 
     async def _prepare_response(self, chunk: bytes, simplify: bool) -> dict:

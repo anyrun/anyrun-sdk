@@ -145,7 +145,7 @@ class AnyRunConnector:
         raise RunTimeException(
             {
                 'status': 'error',
-                'code': response_data.get('code') or HTTPStatus.BAD_REQUEST,
+                'code': status or HTTPStatus.BAD_REQUEST,
                 'description': response_data.get('message')
             }
         )

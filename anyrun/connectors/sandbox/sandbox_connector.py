@@ -91,7 +91,7 @@ class SandBoxConnector(AnyRunConnector):
 
     def get_analysis_report(
             self,
-            task_uuid: UUID,
+            task_uuid: Union[UUID, str],
             simplify: bool = False
     ) -> Optional[dict]:
         """
@@ -105,7 +105,7 @@ class SandBoxConnector(AnyRunConnector):
 
     async def get_analysis_report_async(
             self,
-            task_uuid: UUID,
+            task_uuid: Union[UUID, str],
             simplify: bool = False
     ) -> Optional[dict]:
         """
@@ -123,7 +123,7 @@ class SandBoxConnector(AnyRunConnector):
             return
         return response_data.get('data')
 
-    def add_time_to_task(self, task_uuid: UUID) -> dict:
+    def add_time_to_task(self, task_uuid: Union[UUID, str]) -> dict:
         """
         Adds 60 seconds of execution time to an active task. The task must belong to the current user
 
@@ -132,7 +132,7 @@ class SandBoxConnector(AnyRunConnector):
         """
         return execute_synchronously(self.add_time_to_task_async, task_uuid)
 
-    async def add_time_to_task_async(self, task_uuid: UUID) -> dict:
+    async def add_time_to_task_async(self, task_uuid: Union[UUID, str]) -> dict:
         """
         Adds 60 seconds of execution time to an active task. The task must belong to the current user
 
@@ -142,7 +142,7 @@ class SandBoxConnector(AnyRunConnector):
         url = f'{Config.ANY_RUN_API_URL}/analysis/addtime/{task_uuid}'
         return await self._make_request_async('PATCH', url)
 
-    def stop_task(self, task_uuid: UUID) -> dict:
+    def stop_task(self, task_uuid: Union[UUID, str]) -> dict:
         """
         Stops running task. The task must belong to the current user
 
@@ -151,7 +151,7 @@ class SandBoxConnector(AnyRunConnector):
         """
         return execute_synchronously(self.stop_task_async, task_uuid)
 
-    async def stop_task_async(self, task_uuid: UUID) -> dict:
+    async def stop_task_async(self, task_uuid: Union[UUID, str]) -> dict:
         """
         Stops running task. The task must belong to the current user
 
@@ -161,7 +161,7 @@ class SandBoxConnector(AnyRunConnector):
         url = f'{Config.ANY_RUN_API_URL}/analysis/stop/{task_uuid}'
         return await self._make_request_async('PATCH', url)
 
-    def delete_task(self, task_uuid: UUID) -> dict:
+    def delete_task(self, task_uuid: Union[UUID, str]) -> dict:
         """
         Deletes running task. The task must belong to the current user
 
@@ -170,7 +170,7 @@ class SandBoxConnector(AnyRunConnector):
         """
         return execute_synchronously(self.delete_task_async, task_uuid)
 
-    async def delete_task_async(self, task_uuid: UUID) -> dict:
+    async def delete_task_async(self, task_uuid: Union[UUID, str]) -> dict:
         """
         Deletes running task. The task must belong to the current user
 
@@ -180,7 +180,7 @@ class SandBoxConnector(AnyRunConnector):
         url = f'{Config.ANY_RUN_API_URL}/analysis/delete/{task_uuid}'
         return await self._make_request_async('DELETE', url)
 
-    def get_task_status(self, task_uuid: UUID, simplify: bool = True) -> Iterator[dict]:
+    def get_task_status(self, task_uuid: Union[UUID, str], simplify: bool = True) -> Iterator[dict]:
         """
         Information about the task status is sent to the event stream.
         Returns a synchronous iterator to process the actual status until the task is completed.
@@ -191,7 +191,7 @@ class SandBoxConnector(AnyRunConnector):
         """
         return execute_async_iterator(self.get_task_status_async(task_uuid, simplify))
 
-    async def get_task_status_async(self, task_uuid: UUID, simplify: bool = True) -> AsyncIterator[dict]:
+    async def get_task_status_async(self, task_uuid: Union[UUID, str], simplify: bool = True) -> AsyncIterator[dict]:
         """
         Information about the task status is sent to the event stream.
         Returns an asynchronous iterator to process the actual status until the task is completed.
@@ -294,7 +294,7 @@ class SandBoxConnector(AnyRunConnector):
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> UUID:
+    ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -384,7 +384,7 @@ class SandBoxConnector(AnyRunConnector):
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> UUID:
+    ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -474,7 +474,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_browser: str = 'Microsoft Edge',
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> UUID:
+    ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -498,7 +498,7 @@ class SandBoxConnector(AnyRunConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param task_rerun_uuid: UUID of the task to be restarted.
+        :param task_rerun_uuid: Union[UUID, str] of the task to be restarted.
         :param obj_ext_browser: Browser name. Supports: Google Chrome
             Mozilla Firefox, Internet Explorer, Microsoft Edge for **windows** and Google Chrome, Mozilla Firefox
             for **linux**
@@ -553,7 +553,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_browser: str = 'Microsoft Edge',
             obj_ext_extension: bool = True,
             task_rerun_uuid: Optional[str] = None
-    ) -> UUID:
+    ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -577,7 +577,7 @@ class SandBoxConnector(AnyRunConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param task_rerun_uuid: UUID of the task to be restarted.
+        :param task_rerun_uuid: Union[UUID, str] of the task to be restarted.
         :param obj_ext_browser: Browser name. Supports: Google Chrome
             Mozilla Firefox, Internet Explorer, Microsoft Edge for **windows** and Google Chrome, Mozilla Firefox
             for **linux**
@@ -639,7 +639,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
             task_rerun_uuid: Optional[str] = None
-    ) -> UUID:
+    ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -665,7 +665,7 @@ class SandBoxConnector(AnyRunConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
             root
-        :param task_rerun_uuid: UUID of the task to be restarted.
+        :param task_rerun_uuid: Union[UUID, str] of the task to be restarted.
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
@@ -726,7 +726,7 @@ class SandBoxConnector(AnyRunConnector):
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
             task_rerun_uuid: Optional[str] = None
-    ) -> UUID:
+    ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
@@ -752,7 +752,7 @@ class SandBoxConnector(AnyRunConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
             root
-        :param task_rerun_uuid: UUID of the task to be restarted.
+        :param task_rerun_uuid: Union[UUID, str] of the task to be restarted.
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid

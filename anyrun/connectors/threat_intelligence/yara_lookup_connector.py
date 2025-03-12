@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, Iterator, AsyncIterator
+from typing import Optional, Union, Iterator, AsyncIterator
 
 import aiohttp
 import asyncio
@@ -54,7 +54,7 @@ class YaraLookupConnector(AnyRunConnector):
         """
         return execute_synchronously(self.run_yara_search_async, yara_rule)
 
-    async def run_yara_search_async(self, yara_rule: str) -> UUID:
+    async def run_yara_search_async(self, yara_rule: str) -> Union[UUID, str]:
         """
         Initializes a new search according to the specified YARA rule
 `
@@ -67,7 +67,7 @@ class YaraLookupConnector(AnyRunConnector):
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('queryId')
 
-    def get_search_status(self, search_uuid: UUID, simplify: bool = True) -> Iterator[dict]:
+    def get_search_status(self, search_uuid: Union[UUID, str], simplify: bool = True) -> Iterator[dict]:
         """
         Returns a synchronous iterator to process the actual status until the task is completed.
 
@@ -78,7 +78,7 @@ class YaraLookupConnector(AnyRunConnector):
 
         return execute_async_iterator(self.get_search_status_async(search_uuid, simplify))
 
-    async def get_search_status_async(self, search_uuid: UUID, simplify: bool = True) -> AsyncIterator[dict]:
+    async def get_search_status_async(self, search_uuid: Union[UUID, str], simplify: bool = True) -> AsyncIterator[dict]:
         """
         Returns an asynchronous iterator to process the actual status until the task is completed.
 
@@ -99,7 +99,7 @@ class YaraLookupConnector(AnyRunConnector):
 
             await asyncio.sleep(Config.DEFAULT_WAITING_TIMEOUT_IN_SECONDS)
 
-    def get_search_result(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
+    def get_search_result(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
         """
         Returns a list of YARA search matches
 
@@ -109,7 +109,7 @@ class YaraLookupConnector(AnyRunConnector):
         """
         return execute_synchronously(self.get_search_result_async, search_uuid, simplify)
 
-    async def get_search_result_async(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
+    async def get_search_result_async(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
         """
         Returns a list of YARA search matches
 
@@ -126,7 +126,7 @@ class YaraLookupConnector(AnyRunConnector):
             return
         return matches
 
-    def get_stix_search_result(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
+    def get_stix_search_result(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
         """
         Returns a list of YARA search matches in stix format
 
@@ -136,7 +136,7 @@ class YaraLookupConnector(AnyRunConnector):
         """
         return execute_synchronously(self.get_stix_search_result_async, search_uuid, simplify)
 
-    async def get_stix_search_result_async(self, search_uuid: UUID, simplify: bool = False) -> Optional[list[dict]]:
+    async def get_stix_search_result_async(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
         """
         Returns a list of YARA search matches in stix format
 

@@ -2,7 +2,7 @@
 
 Thanks everyone for contributing to the project. Let's make the SDK better together!  
 If you encounter any problem or want to discuss some improvements of the SDK
-contact us by mail **anyrun-integrations@any.run** or open a new issue or pull request.
+open a new issue or pull request.
 
 ## Code of Conduct
 

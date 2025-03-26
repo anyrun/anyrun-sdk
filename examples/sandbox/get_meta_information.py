@@ -1,10 +1,10 @@
 import os
 
-from anyrun.connectors import SandBoxConnector
+from anyrun.connectors import SandboxConnector
 
 
 def main():
-    with SandBoxConnector(api_key) as connector:
+    with SandboxConnector.windows(api_key) as connector:
         print(connector.get_user_environment())
         print(connector.get_user_limits())
         print(connector.get_user_presets())

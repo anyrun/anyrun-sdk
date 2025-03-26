@@ -1,11 +1,11 @@
 import os
 import asyncio
 
-from anyrun.connectors import SandBoxConnector
+from anyrun.connectors import SandboxConnector
 
 
 async def main():
-    async with SandBoxConnector(api_key) as connector:
+    async with SandboxConnector.ubuntu(api_key) as connector:
         task_id = await connector.run_file_analysis_async('suspicious_file.txt')
         print(f'Analysis successfully initialized. Task uuid: {task_id}')
 

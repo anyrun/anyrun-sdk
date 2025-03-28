@@ -16,8 +16,8 @@ def main():
         time.sleep(10)
 
         for attempt, status in enumerate(connector.get_task_status(task_id), start=1):
-            # You can't add more than 180 seconds
-            if attempt <= 3:
+            # You can't add more than 240 seconds
+            if attempt <= 4:
                 connector.add_time_to_task(task_id)
             print(status)
 

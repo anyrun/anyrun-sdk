@@ -41,7 +41,6 @@ Supports the following feed formats:
   * STIX
   * Network IOCs 
 
-
 # The library public interface overview
 
 ```python

@@ -106,6 +106,7 @@ class BaseSandBoxConnector(AnyRunConnector):
         """
         return execute_synchronously(self.get_analysis_report_async, task_uuid, report_format, filepath)
 
+
     async def get_analysis_report_async(
             self,
             task_uuid: Union[UUID, str],
@@ -440,10 +441,12 @@ class BaseSandBoxConnector(AnyRunConnector):
                 f'{os.path.abspath(filepath)}/{task_uuid}_report_{content_type}.json', json.dumps(content), 'w'
             )
 
+
     @staticmethod
     async def _check_response_content_type(response: aiohttp.ClientResponse) -> None:
         """
         Checks if the response has a **stream-like** content-type
+
 
         :param response: API response
         :raises RunTimeException: If response has a different content-type
@@ -462,6 +465,7 @@ class BaseSandBoxConnector(AnyRunConnector):
                     'status': 'error',
                     'code': response.status,
                     'description': 'An unspecified error occurred while reading the stream'
+
                 }
             )
 
@@ -531,3 +535,4 @@ class BaseSandBoxConnector(AnyRunConnector):
         """
         async with aiofiles.open(filepath, mode) as file:
             await file.write(content)
+

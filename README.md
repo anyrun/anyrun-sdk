@@ -12,27 +12,23 @@ With this library you can interact with the ANY.RUN REST API and automate your w
 
 # Available features
 
-### TI Feeds API  
-  Supports the following feed formats for search:
-  * MISP 
-  * STIX
-  * Network iocs 
-
-### TI Lookup API
-  * Look up URLs and file hashes
-  * Get threat intelligence data
-  * Check indicators of compromise
-
-### TI YARA API
-  * Search for new IOC using YARA rules
-  * Monitor Search progress in real-time
-  * Get detailed analysis results
-
 ### Sandbox API
   * Submit files and URLs for analysis
   * Monitor analysis progress in real-time
   * Get detailed analysis results
   * Manage analysis tasks 
+
+### TI Lookup API
+  * Look up URLs and file hashes
+  * Get threat intelligence data
+  * Check indicators of compromise
+  * Search for new IOC using YARA rules
+
+### TI Feeds API  
+  Supports the following feed formats for search:
+  * MISP 
+  * STIX
+  * Network iocs 
 
 ### Other features
 * Built-in objects iterator
@@ -45,11 +41,11 @@ With this library you can interact with the ANY.RUN REST API and automate your w
 ```python
 import os
 
-from anyrun.connectors import SandBoxConnector
+from anyrun.connectors import SandboxConnector
 
 
 def main():
-    with SandBoxConnector(api_key) as connector:
+    with SandboxConnector.android(api_key) as connector:
         # Initialize the url analysis
         task_id = connector.run_url_analysis('https://any.run')
         print(f'Analysis successfully initialized. Task uuid: {task_id}')

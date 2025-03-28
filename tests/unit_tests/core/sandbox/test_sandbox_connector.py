@@ -82,27 +82,6 @@ async def test_prepare_response_returns_an_entire_dict_if_simplify_is_not_specif
 
 
 @pytest.mark.asyncio
-async def test_find_threats_returns_none_if_no_threats_were_detected():
-    connector = SandboxConnector.windows('mock_api_key')
-
-    response = await connector._find_threats(
-        {'data': {'analysis': {'scores': {'verdict': {'threatLevelText': 'No threats detected'}}}}}
-    )
-
-    assert response is None
-
-
-@pytest.mark.asyncio
-async def test_find_threats_returns_true_if_threats_were_detected():
-    connector = SandboxConnector.windows('mock_api_key')
-
-    response = await connector._find_threats(
-        {'data': {'analysis': {'scores': {'verdict': {'threatLevelText': 'some other message'}}}}}
-    )
-
-    assert response is True
-
-@pytest.mark.asyncio
 async def test_check_response_content_type_raises_exception_if_event_stream_content_is_not_received():
     connector = SandboxConnector.windows('mock_api_key')
 

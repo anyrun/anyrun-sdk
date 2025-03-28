@@ -314,11 +314,23 @@ class BaseSandBoxConnector(AnyRunConnector):
         :param filepath: Path to file
         :return: Network traffic bytes
         """
+        pcap_data = b''
         url = f'{Config.ANY_RUN_CONTENT_URL}/{task_uuid}/download/pcap'
 
         response_data = await self._make_request_async('GET', url, parse_response=False)
 
-        pcap_data = await self._read_content_stream(response_data)
+        while True:
+            # Read the next chunk from the event stream
+            chunk = await response_data.content.readuntil(b'\n')
+            # Skip the end of chunk and any meta information
+            # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
+            if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
+                continue
+            # Stop interation if event stream is closed
+            elif not chunk:
+                break
+
+            pcap_data += chunk
 
         if filepath:
             await self._dump_response_content(pcap_data, filepath, task_uuid, 'binary')

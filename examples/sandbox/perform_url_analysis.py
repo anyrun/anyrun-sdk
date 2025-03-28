@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 
 from anyrun.connectors import SandboxConnector
 
@@ -11,8 +12,8 @@ def main():
         for status in connector.get_task_status(task_id):
             print(status)
 
-        report = connector.get_analysis_report(task_id, simplify=True)
-        print(report if report else 'No threats were found during the analysis')
+        report = connector.get_analysis_report(task_id)
+        pprint(report)
 
         connector.delete_task(task_id)
 

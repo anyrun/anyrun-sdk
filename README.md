@@ -7,34 +7,39 @@
 ______________________________________________________________________
 
 # ANY.RUN SDK
-This is the official Python client library for [ANY.RUN](https://any.run/).  
-With this library you can interact with the ANY.RUN REST API and automate your workflow quickly and efficiently.
+This is the official Python client library for [ANY.RUN](https://any.run/), supporting the cybersecurity solutions like the Interactive Sandbox, TI Lookup, and TI Feeds.  
+With this library you can interact with the ANY.RUN REST API and automate your workflow quickly and efficiently. 
 
 # Available features
 
+* Built-in objects iterator and exception handling 
+* Synchronous and asynchronous interface 
+* Python 3.9-3.13 support 
+
 ### Sandbox API
+ANY.RUN Sandbox is an online interactive sandbox for malware analysis, a tool for detection, monitoring, and research of cyber threats in real time. 
+
   * Submit files and URLs for analysis
   * Monitor analysis progress in real-time
-  * Get detailed analysis results
-  * Manage analysis tasks 
+  * Get detailed reports 
+  * Manage the tasks 
 
-### TI Lookup API
-  * Look up URLs and file hashes
-  * Get threat intelligence data
-  * Check indicators of compromise
-  * Search for new IOC using YARA rules
+### TI Lookup API and YARA Search 
+TI Lookup is a searchable database of IOCs, IOAs, IOBs, and events for threat hunting and a service for browsing malicious files by their content. 
+Perform deep searches, look up threats online, and enrich your security solutions. 
+
+  * Look up URLs and file hashes 
+  * Search for IOCs using YARA rules 
+  * Get threat intelligence data 
+  * Monitor search progress in real time 
+  * Get detailed analysis results 
 
 ### TI Feeds API  
-  Supports the following feed formats for search:
+Threat Intelligence Feeds provide data on the known indicators of compromise: malicious IPs, URLs, domains, files, and ports. 
+Supports the following feed formats: 
   * MISP 
   * STIX
-  * Network iocs 
-
-### Other features
-* Built-in objects iterator
-* Built-in exception handling
-* The same synchronous and asynchronous interface
-* Supports Python 3.9-3.13
+  * Network IOCs 
 
 # The library public interface overview
 
@@ -55,7 +60,7 @@ def main():
             print(status)
         
         # Get report results
-        report = connector.get_analysis_report(task_id, simplify=True)
+        report = connector.get_analysis_report(task_id)
         print(report if report else 'No threats were found during the analysis')
         
         # Remove the task from history
@@ -91,3 +96,8 @@ We welcome contributions! Please see our [Contributing Guide](https://github.com
 
 [TI Lookup query Guide](https://intelligence.any.run/TI_Lookup_Query_Guide_v4.pdf)  
 [ANY.RUN API documentation](https://any.run/api-documentation/#api-Request-Request)
+
+# Contact us 
+
+Support, sales, and trial inquiries – support@any.run  
+Public relations and partnerships – pr@any.run 

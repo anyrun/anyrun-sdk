@@ -1,5 +1,6 @@
 import os
 import asyncio
+from pprint import pprint
 
 from anyrun.connectors import SandboxConnector
 
@@ -12,8 +13,8 @@ async def main():
         async for status in connector.get_task_status_async(task_id):
             print(status)
 
-        report = await connector.get_analysis_report_async(task_id, simplify=True)
-        print(report if report else 'No threats were found during the analysis')
+        report = await connector.get_analysis_report_async(task_id)
+        pprint(report)
 
         await connector.delete_task_async(task_id)
 

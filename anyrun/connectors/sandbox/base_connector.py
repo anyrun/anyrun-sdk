@@ -92,36 +92,55 @@ class BaseSandBoxConnector(AnyRunConnector):
     def get_analysis_report(
             self,
             task_uuid: Union[UUID, str],
-            simplify: bool = False
-    ) -> Optional[dict]:
+            report_format: str = 'summary',
+            filepath: Optional[str] = None
+    ) -> Union[dict, list[dict], str]:
         """
-        Returns a submission analysis report by task ID
+        Returns a submission analysis report by task ID.
+        If **filepath** option is specified, dumps report to the file instead
 
         :param task_uuid: Task uuid
-        :param simplify: Return None if no threats found during analysis
+        :param report_format: Supports summary, html, stix, misp, ioc
+        :param filepath: Path to file
         :return: Complete report in **json** format
         """
-        return execute_synchronously(self.get_analysis_report_async, task_uuid, simplify)
+        return execute_synchronously(self.get_analysis_report_async, task_uuid, report_format, filepath)
+
 
     async def get_analysis_report_async(
             self,
             task_uuid: Union[UUID, str],
-            simplify: bool = False
-    ) -> Optional[dict]:
+            report_format: str = 'summary',
+            filepath: Optional[str] = None
+    ) -> Union[dict, list[dict], str, None]:
         """
-        Returns a submission analysis report by task ID
+        Returns a submission analysis report by task ID.
+        If **filepath** option is specified, dumps report to the file instead
 
         :param task_uuid: Task uuid
-        :param simplify: Return None if no threats has been detected
-        :return: Complete report in **json** format
+        :param report_format: Supports summary, html, stix, misp, ioc
+        :param filepath: Path to file
+        :return: Complete report
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/{task_uuid}'
+        if report_format == 'summary':
+            url = f'{Config.ANY_RUN_API_URL}/analysis/{task_uuid}'
+            response_data = await self._make_request_async('GET', url)
+        elif report_format == 'ioc':
+            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/ioc/json'
+            response_data = await self._make_request_async('GET', url)
+        elif report_format == 'html':
+            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/html'
+            response = await self._make_request_async('GET', url, parse_response=False)
+            response_data = await self._read_content_stream(response)
+        else:
+            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/{report_format}'
+            response_data = await self._make_request_async('GET', url)
 
-        response_data = await self._make_request_async('GET', url)
-
-        if simplify and not await self._find_threats(response_data):
+        if filepath:
+            await self._dump_response_content(response_data, filepath, task_uuid, report_format)
             return
-        return response_data.get('data')
+
+        return response_data
 
     def add_time_to_task(self, task_uuid: Union[UUID, str]) -> dict:
         """
@@ -268,6 +287,58 @@ class BaseSandBoxConnector(AnyRunConnector):
         url = f'{Config.ANY_RUN_API_URL}/user/presets'
         return await self._make_request_async('GET', url)
 
+    def download_pcap(
+            self,
+            task_uuid: Union[UUID, str],
+            filepath: Optional[str] = None
+    ) -> Optional[bytes]:
+        """
+        Returns a dump of network traffic obtained during the analysis.
+        If **filepath** option is specified, dumps traffic to the file instead
+
+        :param task_uuid: Task uuid
+        :param filepath: Path to file
+        :return: Network traffic bytes
+        """
+        return execute_synchronously(self.download_pcap_async, task_uuid, filepath)
+
+    async def download_pcap_async(
+            self,
+            task_uuid: Union[UUID, str],
+            filepath: Optional[str] = None
+    ) -> Optional[bytes]:
+        """
+        Returns a dump of network traffic obtained during the analysis.
+        If **filepath** option is specified, dumps traffic to the file instead
+
+        :param task_uuid: Task uuid
+        :param filepath: Path to file
+        :return: Network traffic bytes
+        """
+        pcap_data = b''
+        url = f'{Config.ANY_RUN_CONTENT_URL}/{task_uuid}/download/pcap'
+
+        response_data = await self._make_request_async('GET', url, parse_response=False)
+
+        while True:
+            # Read the next chunk from the event stream
+            chunk = await response_data.content.readuntil(b'\n')
+            # Skip the end of chunk and any meta information
+            # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
+            if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
+                continue
+            # Stop interation if event stream is closed
+            elif not chunk:
+                break
+
+            pcap_data += chunk
+
+        if filepath:
+            await self._dump_response_content(pcap_data, filepath, task_uuid, 'binary')
+            return
+
+        return pcap_data
+
     async def _generate_multipart_request_body(
             self,
             file: Union[str, BinaryIO],
@@ -333,37 +404,68 @@ class BaseSandBoxConnector(AnyRunConnector):
             }
         return status_data
 
-    @staticmethod
-    async def _find_threats(response_data: dict) -> Optional[bool]:
+    async def _read_content_stream(self, response_data: aiohttp.ClientResponse) -> Union[bytes, dict, str]:
         """
-        Checks whether threats are detected during analysis
+        Receives the first fragment of the stream and decodes it
 
-        :param response_data: Report in **json** format
-        :return: **True** if threats were detected else **None**
+        :param response_data: ClientRepose object
+        :return: Decoded content
         """
-        if (
-            response_data.get('data')
-            .get('analysis')
-            .get('scores')
-            .get('verdict')
-            .get('threatLevelText') != 'No threats detected'
-           ):
-            return True
+        await self._check_response_content_type(response_data)
+
+        chunk = await response_data.content.read()
+        return chunk.decode()
+
+    async def _dump_response_content(
+            self,
+            content: Union[dict, bytes, str],
+            filepath: str,
+            task_uuid: str,
+            content_type: str,
+    ) -> None:
+        """
+        Saves response_data to the file according to content type and filepath
+
+        :param content: Response data
+        :param filepath: File path
+        :param task_uuid: Task UUID
+        :param content_type: Response data content type. Supports binary, html.
+            Any other formats will be recognized as json
+        """
+        if content_type == 'binary':
+            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_traffic', content, 'wb')
+        elif content_type == 'html':
+            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_report.html', content, 'w')
+        else:
+            await self._process_dump(
+                f'{os.path.abspath(filepath)}/{task_uuid}_report_{content_type}.json', json.dumps(content), 'w'
+            )
+
 
     @staticmethod
     async def _check_response_content_type(response: aiohttp.ClientResponse) -> None:
         """
-        Checks if the response has **text/event-stream** content-type
+        Checks if the response has a **stream-like** content-type
+
 
         :param response: API response
         :raises RunTimeException: If response has a different content-type
         """
-        if not response.content_type.startswith('text/event-stream'):
+        if not response.content_type.startswith(('text/event-stream', 'application/octet-stream')):
+            if response.content_type.startswith('application/json'):
+                raise RunTimeException(
+                    {
+                        'status': 'error',
+                        'code': response.status,
+                        'description': (await response.json()).get('message')
+                    }
+                )
             raise RunTimeException(
                 {
                     'status': 'error',
                     'code': response.status,
-                    'description': (await response.json()).get('message')
+                    'description': 'An unspecified error occurred while reading the stream'
+
                 }
             )
 
@@ -419,3 +521,18 @@ class BaseSandBoxConnector(AnyRunConnector):
         else:
             params['obj_type'] = obj_type
         return params
+
+    @staticmethod
+    async def _process_dump(filepath: str, content: Union[dict, bytes, str], mode: str) -> None:
+        """
+        Saves response_data to the file
+
+        :param filepath: File path
+        :param content: Response data content
+        :param mode: Way to interact with a file for aiofiles library.
+            Similar to the build-in open() function mode
+        :return:
+        """
+        async with aiofiles.open(filepath, mode) as file:
+            await file.write(content)
+

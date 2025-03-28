@@ -5,6 +5,8 @@ from anyrun.version import __version__
 
 class Config:
     ANY_RUN_API_URL: str = 'https://api.any.run/v1'
+    ANY_RUN_CONTENT_URL: str = 'https://content.any.run/tasks'
+    ANY_RUN_REPORT_URL: str = 'https://api.any.run/report'
 
     DEFAULT_REQUEST_TIMEOUT_IN_SECONDS: int = 300
     DEFAULT_WAITING_TIMEOUT_IN_SECONDS: int = 3

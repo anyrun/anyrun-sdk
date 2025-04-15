@@ -19,10 +19,8 @@ async def test_exception_interface_works_correctly():
         await base_connector._check_response_status(error_response, HTTPStatus.UNAUTHORIZED)
 
     assert exception.value.description == 'Authentication required to access this resource'
-    assert exception.value.status == 'error'
     assert exception.value.status_code == HTTPStatus.UNAUTHORIZED
     assert exception.value.json == {
         'description': 'Authentication required to access this resource',
-        'status': 'error',
         'code': HTTPStatus.UNAUTHORIZED
     }

@@ -3,7 +3,6 @@ import time
 
 from pprint import pprint
 
-
 from anyrun.connectors import SandboxConnector
 
 
@@ -23,7 +22,6 @@ def main():
 
         report = connector.get_analysis_report(task_id)
         pprint(report)
-
 
         connector.delete_task(task_id)
 

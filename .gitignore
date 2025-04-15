@@ -28,9 +28,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Qradar dev folders and files
-app.zip
-dev/pre_validation_app
+.DS_Store
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

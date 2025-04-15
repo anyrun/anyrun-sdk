@@ -5,7 +5,7 @@ from anyrun.connectors import SandboxConnector
 
 
 def main():
-    with SandboxConnector.android(api_key) as connector:
+    with SandboxConnector.android(api_key, user_agent='HELLO_WORLD!') as connector:
         task_id = connector.run_url_analysis('https://any.run')
         print(f'Analysis successfully initialized. Task uuid: {task_id}')
 

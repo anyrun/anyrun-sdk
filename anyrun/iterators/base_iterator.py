@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional
 from typing_extensions import Self, Union
+from abc import abstractmethod
 
 from anyrun.connectors import FeedsConnector, YaraLookupConnector
 
@@ -49,6 +50,7 @@ class BaseIterator:
 
         return await self._read_buffer()
 
+    @abstractmethod
     async def _read_next_chunk(self) -> None:
         """
         Executes the next request to the specified ANY.RUN endpoint and stores the result in a buffer.

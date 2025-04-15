@@ -3,12 +3,12 @@ from typing import Optional, Union
 
 import aiohttp
 
-from anyrun.connectors.sandbox.base_connector import BaseSandBoxConnector
+from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
 from anyrun.utils.config import Config
 from anyrun.utils.utility_functions import execute_synchronously
 
 
-class AndroidConnector(BaseSandBoxConnector):
+class AndroidConnector(BaseSandboxConnector):
     """
     Provides ANY.RUN TI Yara Lookup endpoints management.
     Uses aiohttp library for the asynchronous calls

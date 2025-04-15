@@ -1,30 +1,29 @@
-from typing import Optional
+from typing import Optional, Union
 
 
 class RunTimeException(Exception):
-    def __init__(self, reason: dict) -> None:
-        self._reason = reason
+    def __init__(self, description: str, code: Optional[Union[str, int]] = None) -> None:
+        self._description = description
+        self._code = code
 
     def __str__(self) -> str:
         return (
             f'[AnyRun Exception] '
-            f'Status: {self._reason.get("status")}. '
-            f'Status code: {int(self._reason.get("code")) if self._reason.get("code") else "unspecified"}. '
-            f'Description: {self._reason.get("description")}'
+            f'Status code: {int(self._code) if self._code else "unspecified"}. '
+            f'Description: {self._description}'
         )
 
     @property
     def json(self) -> dict:
-        return self._reason
-
-    @property
-    def status(self) -> str:
-        return self._reason.get('status')
+        return {
+                'description': self._description,
+                'code': self._code,
+            }
 
     @property
     def status_code(self) -> Optional[str]:
-        return self._reason.get('code')
+        return self._code
 
     @property
     def description(self) -> str:
-        return self._reason.get('description')
+        return self._description

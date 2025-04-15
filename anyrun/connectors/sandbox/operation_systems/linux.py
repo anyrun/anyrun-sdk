@@ -3,12 +3,12 @@ from typing import Optional, Union
 
 import aiohttp
 
-from anyrun.connectors.sandbox.base_connector import BaseSandBoxConnector
+from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
 from anyrun.utils.config import Config
 from anyrun.utils.utility_functions import execute_synchronously
 
 
-class UbuntuConnector(BaseSandBoxConnector):
+class LinuxConnector(BaseSandboxConnector):
     """
     Provides ANY.RUN TI Yara Lookup endpoints management.
     Uses aiohttp library for the asynchronous calls
@@ -49,6 +49,7 @@ class UbuntuConnector(BaseSandBoxConnector):
     def run_file_analysis(
             self,
             file: Union[str, bytes],
+            env_os: str = 'ubuntu',
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -72,6 +73,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param file: File to analyse. Path to file, or bytes object
+        :param env_os: Operation system. 
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -97,6 +99,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         return execute_synchronously(
             self.run_file_analysis_async,
             file=file,
+            env_os=env_os,
             env_locale=env_locale,
             opt_network_connect=opt_network_connect,
             opt_network_fakenet=opt_network_fakenet,
@@ -119,6 +122,7 @@ class UbuntuConnector(BaseSandBoxConnector):
     async def run_file_analysis_async(
             self,
             file: Union[str, bytes],
+            env_os: str = 'ubuntu',
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -142,6 +146,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param file: File to analyse. Path to file, or bytes object
+        :param env_os: Operation system. 
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -199,6 +204,7 @@ class UbuntuConnector(BaseSandBoxConnector):
     def run_url_analysis(
             self,
             obj_url: str,
+            env_os: str = 'ubuntu',
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -220,6 +226,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
+        :param env_os: Operation system. 
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -242,6 +249,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         return execute_synchronously(
             self.run_url_analysis_async,
             obj_url=obj_url,
+            env_os=env_os,
             env_locale=env_locale,
             opt_network_connect=opt_network_connect,
             opt_network_fakenet=opt_network_fakenet,
@@ -262,6 +270,7 @@ class UbuntuConnector(BaseSandBoxConnector):
     async def run_url_analysis_async(
             self,
             obj_url: str,
+            env_os: str = 'ubuntu',
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -283,6 +292,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
+        :param env_os: Operation system. 
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -333,6 +343,7 @@ class UbuntuConnector(BaseSandBoxConnector):
     def run_download_analysis(
             self,
             obj_url: str,
+            env_os: str = 'ubuntu',
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -357,6 +368,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
+        :param env_os: Operation system. 
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -383,6 +395,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         return execute_synchronously(
             self.run_download_analysis_async,
             obj_url=obj_url,
+            env_os=env_os,
             env_locale=env_locale,
             opt_network_connect=opt_network_connect,
             opt_network_fakenet=opt_network_fakenet,
@@ -406,6 +419,7 @@ class UbuntuConnector(BaseSandBoxConnector):
     async def run_download_analysis_async(
             self,
             obj_url: str,
+            env_os: str = 'ubuntu',
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -430,6 +444,7 @@ class UbuntuConnector(BaseSandBoxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
+        :param env_os: Operation system. 
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state

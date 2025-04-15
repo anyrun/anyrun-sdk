@@ -88,12 +88,7 @@ class AnyRunConnector:
                 ssl=self._verify_ssl
             )
         except AttributeError:
-            raise RunTimeException(
-                {
-                    'status': 'error',
-                    'description': 'The connector object must be executed using the context manager'
-                }
-            )
+            raise RunTimeException('The connector object must be executed using the context manager')
 
         if parse_response:
             response_data = await response.json()
@@ -142,13 +137,7 @@ class AnyRunConnector:
         if status in (HTTPStatus.OK, HTTPStatus.CREATED, HTTPStatus.ACCEPTED):
             return response_data
 
-        raise RunTimeException(
-            {
-                'status': 'error',
-                'code': status or HTTPStatus.BAD_REQUEST,
-                'description': response_data.get('message')
-            }
-        )
+        raise RunTimeException(response_data.get('message'), status or HTTPStatus.BAD_REQUEST)
 
     @staticmethod
     def _api_key_validator(api_key: str) -> None:
@@ -159,9 +148,4 @@ class AnyRunConnector:
         :raises RunTimeException: If API key format is not valid
         """
         if not isinstance(api_key, str):
-            raise RunTimeException(
-                {
-                    'status': 'error',
-                    'description': 'The ANY.RUN api key must be a valid string'
-                }
-            )
+            raise RunTimeException('The ANY.RUN api key must be a valid string')

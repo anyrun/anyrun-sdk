@@ -88,7 +88,7 @@ async def test_check_response_content_type_raises_exception_if_event_stream_cont
     with pytest.raises(RunTimeException) as exception:
         await connector._check_response_content_type(MockAiohttpClientResponse('application/json'))
 
-    assert exception.value.json == {'code': 401, 'description': 'Error message', 'status': 'error'}
+    assert exception.value.json == {'description': 'Error message', 'code': 401}
 
 
 @pytest.mark.asyncio

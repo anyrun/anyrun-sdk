@@ -3,10 +3,11 @@ from typing import Optional
 import aiohttp
 
 from anyrun.utils.config import Config
-from anyrun.connectors.sandbox.operation_systems import WindowsConnector, AndroidConnector, UbuntuConnector
+from anyrun.connectors.sandbox.operation_systems import WindowsConnector, AndroidConnector, LinuxConnector
 
 
 class SandboxConnector:
+
     """ Connectors Factory. Creates a concrete connector instance according to the method called """
     @staticmethod
     def windows(
@@ -42,7 +43,7 @@ class SandboxConnector:
         )
 
     @staticmethod
-    def ubuntu(
+    def linux(
             api_key: str,
             user_agent: str = Config.PUBLIC_USER_AGENT,
             trust_env: bool = False,
@@ -51,7 +52,7 @@ class SandboxConnector:
             proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
-    ) -> UbuntuConnector:
+    ) -> LinuxConnector:
         """
         :param api_key: ANY.RUN API Key in format: API-KEY <api_key> or Basic <base64_auth>
         :param user_agent: User-Agent header value
@@ -63,7 +64,7 @@ class SandboxConnector:
         :param timeout: Override the session’s timeout
         """
 
-        return UbuntuConnector(
+        return LinuxConnector(
             api_key=api_key,
             user_agent=user_agent,
             trust_env=trust_env,

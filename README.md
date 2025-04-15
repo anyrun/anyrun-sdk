@@ -7,7 +7,7 @@
 ______________________________________________________________________
 
 # ANY.RUN SDK
-This is the official Python client library for [ANY.RUN](https://any.run/), supporting the cybersecurity solutions like the Interactive Sandbox, TI Lookup, and TI Feeds.  
+This is the official Python client library for [ANY.RUN](https://app.any.run/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=appanyrun), supporting the cybersecurity solutions like the Interactive Sandbox, TI Lookup, and TI Feeds.  
 With this library you can interact with the ANY.RUN REST API and automate your workflow quickly and efficiently. 
 
 # Available features
@@ -17,7 +17,7 @@ With this library you can interact with the ANY.RUN REST API and automate your w
 * Python 3.9-3.13 support 
 
 ### Sandbox API
-ANY.RUN Sandbox is an online interactive sandbox for malware analysis, a tool for detection, monitoring, and research of cyber threats in real time. 
+[ANY.RUN Sandbox](https://app.any.run/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=appanyrun) is an online interactive sandbox for malware analysis, a tool for detection, monitoring, and research of cyber threats in real time. 
 
   * Submit files and URLs for analysis
   * Monitor analysis progress in real-time
@@ -25,7 +25,9 @@ ANY.RUN Sandbox is an online interactive sandbox for malware analysis, a tool fo
   * Manage the tasks 
 
 ### TI Lookup API and YARA Search 
-TI Lookup is a searchable database of IOCs, IOAs, IOBs, and events for threat hunting and a service for browsing malicious files by their content. 
+TI Lookup is a [searchable database](https://intelligence.any.run/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=intelligence-lookup) 
+of IOCs, IOAs, IOBs, and events for threat hunting and a [service](https://intelligence.any.run/analysis/yara/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=intelligence-yara)
+for browsing malicious files by their content. 
 Perform deep searches, look up threats online, and enrich your security solutions. 
 
   * Look up URLs and file hashes 
@@ -35,7 +37,8 @@ Perform deep searches, look up threats online, and enrich your security solution
   * Get detailed analysis results 
 
 ### TI Feeds API  
-Threat Intelligence Feeds provide data on the known indicators of compromise: malicious IPs, URLs, domains, files, and ports. 
+[Threat Intelligence Feeds](https://intelligence.any.run/feeds/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=intelligence-feeds) 
+provide data on the known indicators of compromise: malicious IPs, URLs, domains, files, and ports. 
 Supports the following feed formats: 
   * MISP 
   * STIX
@@ -45,6 +48,7 @@ Supports the following feed formats:
 
 ```python
 import os
+from pprint import pprint
 
 from anyrun.connectors import SandboxConnector
 
@@ -61,7 +65,7 @@ def main():
         
         # Get report results
         report = connector.get_analysis_report(task_id)
-        print(report if report else 'No threats were found during the analysis')
+        pprint(report)
         
         # Remove the task from history
         connector.delete_task(task_id)

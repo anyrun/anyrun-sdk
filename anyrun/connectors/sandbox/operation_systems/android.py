@@ -13,37 +13,36 @@ class AndroidConnector(BaseSandboxConnector):
     Provides ANY.RUN TI Yara Lookup endpoints management.
     Uses aiohttp library for the asynchronous calls
     """
-
     def __init__(
             self,
             api_key: str,
-            user_agent: str = Config.PUBLIC_USER_AGENT,
+            integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: bool = False,
+            verify_ssl: Optional[str] = None,
             proxy: Optional[str] = None,
-            proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
+            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+            enable_requests: bool = False
     ) -> None:
         """
         :param api_key: ANY.RUN API Key in format: API-KEY <api_key> or Basic <base64_auth>
-        :param user_agent: User-Agent header value
+        :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Perform SSL certificate validation for HTTPS requests
-        :param proxy: Proxy url
-        :param proxy_auth: Proxy authorization url
+        :param verify_ssl: Path to SSL certificate
+        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
         :param connector: A custom aiohttp connector
         :param timeout: Override the session’s timeout
+        :param enable_requests: Use requests.request to make api calls. May block the event loop
         """
         super().__init__(
             api_key,
-            user_agent,
+            integration,
             trust_env,
             verify_ssl,
             proxy,
-            proxy_auth,
             connector,
-            timeout
+            timeout,
+            enable_requests
         )
 
     def run_file_analysis(
@@ -61,6 +60,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
             obj_ext_cmd: Optional[str] = None,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -81,6 +81,8 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_cmd: Optional command line.
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -100,7 +102,8 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
             obj_ext_cmd=obj_ext_cmd,
-            task_rerun_uuid=task_rerun_uuid
+            task_rerun_uuid=task_rerun_uuid,
+            user_tag=user_tag
         )
 
     async def run_file_analysis_async(
@@ -118,6 +121,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
             obj_ext_cmd: Optional[str] = None,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -138,6 +142,8 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_cmd: Optional command line.
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -146,7 +152,6 @@ class AndroidConnector(BaseSandboxConnector):
 
         body = await self._generate_multipart_request_body(
             file,
-            file=file,
             env_os='android',
             env_version='14',
             env_bitness='64',
@@ -162,9 +167,10 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
-            obj_ext_startfolder='download',
+            obj_ext_startfolder='downloads',
             obj_ext_cmd=obj_ext_cmd,
-            task_rerun_uuid=task_rerun_uuid
+            task_rerun_uuid=task_rerun_uuid,
+            user_tag=user_tag
         )
 
         response_data = await self._make_request_async('POST', url, data=body)
@@ -185,6 +191,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
             obj_ext_browser: str = 'Google Chrome',
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -205,6 +212,8 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -225,6 +234,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
+            user_tag=user_tag
         )
 
     async def run_url_analysis_async(
@@ -242,6 +252,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
             obj_ext_browser: str = 'Google Chrome',
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -262,6 +273,8 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -288,6 +301,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
+            user_tag=user_tag
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('data').get('taskid')
@@ -309,6 +323,7 @@ class AndroidConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             obj_ext_useragent: Optional[str] = None,
             opt_privacy_hidesource: bool = False,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -330,6 +345,8 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param opt_privacy_hidesource: Option for hiding of source URL.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -352,7 +369,8 @@ class AndroidConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
-            opt_privacy_hidesource=opt_privacy_hidesource
+            opt_privacy_hidesource=opt_privacy_hidesource,
+            user_tag=user_tag
         )
 
     async def run_download_analysis_async(
@@ -372,6 +390,7 @@ class AndroidConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             obj_ext_useragent: Optional[str] = None,
             opt_privacy_hidesource: bool = False,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -394,6 +413,8 @@ class AndroidConnector(BaseSandboxConnector):
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param opt_privacy_hidesource: Option for hiding of source URL.
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -418,11 +439,12 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
-            obj_ext_startfolder='download',
+            obj_ext_startfolder='downloads',
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
-            opt_privacy_hidesource=opt_privacy_hidesource
+            opt_privacy_hidesource=opt_privacy_hidesource,
+            user_tag=user_tag
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

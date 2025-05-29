@@ -1,49 +1,55 @@
 from http import HTTPStatus
 from typing import Optional, Union
 from typing_extensions import Self
+from abc import abstractmethod
 
 import aiohttp
 import asyncio
+import requests
+
+from urllib3 import disable_warnings
+from urllib3.exceptions import InsecureRequestWarning
 
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
 from anyrun.utils.utility_functions import execute_synchronously, get_running_loop
 
+disable_warnings(InsecureRequestWarning)
 
 class AnyRunConnector:
 
     def __init__(
             self,
             api_key: str,
-            user_agent: str = Config.PUBLIC_USER_AGENT,
+            integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: bool = False,
+            verify_ssl: Optional[str] = False,
             proxy: Optional[str] = None,
-            proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+            enable_requests: bool = False
     ) -> None:
         """
         :param api_key: ANY.RUN Feeds API Key in format: Basic <base64_auth>
-        :param user_agent: User-Agent header value
+        :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Perform SSL certificate validation for HTTPS requests
-        :param proxy: Proxy url
-        :param proxy_auth: Proxy authorization url
+        :param verify_ssl: Path to SSL certificate
+        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
         :param connector: A custom aiohttp connector
         :param timeout: Override the session’s timeout
+        :param enable_requests: Use requests.request to make api calls. May block the event loop
         """
         self._proxy = proxy
-        self._proxy_auth = proxy_auth
         self._trust_env = trust_env
         self._connector = connector
         self._timeout = timeout
+        self._enable_requests = enable_requests
         self._verify_ssl = verify_ssl
         self._session: Optional[aiohttp.ClientSession] = None
 
         self._api_key_validator(api_key)
         self._setup_connector()
-        self._setup_headers(api_key, user_agent)
+        self._setup_headers(api_key, integration)
 
     def __enter__(self) -> Self:
         execute_synchronously(self._open_session)
@@ -58,6 +64,26 @@ class AnyRunConnector:
 
     async def __aexit__(self, item_type, value, traceback) -> None:
         await self._close_session()
+
+    def check_proxy(self) -> dict:
+        """
+        Executes test proxy request to google.com
+
+        :returns: Verification status
+        """
+        return execute_synchronously(self.check_proxy_async)
+
+    async def check_proxy_async(self) -> dict:
+        """"
+        Executes test proxy request to google.com
+
+        :returns: Verification status
+        """
+        try:
+            await self._make_request_async('GET', 'https://google.com')
+        except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
+            raise RunTimeException(f'The proxy request failed. Check the proxy settings are correct') from exception
+        return {'status': 'ok', 'description': 'Successful proxy verification'}
 
     async def _make_request_async(
             self,
@@ -80,19 +106,34 @@ class AnyRunConnector:
         :raises RunTimeException: If the connector was executed outside the context manager
         """
         try:
-            response: aiohttp.ClientResponse = await self._session.request(
-                method,
-                url,
-                json=json,
-                data=data,
-                ssl=self._verify_ssl
-            )
+            if self._enable_requests:
+                response: requests.Response = requests.request(
+                    method,
+                    url,
+                    headers=self._headers,
+                    json=json,
+                    params=data,
+                    verify=True if self._verify_ssl else False,
+                    cert=self._verify_ssl,
+                    proxies=self._generate_proxy_config() if self._proxy else None
+                )
+            else:
+                response: aiohttp.ClientResponse = await self._session.request(
+                    method,
+                    url,
+                    json=json,
+                    data=data,
+                    ssl=True if self._verify_ssl else False
+                )
         except AttributeError:
             raise RunTimeException('The connector object must be executed using the context manager')
 
         if parse_response:
-            response_data = await response.json()
-            return await self._check_response_status(response_data, response.status)
+            response_data = response.json() if self._enable_requests else await response.json()
+            return await self._check_response_status(
+                response_data,
+                response.status_code if self._enable_requests else response.status
+            )
         return response
 
     def _setup_connector(self) -> None:
@@ -101,10 +142,11 @@ class AnyRunConnector:
             asyncio.set_event_loop(event_loop)
             self._connector = aiohttp.TCPConnector(ssl=self._verify_ssl, loop=event_loop)
 
-    def _setup_headers(self, api_key: str, user_agent: str) -> None:
+    def _setup_headers(self, api_key: str, integration: str) -> None:
         self._headers = {
             'Authorization': api_key,
-            'User-Agent': f'{user_agent}:{Config.SDK_USER_AGENT}'
+            'x_anyrun_connector': integration,
+            'x_anyrun_sdk': Config.SDK_VERSION
         }
 
     async def _open_session(self) -> None:
@@ -113,7 +155,6 @@ class AnyRunConnector:
                 trust_env=self._trust_env,
                 connector=self._connector,
                 proxy=self._proxy,
-                proxy_auth=self._proxy_auth,
                 timeout=aiohttp.ClientTimeout(total=self._timeout),
                 headers=self._headers
             )
@@ -122,6 +163,49 @@ class AnyRunConnector:
         if self._session:
             await self._session.close()
             self._session = None
+
+    def _generate_proxy_config(self) -> Optional[dict[str, str]]:
+        """
+        Generates proxies dict using received proxy string
+
+        :return: Proxy dict
+        """
+        if self._proxy:
+            if '@' in self._proxy:
+                auth, connection = self._proxy[self._proxy.index('//') + 2:].split('@')
+                user, password = auth.split(':')
+                host, port = connection.split(':')
+
+                return {
+                    'http': f'http://{user}:{password}@{host}:{port}/',
+                    'https': f'https://{user}:{password}@{host}:{port}/'
+                }
+
+            host, port = self._proxy[self._proxy.index('//') + 2:].split(':')
+            return {
+                'http': f'http://{host}:{port}/',
+                'https': f'https://{host}:{port}/'
+            }
+
+    @abstractmethod
+    def check_authorization(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        :return: Verification status
+        """
+        pass
+
+    @abstractmethod
+    async def check_authorization_async(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        :return: Verification status
+        """
+        pass
 
     @staticmethod
     async def _check_response_status(response_data: dict, status: int) -> dict:

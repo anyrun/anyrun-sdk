@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime, timedelta
 
 import aiohttp
 
@@ -16,39 +17,60 @@ class LookupConnector(AnyRunConnector):
     def __init__(
             self,
             api_key: str,
-            user_agent: str = Config.PUBLIC_USER_AGENT,
+            integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: bool = False,
+            verify_ssl: Optional[str] = None,
             proxy: Optional[str] = None,
-            proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
+            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+            enable_requests: bool = False
     ) -> None:
         """
         :param api_key: ANY.RUN API Key in format: API-KEY <api_key>
-        :param user_agent: User-Agent header value
+        :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Perform SSL certificate validation for HTTPS requests
-        :param proxy: Proxy url
-        :param proxy_auth: Proxy authorization url
+        :param verify_ssl: Path to SSL certificate
+        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
         :param connector: A custom aiohttp connector
         :param timeout: Override the session’s timeout
+        :param enable_requests: Use requests.request to make api calls. May block the event loop
         """
         super().__init__(
             api_key,
-            user_agent,
+            integration,
             trust_env,
             verify_ssl,
             proxy,
-            proxy_auth,
             connector,
-            timeout
+            timeout,
+            enable_requests
         )
+
+    def check_authorization(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        return execute_synchronously(self.check_authorization_async)
+
+    async def check_authorization_async(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        url = f"{Config.ANY_RUN_API_URL}/intelligence/keycheck"
+        await self._make_request_async('GET', url)
+        return {'status': 'ok', 'description': 'Successful credential verification'}
 
     def get_intelligence(
             self,
-            start_date: Optional[str] = None,
-            end_date: Optional[str] = None,
+            start_date: Optional[str] = (datetime.now() - timedelta(days=180)).date().strftime('%Y-%m-%d'),
+            end_date: Optional[str] = datetime.now().date().strftime('%Y-%m-%d'),
+            lookup_depth: Optional[int] = None,
             query: Optional[str] = None,
             threat_name: Optional[str] = None,
             threat_level: Optional[str] = None,
@@ -106,6 +128,7 @@ class LookupConnector(AnyRunConnector):
 
         :param start_date: Indicating the beginning of the period for which events is requested. Format: YYYY-MM-DD
         :param end_date: Indicating the end of the period for which events is requested. Format: YYYY-MM-DD
+        :param lookup_depth: Specify the number of days from the current date for which you want to lookup
         :param query: Raw query with necessary filters. Supports condition concatenation with AND, OR, NOT and
             Parentheses ()
         :param threat_name: The name of a particular threat: malware family, threat type, etc., as identified by the
@@ -174,6 +197,7 @@ class LookupConnector(AnyRunConnector):
             self.get_intelligence_async,
             start_date=start_date,
             end_date=end_date,
+            lookup_depth=lookup_depth,
             query=query,
             threat_name=threat_name,
             threat_level=threat_level,
@@ -222,8 +246,9 @@ class LookupConnector(AnyRunConnector):
 
     async def get_intelligence_async(
             self,
-            start_date: Optional[str] = None,
-            end_date: Optional[str] = None,
+            start_date: Optional[str] = (datetime.now() - timedelta(days=180)).date().strftime('%Y-%m-%d'),
+            end_date: Optional[str] = datetime.now().date().strftime('%Y-%m-%d'),
+            lookup_depth: Optional[int] = None,
             query: Optional[str] = None,
             threat_name: Optional[str] = None,
             threat_level: Optional[str] = None,
@@ -281,6 +306,7 @@ class LookupConnector(AnyRunConnector):
 
         :param start_date: Indicating the beginning of the period for which events is requested. Format: YYYY-MM-DD
         :param end_date: Indicating the end of the period for which events is requested. Format: YYYY-MM-DD
+        :param lookup_depth: Specify the number of days from the current date for which you want to lookup
         :param query: Raw query with necessary filters. Supports condition concatenation with AND, OR, NOT and
             Parentheses ()
         :param threat_name: The name of a particular threat: malware family, threat type, etc., as identified by the
@@ -346,7 +372,7 @@ class LookupConnector(AnyRunConnector):
         :return: API response in **json** format
         """
         body = await self._generate_request_body(
-            start_date,
+            (datetime.now() - timedelta(days=lookup_depth)).date().strftime('%Y-%m-%d') if lookup_depth else start_date,
             end_date,
             query,
             {
@@ -395,9 +421,8 @@ class LookupConnector(AnyRunConnector):
                 'httpResponseFileType': http_response_file_type
             }
         )
-        
-        lookup_url = f'{Config.ANY_RUN_API_URL}/intelligence/search'
-        response_data = await self._make_request_async('POST', lookup_url, json=body)
+        url = f'{Config.ANY_RUN_API_URL}/intelligence/search'
+        response_data = await self._make_request_async('POST', url, json=body)
         return response_data
 
     async def _generate_request_body(

@@ -20,7 +20,7 @@ async def test_generate_url_returns_deletes_empty_parameters(query_params_config
 async def test_generate_url_returns_complete_url_if_all_parameters_specified(query_params_config):
     connector = FeedsConnector('mock_api_key')
 
-    assert await connector._generate_feeds_url('misp', query_params_config) == (
+    assert await connector._generate_feeds_url('https://api.any.run/v1/feeds/misp.json?', query_params_config) == (
         'https://api.any.run/v1/feeds/misp.json?'
         'ip=true'
         '&url=true'

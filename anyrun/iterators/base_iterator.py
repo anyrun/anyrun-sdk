@@ -26,7 +26,7 @@ class BaseIterator:
         self._connector = connector
         self._chunk_size = chunk_size
 
-        self._buffer: list[Optional[dict]] = []
+        self._buffer: Union[list[Optional[dict]], dict] = []
         self._pages_counter = 1
 
     def __iter__(self) -> Self:
@@ -46,6 +46,7 @@ class BaseIterator:
             await self._read_next_chunk()
 
         if len(self._buffer) == 0:
+            self._pages_counter = 1
             raise StopAsyncIteration
 
         return await self._read_buffer()

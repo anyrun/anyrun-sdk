@@ -30,7 +30,7 @@ async def test_valid_iteration(query_params_config):
         (await iterator.__anext__())
 
     assert len(iterator._buffer) == 0
-    assert iterator._pages_counter == 3
+    assert iterator._pages_counter == 1
 
 
 @pytest.mark.asyncio

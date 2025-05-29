@@ -2,6 +2,7 @@ from typing import Optional, Union, Any
 
 import aiohttp
 
+from anyrun import RunTimeException
 from anyrun.connectors.base_connector import AnyRunConnector
 
 from anyrun.utils.config import Config
@@ -16,34 +17,138 @@ class FeedsConnector(AnyRunConnector):
     def __init__(
             self,
             api_key: str,
-            user_agent: str = Config.PUBLIC_USER_AGENT,
+            integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: bool = False,
+            verify_ssl: Optional[str] = None,
             proxy: Optional[str] = None,
-            proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
+            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+            enable_requests: bool = False
     ) -> None:
         """
         :param api_key: ANY.RUN API Key in format: Basic <base64_auth>
-        :param user_agent: User-Agent header value
+        :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Perform SSL certificate validation for HTTPS requests
-        :param proxy: Proxy url
-        :param proxy_auth: Proxy authorization url
+        :param verify_ssl: Path to SSL certificate
+        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
         :param connector: A custom aiohttp connector
         :param timeout: Override the session’s timeout
+        :param enable_requests: Use requests.request to make api calls. May block the event loop
         """
         super().__init__(
             api_key,
-            user_agent,
+            integration,
             trust_env,
             verify_ssl,
             proxy,
-            proxy_auth,
             connector,
-            timeout
+            timeout,
+            enable_requests
         )
+
+    def check_authorization(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        return execute_synchronously(self.check_authorization_async)
+
+    async def check_authorization_async(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        await self.get_taxii_stix_async()
+        return {'status': 'ok', 'description': 'Successful credential verification'}
+
+
+    def get_taxii_stix(
+            self,
+            collection: str = 'full',
+            match_type: Optional[str] = None,
+            match_id: Optional[str] = None,
+            match_revoked: bool = False,
+            match_version: str = 'last',
+            get_new_ioc: bool = False,
+            added_after: Optional[str] = None,
+            limit: int = 100,
+            next_page: Optional[str] = None
+    ) -> dict:
+        """
+        Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters
+
+        :param collection: Collection type. Supports: full, ip, url, domain.
+        :param match_type: Filter results based on the STIX object types.
+        :param match_id: IOC identifier.
+        :param match_revoked: Enable or disable receiving revoked feeds in report.
+        :param match_version: Filter STIX objects by their object version.
+        :param get_new_ioc: Receive only updated IOCs since the last request.
+        :param added_after: Receive IOCs after specified date.
+        :param limit: Number of tasks on a page. Default, all IOCs are included.
+        :param next_page: Page identifier.
+        :return: The list of feeds in **stix** format
+        """
+        return execute_synchronously(
+            self.get_taxii_stix_async,
+            collection,
+            match_type,
+            match_id,
+            match_revoked,
+            match_version,
+            get_new_ioc,
+            added_after,
+            limit,
+            next_page
+        )
+
+    async def get_taxii_stix_async(
+            self,
+            collection: str = 'full',
+            match_type: Optional[str] = None,
+            match_id: Optional[str] = None,
+            match_version: str = 'last',
+            match_revoked: bool = False,
+            added_after: Optional[str] = None,
+            modified_after: Optional[str] = None,
+            limit: int = 100,
+            next_page: Optional[str] = None
+    ) -> dict:
+        """
+        Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters
+
+        :param collection: Collection type. Supports: full, ip, url, domain.
+        :param match_type: Filter results based on the STIX object types. You can enter multiple values
+            separated by commas
+        :param match_id: IOC identifier.
+        :param match_version: Filter STIX objects by their object version.
+        :param match_revoked: Enable or disable receiving revoked feeds in report.
+        :param added_after: Receive IOCs after specified date. Example: 2025-04-15.
+        :param modified_after:
+        :param limit: Number of tasks on a page. Default, all IOCs are included.
+        :param next_page: Page identifier.
+        :return: The list of feeds in **stix** format
+        """
+        collection_id = await self._get_collection_id(collection)
+        url = await self._generate_feeds_url(
+            f'{Config.ANY_RUN_API_URL}/feeds/taxii2/api1/collections/{collection_id}/objects/?',
+            {
+                'match[type]': match_type,
+                'match[id]': match_id,
+                'match[version]': match_version,
+                'match[spec_version]': '2.1',
+                'match[revoked]': match_revoked,
+                'added_after': added_after,
+                'modified_after': modified_after,
+                'limit': limit,
+                'next': next_page
+             }
+        )
+        response_data = await self._make_request_async('GET', url)
+        return response_data
 
     def get_stix(
             self,
@@ -61,6 +166,8 @@ class FeedsConnector(AnyRunConnector):
             page: int = 1
     ) -> list[Optional[dict]]:
         """
+        DEPRECATED: please, use get_taxii_stix instead
+
         Returns a list of ANY.RUN Feeds stix objects according to the specified query parameters
 
         :param ip: Enable or disable the IP type from the feed
@@ -109,6 +216,8 @@ class FeedsConnector(AnyRunConnector):
             page: int = 1
     ) -> list[Optional[dict]]:
         """
+        DEPRECATED: please, use get_taxii_stix_async instead
+
         Returns a list of ANY.RUN Feeds stix objects according to the specified query parameters
 
         :param ip: Enable or disable the IP type from the feed
@@ -126,7 +235,7 @@ class FeedsConnector(AnyRunConnector):
         :return: The list of feeds in **stix** format
         """
         url = await self._generate_feeds_url(
-            'stix',
+            f'{Config.ANY_RUN_API_URL}/feeds/stix.json?',
             {
                 'IP': ip,
                 'URL': url,
@@ -218,7 +327,7 @@ class FeedsConnector(AnyRunConnector):
         :return: The list of feeds in **misp** format
         """
         url = await self._generate_feeds_url(
-            'misp',
+            f'{Config.ANY_RUN_API_URL}/feeds/misp.json?',
             {
                 'IP': ip,
                 'URL': url,
@@ -307,7 +416,7 @@ class FeedsConnector(AnyRunConnector):
         :return: The list of feeds in **network_iocs** format
         """
         url = await self._generate_feeds_url(
-            'network_iocs',
+            f'{Config.ANY_RUN_API_URL}/feeds/network_iocs.json?',
             {
                 'IP': ip,
                 'URL': url,
@@ -325,15 +434,14 @@ class FeedsConnector(AnyRunConnector):
         response_data = await self._make_request_async('GET', url)
         return response_data.get('data')
 
-    async def _generate_feeds_url(self, feed_format: str, params: dict) -> str:
+    async def _generate_feeds_url(self, url: str, params: dict) -> str:
         """
         Builds complete request url according to specified parameters
 
-        :param feed_format: Supports: stix, misp, network_iocs
+        :param url: Feeds endpoint url
         :param params: Dictionary with query parameters
         :return: Complete url
         """
-        url = f'{Config.ANY_RUN_API_URL}/feeds/{feed_format}.json?'
         query_params = '&'.join(
             [
                 f'{param}={await self._parse_boolean(value)}'
@@ -346,3 +454,23 @@ class FeedsConnector(AnyRunConnector):
     async def _parse_boolean(param: Any) -> Union[str, Any]:
         """ Converts a boolean value to a lowercase string """
         return str(param).lower() if str(param) in ("True", "False") else param
+
+    @staticmethod
+    async def _get_collection_id(collection_name: str) -> str:
+        """
+        Converts TAXII collection name to collection identifier
+
+        :param collection_name: TAXII collection name
+        :return: TAXII collection identifier
+        :raises RunTimeException: If invalid TAXII collection name is specified
+        """
+        if collection_name == 'full':
+            return Config.TAXII_FULL
+        if collection_name == 'ip':
+            return Config.TAXII_IP
+        if collection_name == 'domain':
+            return Config.TAXII_DOMAIN
+        if collection_name == 'url':
+            return Config.TAXII_URL
+
+        raise RunTimeException('Invalid TAXII collection name. Use: full, ip, domain, url')

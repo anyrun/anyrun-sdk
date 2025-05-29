@@ -16,34 +16,54 @@ class YaraLookupConnector(AnyRunConnector):
     def __init__(
             self,
             api_key: str,
-            user_agent: str = Config.PUBLIC_USER_AGENT,
+            integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: bool = False,
+            verify_ssl: Optional[str] = None,
             proxy: Optional[str] = None,
-            proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
+            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+            enable_requests: bool = False
     ) -> None:
         """
         :param api_key: ANY.RUN API Key in format: API-KEY <api_key>
-        :param user_agent: User-Agent header value
+        :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Perform SSL certificate validation for HTTPS requests
-        :param proxy: Proxy url
-        :param proxy_auth: Proxy authorization url
+        :param verify_ssl: Path to SSL certificate
+        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
         :param connector: A custom aiohttp connector
         :param timeout: Override the session’s timeout
+        :param enable_requests: Use requests.request to make api calls. May block the event loop
         """
         super().__init__(
             api_key,
-            user_agent,
+            integration,
             trust_env,
             verify_ssl,
             proxy,
-            proxy_auth,
             connector,
-            timeout
+            timeout,
+            enable_requests
         )
+
+    def check_authorization(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        return execute_synchronously(self.check_authorization_async)
+
+    async def check_authorization_async(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        url = f"{Config.ANY_RUN_API_URL}/intelligence/keycheck"
+        await self._make_request_async('GET', url)
+        return {'status': 'ok', 'description': 'Successful credential verification'}
 
     def run_yara_search(self, yara_rule: str) -> str:
         """
@@ -197,7 +217,7 @@ class YaraLookupConnector(AnyRunConnector):
 
     @staticmethod
     async def _resolve_task_status(status: Optional[str]) -> Optional[str]:
-        """ Converts status code string representation """
+        """ Converts status code to the string representation """
         if status:
             if status == 'new':
                 return 'PREPARING'

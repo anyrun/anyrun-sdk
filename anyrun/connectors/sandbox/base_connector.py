@@ -21,34 +21,52 @@ class BaseSandboxConnector(AnyRunConnector):
     def __init__(
             self,
             api_key: str,
-            user_agent: str = Config.PUBLIC_USER_AGENT,
+            integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: bool = False,
+            verify_ssl: Optional[str] = None,
             proxy: Optional[str] = None,
-            proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
+            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+            enable_requests: bool = False
     ) -> None:
         """
         :param api_key: ANY.RUN API Key in format: API-KEY <api_key> or Basic <base64_auth>
-        :param user_agent: User-Agent header value
+        :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Perform SSL certificate validation for HTTPS requests
-        :param proxy: Proxy url
-        :param proxy_auth: Proxy authorization url
+        :param verify_ssl: Path to SSL certificate
+        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
         :param connector: A custom aiohttp connector
         :param timeout: Override the session’s timeout
         """
         super().__init__(
             api_key,
-            user_agent,
+            integration,
             trust_env,
             verify_ssl,
             proxy,
-            proxy_auth,
             connector,
-            timeout
+            timeout,
+            enable_requests
         )
+
+    def check_authorization(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        return execute_synchronously(self.check_authorization_async)
+
+    async def check_authorization_async(self) -> dict:
+        """
+        Makes a request to check the validity of the API key.
+        The request does not consume the license
+
+        return: Verification status
+        """
+        await self.get_analysis_history_async()
+        return {'status': 'ok', 'description': 'Successful credential verification'}
 
     def get_analysis_history(
             self,
@@ -183,7 +201,7 @@ class BaseSandboxConnector(AnyRunConnector):
 
     def delete_task(self, task_uuid: Union[UUID, str]) -> dict:
         """
-        Deletes running task. The task must belong to the current user
+        Deletes task from the history. The task must belong to the current user
 
         :param task_uuid: Task uuid
         :return: API response json
@@ -235,7 +253,7 @@ class BaseSandboxConnector(AnyRunConnector):
             elif not chunk:
                 break
             # Decode and yield the next chunk
-            yield await self._prepare_response(chunk, simplify)
+            yield await self._prepare_response(chunk, simplify, task_uuid)
 
     def get_user_environment(self) -> dict:
         """
@@ -269,7 +287,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :return: API response json
         """
         url = f'{Config.ANY_RUN_API_URL}/user'
-        return await self._make_request_async('GET', url)
+        return (await self._make_request_async('GET', url)).get('data').get('limits')
 
     def get_user_presets(self) -> list[dict]:
         """
@@ -397,7 +415,8 @@ class BaseSandboxConnector(AnyRunConnector):
 
         # Prepare file payload
         file_data = await self._get_file_payload(file)
-        filename = f'{os.path.basename(file) if isinstance(file, str) else "sdk_file_analysis"}'
+        integration = self._headers.get('x_anyrun_connector').split(':')[0].lower()
+        filename = f'{os.path.basename(file) if isinstance(file, str) else f"{integration}_file_analysis"}'
         disposition = f'form-data; name="file"; filename="{filename}"'
         file_data.headers["Content-Disposition"] = disposition
         form_data.append_payload(file_data)
@@ -428,7 +447,7 @@ class BaseSandboxConnector(AnyRunConnector):
         request_body = {param: value for param, value in params.items() if value}
         return await self._set_task_object_type(request_body, object_type)
 
-    async def _prepare_response(self, chunk: bytes, simplify: bool) -> dict:
+    async def _prepare_response(self, chunk: bytes, simplify: bool, task_uuid: str) -> dict:
         """
         Deserialize response bytes to dictionary
 
@@ -442,7 +461,8 @@ class BaseSandboxConnector(AnyRunConnector):
         if simplify:
             return {
                 'status': await self._resolve_task_status(status_data.get('task').get('status')),
-                'seconds_remaining': status_data.get('task').get('remaining')
+                'seconds_remaining': status_data.get('task').get('remaining'),
+                'info': f'For interactive analysis follow: https://app.any.run/tasks/{task_uuid}'
             }
         return status_data
 

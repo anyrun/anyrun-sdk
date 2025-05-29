@@ -6,7 +6,7 @@ from anyrun.connectors import LookupConnector
 
 def main():
     with LookupConnector(api_key) as connector:
-        lookup_result = connector.get_intelligence(start_date='2025-01-01', domain_name='1.1.1.1')
+        lookup_result = connector.get_intelligence(domain_name='1.1.1.1', lookup_depth=30)
         pprint(lookup_result)
 
 

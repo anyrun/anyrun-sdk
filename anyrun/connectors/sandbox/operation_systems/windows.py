@@ -16,33 +16,33 @@ class WindowsConnector(BaseSandboxConnector):
     def __init__(
             self,
             api_key: str,
-            user_agent: str = Config.PUBLIC_USER_AGENT,
+            integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: bool = False,
+            verify_ssl: Optional[str] = None,
             proxy: Optional[str] = None,
-            proxy_auth: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS
+            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+            enable_requests: bool = False
     ) -> None:
         """
         :param api_key: ANY.RUN API Key in format: API-KEY <api_key> or Basic <base64_auth>
-        :param user_agent: User-Agent header value
+        :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Perform SSL certificate validation for HTTPS requests
-        :param proxy: Proxy url
-        :param proxy_auth: Proxy authorization url
+        :param verify_ssl: Path to SSL certificate
+        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
         :param connector: A custom aiohttp connector
         :param timeout: Override the session’s timeout
+        :param enable_requests: Use requests.request to make api calls. May block the event loop
         """
         super().__init__(
             api_key,
-            user_agent,
+            integration,
             trust_env,
             verify_ssl,
             proxy,
-            proxy_auth,
             connector,
-            timeout
+            timeout,
+            enable_requests
         )
 
     def run_file_analysis(
@@ -68,6 +68,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_force_elevation: bool = False,
             auto_confirm_uac: bool = True,
             obj_ext_extension: bool = True,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -77,7 +78,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param file: File to analyse. Path to file, or bytes object
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
-        :param env_type: Environment preset type. Supports clean, office, complete
+        :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
+            other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -98,6 +100,8 @@ class WindowsConnector(BaseSandboxConnector):
             (for PE32, PE32+, PE64 files only)
         :param auto_confirm_uac: Auto confirm Windows UAC requests.
         :param obj_ext_extension: Change extension to valid
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -125,7 +129,8 @@ class WindowsConnector(BaseSandboxConnector):
             obj_force_elevation=obj_force_elevation,
             auto_confirm_uac=auto_confirm_uac,
             obj_ext_extension=obj_ext_extension,
-            task_rerun_uuid=task_rerun_uuid
+            task_rerun_uuid=task_rerun_uuid,
+            user_tag=user_tag
         )
 
     async def run_file_analysis_async(
@@ -151,6 +156,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_force_elevation: bool = False,
             auto_confirm_uac: bool = True,
             obj_ext_extension: bool = True,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -160,7 +166,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param file: File to analyse. Path to file, or bytes object
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
-        :param env_type: Environment preset type. Supports clean, office, complete
+        :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
+            other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -181,6 +188,8 @@ class WindowsConnector(BaseSandboxConnector):
             (for PE32, PE32+, PE64 files only)
         :param auto_confirm_uac: Auto confirm Windows UAC requests.
         :param obj_ext_extension: Change extension to valid
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -211,6 +220,7 @@ class WindowsConnector(BaseSandboxConnector):
             auto_confirm_uac=auto_confirm_uac,
             obj_ext_extension=obj_ext_extension,
             task_rerun_uuid=task_rerun_uuid,
+            user_tag=user_tag
         )
 
         response_data = await self._make_request_async('POST', url, data=body)
@@ -234,8 +244,9 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Microsoft Edge',
+            obj_ext_browser: str = 'Google Chrome',
             obj_ext_extension: bool = True,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -245,7 +256,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
-        :param env_type: Environment preset type. Supports clean, office, complete
+        :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
+            other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -259,8 +271,10 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_browser: Browser name. Supports: Google Chrome Mozilla Firefox, Internet Explorer, Microsoft Edge
+        :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox, Internet Explorer, Microsoft Edge
         :param obj_ext_extension: Change extension to valid
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -285,7 +299,8 @@ class WindowsConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
-            obj_ext_extension=obj_ext_extension
+            obj_ext_extension=obj_ext_extension,
+            user_tag=user_tag
         )
 
     async def run_url_analysis_async(
@@ -306,8 +321,9 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Microsoft Edge',
+            obj_ext_browser: str = 'Google Chrome',
             obj_ext_extension: bool = True,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -317,7 +333,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
-        :param env_type: Environment preset type. Supports clean, office, complete
+        :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
+            other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -333,6 +350,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome Mozilla Firefox, Internet Explorer, Microsoft Edge
         :param obj_ext_extension: Change extension to valid
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -360,7 +379,8 @@ class WindowsConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
-            obj_ext_extension=obj_ext_extension
+            obj_ext_extension=obj_ext_extension,
+            user_tag=user_tag
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('data').get('taskid')
@@ -388,6 +408,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -397,7 +418,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
-        :param env_type: Environment preset type. Supports clean, office, complete
+        :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
+            other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -417,6 +439,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -444,7 +468,8 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
-            opt_privacy_hidesource=opt_privacy_hidesource
+            opt_privacy_hidesource=opt_privacy_hidesource,
+            user_tag=user_tag
         )
 
     async def run_download_analysis_async(
@@ -470,6 +495,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
+            user_tag: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -479,7 +505,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
-        :param env_type: Environment preset type. Supports clean, office, complete
+        :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
+            other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -499,6 +526,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
+        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+            are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
@@ -529,7 +558,8 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
-            opt_privacy_hidesource=opt_privacy_hidesource
+            opt_privacy_hidesource=opt_privacy_hidesource,
+            user_tag=user_tag
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

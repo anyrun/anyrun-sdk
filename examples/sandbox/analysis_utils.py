@@ -1,9 +1,9 @@
 import os
 
-from anyrun.connectors import SandboxConnector
+from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
 
 def main():
-    with SandboxConnector.android(api_key) as connector:
+    with BaseSandboxConnector(api_key) as connector:
         # Reports management
         connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.', report_format='stix')
         connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.', report_format='misp')

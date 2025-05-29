@@ -38,10 +38,10 @@ Perform deep searches, look up threats online, and enrich your security solution
 
 ### TI Feeds API  
 [Threat Intelligence Feeds](https://intelligence.any.run/feeds/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=intelligence-feeds) 
-provide data on the known indicators of compromise: malicious IPs, URLs, domains, files, and ports. 
+provide data on the known indicators of compromise: malicious IPs, URLs, Domains
 Supports the following feed formats: 
   * MISP 
-  * STIX
+  * [TAXII](https://oasis-open.github.io/cti-documentation/taxii/intro.html) STIX
   * Network IOCs 
 
 # The library public interface overview

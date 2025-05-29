@@ -65,17 +65,24 @@ async def test_prepare_response_returns_a_valid_simplified_dict_if_simplify_is_s
     response = await connector._prepare_response(
         b'data: {"task": {"status": 50, "remaining": "30.123123"}, "some_other_data": "hello!"}',
         True,
+        'task_uuid'
     )
 
-    assert response == {"status": "RUNNING", "seconds_remaining": "30.123123"}
+    assert response == {
+        "status": "RUNNING",
+        "seconds_remaining": "30.123123",
+        "info": "For interactive analysis follow: https://app.any.run/tasks/task_uuid"
+    }
 
 @pytest.mark.asyncio
 async def test_prepare_response_returns_an_entire_dict_if_simplify_is_not_specified():
     connector = SandboxConnector.windows('mock_api_key')
 
+
     response = await connector._prepare_response(
         b'data: {"task": {"status": 50, "remaining": "30.123123"}, "some_other_data": "hello!"}',
         False,
+        'task_uuid'
     )
 
     assert response == {"task": {"status": 50, "remaining": "30.123123"}, "some_other_data": "hello!"}

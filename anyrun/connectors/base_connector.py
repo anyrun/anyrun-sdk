@@ -23,7 +23,7 @@ class AnyRunConnector:
             api_key: str,
             integration: str = Config.PUBLIC_INTEGRATION,
             trust_env: bool = False,
-            verify_ssl: Optional[str] = False,
+            verify_ssl: Optional[str] = None,
             proxy: Optional[str] = None,
             connector: Optional[aiohttp.BaseConnector] = None,
             timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,

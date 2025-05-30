@@ -73,8 +73,8 @@ class FeedsConnector(AnyRunConnector):
             match_id: Optional[str] = None,
             match_revoked: bool = False,
             match_version: str = 'last',
-            get_new_ioc: bool = False,
             added_after: Optional[str] = None,
+            modified_after: Optional[str] = None,
             limit: int = 100,
             next_page: Optional[str] = None
     ) -> dict:
@@ -86,8 +86,8 @@ class FeedsConnector(AnyRunConnector):
         :param match_id: IOC identifier.
         :param match_revoked: Enable or disable receiving revoked feeds in report.
         :param match_version: Filter STIX objects by their object version.
-        :param get_new_ioc: Receive only updated IOCs since the last request.
         :param added_after: Receive IOCs after specified date.
+        :param modified_after: Receive IOCs after specified date. Example: 2025-04-15.
         :param limit: Number of tasks on a page. Default, all IOCs are included.
         :param next_page: Page identifier.
         :return: The list of feeds in **stix** format
@@ -99,8 +99,8 @@ class FeedsConnector(AnyRunConnector):
             match_id,
             match_revoked,
             match_version,
-            get_new_ioc,
             added_after,
+            modified_after,
             limit,
             next_page
         )
@@ -110,8 +110,8 @@ class FeedsConnector(AnyRunConnector):
             collection: str = 'full',
             match_type: Optional[str] = None,
             match_id: Optional[str] = None,
-            match_version: str = 'last',
             match_revoked: bool = False,
+            match_version: str = 'last',
             added_after: Optional[str] = None,
             modified_after: Optional[str] = None,
             limit: int = 100,
@@ -127,7 +127,7 @@ class FeedsConnector(AnyRunConnector):
         :param match_version: Filter STIX objects by their object version.
         :param match_revoked: Enable or disable receiving revoked feeds in report.
         :param added_after: Receive IOCs after specified date. Example: 2025-04-15.
-        :param modified_after:
+        :param modified_after: Receive IOCs after specified date. Example: 2025-04-15.
         :param limit: Number of tasks on a page. Default, all IOCs are included.
         :param next_page: Page identifier.
         :return: The list of feeds in **stix** format

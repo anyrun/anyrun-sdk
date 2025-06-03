@@ -76,7 +76,8 @@ class FeedsConnector(AnyRunConnector):
             added_after: Optional[str] = None,
             modified_after: Optional[str] = None,
             limit: int = 100,
-            next_page: Optional[str] = None
+            next_page: Optional[str] = None,
+            get_delta: bool = False
     ) -> dict:
         """
         Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters
@@ -90,6 +91,7 @@ class FeedsConnector(AnyRunConnector):
         :param modified_after: Receive IOCs after specified date. Example: 2025-04-15.
         :param limit: Number of tasks on a page. Default, all IOCs are included.
         :param next_page: Page identifier.
+        :param get_delta: Get only indicators modified since the last request. Works starting from the second request
         :return: The list of feeds in **stix** format
         """
         return execute_synchronously(
@@ -102,7 +104,8 @@ class FeedsConnector(AnyRunConnector):
             added_after,
             modified_after,
             limit,
-            next_page
+            next_page,
+            get_delta
         )
 
     async def get_taxii_stix_async(
@@ -115,7 +118,8 @@ class FeedsConnector(AnyRunConnector):
             added_after: Optional[str] = None,
             modified_after: Optional[str] = None,
             limit: int = 100,
-            next_page: Optional[str] = None
+            next_page: Optional[str] = None,
+            get_delta: bool = False
     ) -> dict:
         """
         Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters
@@ -130,9 +134,14 @@ class FeedsConnector(AnyRunConnector):
         :param modified_after: Receive IOCs after specified date. Example: 2025-04-15.
         :param limit: Number of tasks on a page. Default, all IOCs are included.
         :param next_page: Page identifier.
+        :param get_delta: Get only indicators modified since the last request. Works starting from the second request
         :return: The list of feeds in **stix** format
         """
         collection_id = await self._get_collection_id(collection)
+
+        if get_delta and self._taxii_delta_timestamp:
+            modified_after = self._taxii_delta_timestamp
+
         url = await self._generate_feeds_url(
             f'{Config.ANY_RUN_API_URL}/feeds/taxii2/api1/collections/{collection_id}/objects/?',
             {
@@ -147,6 +156,7 @@ class FeedsConnector(AnyRunConnector):
                 'next': next_page
              }
         )
+
         response_data = await self._make_request_async('GET', url)
         return response_data
 

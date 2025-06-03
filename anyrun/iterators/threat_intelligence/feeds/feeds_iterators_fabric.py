@@ -164,10 +164,13 @@ class FeedsIterator:
             added_after: Optional[str] = None,
             modified_after: Optional[str] = None,
             limit: int = 100,
+            get_delta: bool = False
     ) -> TaxiiStixFeedsIterator:
         """
         Iterates through the TAXII stix feeds.
 
+        :param connector: Connector instance
+        :param chunk_size: The number of feed objects to be retrieved each iteration.
         :param collection: Collection type. Supports: full, ip, url, domain.
         :param match_type: Filter results based on the STIX object types. You can enter multiple values
             separated by commas
@@ -175,8 +178,9 @@ class FeedsIterator:
         :param match_version: Filter STIX objects by their object version.
         :param match_revoked: Enable or disable receiving revoked feeds in report.
         :param added_after: Receive IOCs after specified date. Example: 2025-04-15.
-        :param modified_after:
+        :param modified_after: Receive IOCs after specified date. Example: 2025-04-15.
         :param limit: Number of tasks on a page. Default, all IOCs are included.
+        :param get_delta: Get only indicators modified since the last request. Works starting from the second request
         :return: The list of feeds in **stix** format
         """
         return TaxiiStixFeedsIterator(
@@ -189,5 +193,6 @@ class FeedsIterator:
             match_version=match_version,
             modified_after=modified_after,
             added_after=added_after,
-            limit=limit
+            limit=limit,
+            get_delta=get_delta
         )

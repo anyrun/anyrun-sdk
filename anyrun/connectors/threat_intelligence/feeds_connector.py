@@ -119,7 +119,7 @@ class FeedsConnector(AnyRunConnector):
             modified_after: Optional[str] = None,
             limit: int = 100,
             next_page: Optional[str] = None,
-            get_delta: bool = False,
+            get_delta: bool = False
     ) -> dict:
         """
         Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters

@@ -401,25 +401,28 @@ class BaseSandboxConnector(AnyRunConnector):
 
     async def _generate_multipart_request_body(
             self,
-            file: Union[str, BinaryIO],
+            file_content: Optional[bytes] = None,
+            filename: Optional[str] = None,
+            filepath: Optional[str] = None,
             **params,
     ) -> aiohttp.MultipartWriter:
         """
         Generates request body for the **form-data** content type
 
-        :param file: Path to file or bytes
+        :param file_content: File bytes to analyse.
+        :param filename: Filename with file extension.
+        :param filepath: Absolute path to file. If specified, automatically process file content and filename
         :param params: Dictionary with task settings
         :return: Request payload stored in aiohttp MultipartWriter object instance
         """
         form_data = aiohttp.MultipartWriter("form-data")
 
         # Prepare file payload
-        file_data = await self._get_file_payload(file)
-        integration = self._headers.get('x_anyrun_connector').split(':')[0].lower()
-        filename = f'{os.path.basename(file) if isinstance(file, str) else f"{integration}_file_analysis"}'
+        file_content, filename = await self._get_file_payload(file_content, filename, filepath)
+
         disposition = f'form-data; name="file"; filename="{filename}"'
-        file_data.headers["Content-Disposition"] = disposition
-        form_data.append_payload(file_data)
+        file_content.headers["Content-Disposition"] = disposition
+        form_data.append_payload(file_content)
 
         # Choose a task type
         params = await self._set_task_object_type(params, 'file')
@@ -503,22 +506,30 @@ class BaseSandboxConnector(AnyRunConnector):
         return 'PREPARING'
 
     @staticmethod
-    async def _get_file_payload(file: Union[str, bytes]) -> aiohttp.Payload:
+    async def _get_file_payload(
+            file_content: Optional[bytes] = None,
+            filename: Optional[str] = None,
+            filepath: Optional[str] = None,
+    ) -> tuple[aiohttp.Payload, str]:
         """
         Generates file payload from received file content. Tries to open a file if given a file path
 
-        :param file: Path to file or bytes
+        :param file_content: File bytes to analyse.
+        :param filename: Filename with file extension.
+        :param filepath: Absolute path to file. If specified, automatically process file content and filename
         :return: Aiohttp Payload object instance
         :raises RunTimeException: If invalid filepath is received
         """
-        if isinstance(file, bytes):
-            return aiohttp.get_payload(file)
+        if file_content and filename:
+            return aiohttp.get_payload(file_content), filename
+        elif filepath:
+            if not os.path.isfile(filepath):
+                raise RunTimeException(f'Received not valid filepath: {filepath}')
 
-        if not os.path.isfile(file):
-            raise RunTimeException(f'Received not valid filepath: {file}')
-
-        async with aiofiles.open(file, mode='rb') as file:
-            return aiohttp.get_payload(await file.read())
+            async with aiofiles.open(filepath, mode='rb') as file:
+                return aiohttp.get_payload(await file.read()), os.path.basename(filepath)
+        else:
+            raise RunTimeException(f'You must specify file_content with filename or filepath to start analysis')
 
     @staticmethod
     async def _set_task_object_type(

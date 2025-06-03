@@ -47,7 +47,9 @@ class AndroidConnector(BaseSandboxConnector):
 
     def run_file_analysis(
             self,
-            file: Union[str, bytes],
+            file_content: Optional[bytes] = None,
+            filename: Optional[str] = None,
+            filepath: Optional[str] = None,
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -66,8 +68,11 @@ class AndroidConnector(BaseSandboxConnector):
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
+        Options: file_content and filename have higher priority then filepath option
 
-        :param file: File to analyse. Path to file, or bytes object
+        :param file_content: File bytes to analyse.
+        :param filename: Filename with file extension.
+        :param filepath: Absolute path to file. If specified, automatically process file content and filename
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -89,7 +94,9 @@ class AndroidConnector(BaseSandboxConnector):
         """
         return execute_synchronously(
             self.run_file_analysis_async,
-            file=file,
+            file_content=file_content,
+            filename=filename,
+            filepath=filepath,
             env_locale=env_locale,
             opt_network_connect=opt_network_connect,
             opt_network_fakenet=opt_network_fakenet,
@@ -108,7 +115,9 @@ class AndroidConnector(BaseSandboxConnector):
 
     async def run_file_analysis_async(
             self,
-            file: Union[str, bytes],
+            file_content: Optional[bytes] = None,
+            filename: Optional[str] = None,
+            filepath: Optional[str] = None,
             env_locale: str = 'en-US',
             opt_network_connect: bool = True,
             opt_network_fakenet: bool = False,
@@ -127,8 +136,11 @@ class AndroidConnector(BaseSandboxConnector):
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
+        Options: file_content and filename have higher priority then filepath option
 
-        :param file: File to analyse. Path to file, or bytes object
+        :param file_content: File bytes to analyse.
+        :param filename: Filename with file extension.
+        :param filepath: Absolute path to file. If specified, automatically process file content and filename
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -151,7 +163,9 @@ class AndroidConnector(BaseSandboxConnector):
         url = f'{Config.ANY_RUN_API_URL}/analysis'
 
         body = await self._generate_multipart_request_body(
-            file,
+            file_content=file_content,
+            filename=filename,
+            filepath=filepath,
             env_os='android',
             env_version='14',
             env_bitness='64',

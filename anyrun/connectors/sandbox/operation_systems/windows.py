@@ -47,7 +47,9 @@ class WindowsConnector(BaseSandboxConnector):
 
     def run_file_analysis(
             self,
-            file: Union[str, bytes],
+            file_content: Optional[bytes] = None,
+            filename: Optional[str] = None,
+            filepath: Optional[str] = None,
             env_version: str = '10',
             env_bitness: int = 64,
             env_type: str = 'complete',
@@ -74,8 +76,11 @@ class WindowsConnector(BaseSandboxConnector):
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
+        Options: file_content and filename have higher priority then filepath option
 
-        :param file: File to analyse. Path to file, or bytes object
+        :param file_content: File bytes to analyse.
+        :param filename: Filename with file extension.
+        :param filepath: Absolute path to file. If specified, automatically process file content and filename
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
@@ -108,7 +113,9 @@ class WindowsConnector(BaseSandboxConnector):
         """
         return execute_synchronously(
             self.run_file_analysis_async,
-            file=file,
+            file_content=file_content,
+            filename=filename,
+            filepath=filepath,
             env_version=env_version,
             env_bitness=env_bitness,
             env_type=env_type,
@@ -135,7 +142,9 @@ class WindowsConnector(BaseSandboxConnector):
 
     async def run_file_analysis_async(
             self,
-            file: Union[str, bytes],
+            file_content: Optional[bytes] = None,
+            filename: Optional[str] = None,
+            filepath: Optional[str] = None,
             env_version: str = '10',
             env_bitness: int = 64,
             env_type: str = 'complete',
@@ -162,8 +171,11 @@ class WindowsConnector(BaseSandboxConnector):
         """
         Initializes a new file analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
+        Options: file_content and filename have higher priority then filepath option
 
-        :param file: File to analyse. Path to file, or bytes object
+        :param file_content: File bytes to analyse.
+        :param filename: Filename with file extension.
+        :param filepath: Absolute path to file. If specified, automatically process file content and filename
         :param env_version: Version of OS. Supports: 7, 10, 11
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
@@ -197,7 +209,9 @@ class WindowsConnector(BaseSandboxConnector):
         url = f'{Config.ANY_RUN_API_URL}/analysis'
 
         body = await self._generate_multipart_request_body(
-            file,
+            file_content,
+            filename,
+            filepath,
             env_os='windows',
             env_version=env_version,
             env_bitness=env_bitness,

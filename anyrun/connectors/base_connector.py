@@ -51,6 +51,8 @@ class AnyRunConnector:
         self._setup_connector()
         self._setup_headers(api_key, integration)
 
+        self._taxii_delta_timestamp: Optional[str] = None
+
     def __enter__(self) -> Self:
         execute_synchronously(self._open_session)
         return self
@@ -128,6 +130,8 @@ class AnyRunConnector:
         except AttributeError:
             raise RunTimeException('The connector object must be executed using the context manager')
 
+        self._update_taxii_delta_timestamp(response)
+
         if parse_response:
             response_data = response.json() if self._enable_requests else await response.json()
             return await self._check_response_status(
@@ -186,6 +190,16 @@ class AnyRunConnector:
                 'http': f'http://{host}:{port}/',
                 'https': f'https://{host}:{port}/'
             }
+
+    def _update_taxii_delta_timestamp(self, response: Union[aiohttp.ClientResponse, requests.Response]) -> None:
+        """
+        Updates taxii delta timestamp
+
+        :param response: Response content
+        """
+        delta_timestamp = response.headers.get('X-TAXII-Date-Modified-Last')
+        if delta_timestamp:
+            self._taxii_delta_timestamp = delta_timestamp
 
     @abstractmethod
     def check_authorization(self) -> dict:

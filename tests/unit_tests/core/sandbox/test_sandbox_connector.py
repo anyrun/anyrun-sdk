@@ -9,8 +9,21 @@ from tests.conftest import MockAiohttpClientResponse
 async def test_generate_multipart_request_body_correctly_saves_file_payload():
     connector = SandboxConnector.windows('mock_api_key')
 
+    # Use filepath
     multipart_body = await connector._generate_multipart_request_body(
-        'tests/suspicious_file.txt'
+        filepath='tests/suspicious_file.txt'
+    )
+
+    body_iterator = iter(multipart_body)
+
+    payload = next(body_iterator)[0]
+    assert payload.headers.get('Content-Disposition').split('"')[3] == 'suspicious_file.txt'
+    assert payload.decode() == 'malware'
+
+    # Use file_content and filename
+    multipart_body = await connector._generate_multipart_request_body(
+        filename='suspicious_file.txt',
+        file_content=b'malware'
     )
 
     body_iterator = iter(multipart_body)
@@ -25,7 +38,7 @@ async def test_generate_multipart_request_body_deletes_none_and_false_parameters
     connector = SandboxConnector.windows('mock_api_key')
 
     multipart_body = await connector._generate_multipart_request_body(
-        'tests/suspicious_file.txt',
+        filepath='tests/suspicious_file.txt',
         obj_ext_cmd=None,
         obj_ext_extension=False
     )
@@ -117,7 +130,7 @@ async def test_check_resolve_task_status_returns_correct_statuses():
 async def test_check_get_file_payload_returns_valid_payload_if_file_bytes_is_received():
     connector = SandboxConnector.windows('mock_api_key')
 
-    payload = await connector._get_file_payload(b'some text')
+    payload, _ = await connector._get_file_payload(file_content=b'some text', filename='suspicious_file.txt')
 
     assert payload.decode() == 'some text'
 
@@ -125,7 +138,7 @@ async def test_check_get_file_payload_returns_valid_payload_if_file_bytes_is_rec
 async def test_check_get_file_payload_returns_valid_payload_if_file_path_is_received():
     connector = SandboxConnector.windows('mock_api_key')
 
-    payload = await connector._get_file_payload('tests/suspicious_file.txt')
+    payload, _ = await connector._get_file_payload(filepath='tests/suspicious_file.txt')
 
     assert payload.decode() == 'malware'
 
@@ -134,7 +147,7 @@ async def test_check_get_file_payload_raises_exception_if_not_a_valid_file_path_
     connector = SandboxConnector.windows('mock_api_key')
 
     with pytest.raises(RunTimeException) as exception:
-        await connector._get_file_payload(123)
+        await connector._get_file_payload(filepath='123')
 
     assert exception.value.description == 'Received not valid filepath: 123'
 

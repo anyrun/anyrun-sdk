@@ -17,7 +17,8 @@ class TaxiiStixFeedsIterator(BaseIterator):
             match_revoked: bool = False,
             added_after: Optional[str] = None,
             modified_after: Optional[str] = None,
-            limit: int = 100
+            limit: int = 100,
+            get_delta: bool = False
     ) -> None:
         """
         Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters
@@ -29,8 +30,9 @@ class TaxiiStixFeedsIterator(BaseIterator):
         :param match_version: Filter STIX objects by their object version.
         :param match_revoked: Enable or disable receiving revoked feeds in report.
         :param added_after: Receive IOCs after specified date. Example: 2025-04-15.
-        :param modified_after:
+        :param modified_after: Receive IOCs after specified date. Example: 2025-04-15.
         :param limit: Number of tasks on a page. Default, all IOCs are included.
+        :param get_delta: Get only indicators modified since the last request. Works starting from the second request
         :return: The list of feeds in **stix** format
         """
         super().__init__(connector, chunk_size=chunk_size)
@@ -43,7 +45,8 @@ class TaxiiStixFeedsIterator(BaseIterator):
             'match_version': match_version,
             'modified_after': modified_after,
             'added_after': added_after,
-            'limit': limit
+            'limit': limit,
+            'get_delta': get_delta
         }
 
         self._taxii_page_id: Optional[str] = None

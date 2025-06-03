@@ -20,7 +20,7 @@ def main():
             # You can use the match_revoked option to retrieve FalsePositive indicators and remove them from the SIEM
             response = connector.get_taxii_stix(collection='url', match_revoked=True, get_delta=True)
             load_indicators_to_siem(response.get('objects'))
-            time.sleep(timedelta(seconds=5).seconds)
+            time.sleep(timedelta(hours=2).seconds)
 
 
 if __name__ == '__main__':

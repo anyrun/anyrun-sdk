@@ -12,6 +12,7 @@ class Config:
     TAXII_IP: str = '55cda200-e261-5908-b910-f0e18909ef3d'
     TAXII_DOMAIN: str = '2e0aa90a-5526-5a43-84ad-3db6f4549a09'
     TAXII_URL: str = '05bfa343-e79f-57ec-8677-3122ca33d352'
+    TAXII_DATE_FORMAT: str = '%Y-%m-%dT%H:%M:%S.%fZ'
 
     DEFAULT_REQUEST_TIMEOUT_IN_SECONDS: int = 300
     DEFAULT_WAITING_TIMEOUT_IN_SECONDS: int = 3

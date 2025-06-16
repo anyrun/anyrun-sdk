@@ -1,4 +1,5 @@
 from typing import Optional, Union, Any
+from datetime import datetime
 
 import aiohttp
 
@@ -45,6 +46,8 @@ class FeedsConnector(AnyRunConnector):
             timeout,
             enable_requests
         )
+
+        self._taxii_delta_timestamp: datetime = datetime(year=1970, month=1, day=1)
 
     def check_authorization(self) -> dict:
         """
@@ -140,7 +143,7 @@ class FeedsConnector(AnyRunConnector):
         collection_id = await self._get_collection_id(collection)
 
         if get_delta and self._taxii_delta_timestamp:
-            modified_after = self._taxii_delta_timestamp
+            modified_after = self._taxii_delta_timestamp.strftime(Config.TAXII_DATE_FORMAT)
 
         url = await self._generate_feeds_url(
             f'{Config.ANY_RUN_API_URL}/feeds/taxii2/api1/collections/{collection_id}/objects/?',
@@ -158,6 +161,8 @@ class FeedsConnector(AnyRunConnector):
         )
 
         response_data = await self._make_request_async('GET', url)
+        await self._update_taxii_delta_timestamp()
+
         return response_data
 
     def get_stix(
@@ -459,6 +464,16 @@ class FeedsConnector(AnyRunConnector):
             ]
         )
         return url + query_params
+
+    async def _update_taxii_delta_timestamp(self) -> None:
+        """ Updates taxii delta timestamp """
+        delta_timestamp = self._response_headers.get('X-TAXII-Date-Modified-Last')
+
+        if delta_timestamp:
+            delta_timestamp = datetime.strptime(delta_timestamp, Config.TAXII_DATE_FORMAT)
+
+            if (not self._taxii_delta_timestamp) or self._taxii_delta_timestamp < delta_timestamp:
+                self._taxii_delta_timestamp = delta_timestamp
 
     @staticmethod
     async def _parse_boolean(param: Any) -> Union[str, Any]:

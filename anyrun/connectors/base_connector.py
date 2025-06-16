@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Optional, Union
+from typing import Optional, Union, Any
 from typing_extensions import Self
 from abc import abstractmethod
+from traceback import format_exc
 
 import aiohttp
 import asyncio
@@ -51,7 +52,7 @@ class AnyRunConnector:
         self._setup_connector()
         self._setup_headers(api_key, integration)
 
-        self._taxii_delta_timestamp: Optional[str] = None
+        self._response_headers: dict[str, Any] = dict()
 
     def __enter__(self) -> Self:
         execute_synchronously(self._open_session)
@@ -82,7 +83,7 @@ class AnyRunConnector:
         :returns: Verification status
         """
         try:
-            await self._make_request_async('GET', 'https://google.com')
+            await self._make_request_async('GET', 'https://google.com', request_timeout=5)
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
             raise RunTimeException(f'The proxy request failed. Check the proxy settings are correct') from exception
         return {'status': 'ok', 'description': 'Successful proxy verification'}
@@ -93,7 +94,8 @@ class AnyRunConnector:
             url: str,
             json: Optional[dict] = None,
             data: Union[dict, aiohttp.MultipartWriter, None] = None,
-            parse_response: bool = True
+            parse_response: bool = True,
+            request_timeout: Optional[int] = None
     ) -> Union[dict, list[dict], aiohttp.ClientResponse]:
         """
         Provides async interface for making any request
@@ -104,6 +106,7 @@ class AnyRunConnector:
         :param data: Request data
         :param parse_response: Enable/disable API response parsing. If enabled, returns response.json() object dict
             else aiohttp.ClientResponse instance
+        :param request_timeout: HTTP Request timeout
         :return: Api response
         :raises RunTimeException: If the connector was executed outside the context manager
         """
@@ -117,7 +120,8 @@ class AnyRunConnector:
                     params=data,
                     verify=True if self._verify_ssl else False,
                     cert=self._verify_ssl,
-                    proxies=self._generate_proxy_config() if self._proxy else None
+                    proxies=self._generate_proxy_config() if self._proxy else None,
+                    timeout=request_timeout
                 )
             else:
                 response: aiohttp.ClientResponse = await self._session.request(
@@ -125,20 +129,24 @@ class AnyRunConnector:
                     url,
                     json=json,
                     data=data,
-                    ssl=True if self._verify_ssl else False
+                    ssl=True if self._verify_ssl else False,
+                    timeout=request_timeout
                 )
+
+            self._response_headers = response.headers
+
+            if parse_response:
+                response_data = response.json() if self._enable_requests else await response.json()
+                return await self._check_response_status(
+                    response_data,
+                    response.status_code if self._enable_requests else response.status
+                )
+            return response
+
         except AttributeError:
             raise RunTimeException('The connector object must be executed using the context manager')
-
-        self._update_taxii_delta_timestamp(response)
-
-        if parse_response:
-            response_data = response.json() if self._enable_requests else await response.json()
-            return await self._check_response_status(
-                response_data,
-                response.status_code if self._enable_requests else response.status
-            )
-        return response
+        except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
+            raise RunTimeException(f'Connection error: {format_exc(exception)}')
 
     def _setup_connector(self) -> None:
         if not self._connector and self._verify_ssl:
@@ -190,16 +198,6 @@ class AnyRunConnector:
                 'http': f'http://{host}:{port}/',
                 'https': f'https://{host}:{port}/'
             }
-
-    def _update_taxii_delta_timestamp(self, response: Union[aiohttp.ClientResponse, requests.Response]) -> None:
-        """
-        Updates taxii delta timestamp
-
-        :param response: Response content
-        """
-        delta_timestamp = response.headers.get('X-TAXII-Date-Modified-Last')
-        if delta_timestamp:
-            self._taxii_delta_timestamp = delta_timestamp
 
     @abstractmethod
     def check_authorization(self) -> dict:

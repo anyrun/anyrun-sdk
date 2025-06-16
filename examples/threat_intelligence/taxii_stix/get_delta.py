@@ -12,7 +12,7 @@ def load_indicators_to_siem(indicators: list[dict]) -> None:
 def main():
     with FeedsConnector(api_key) as connector:
         # Load all actual feeds since the specified date
-        response = connector.get_taxii_stix(collection='url', modified_after='2025-01-01')
+        response = connector.get_taxii_stix(collection='url', modified_after='2025-01-01', limit=10000)
         load_indicators_to_siem(response.get('objects'))
 
         while True:

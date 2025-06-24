@@ -96,7 +96,7 @@ class AnyRunConnector:
             data: Union[dict, aiohttp.MultipartWriter, None] = None,
             parse_response: bool = True,
             request_timeout: Optional[int] = None
-    ) -> Union[dict, list[dict], aiohttp.ClientResponse]:
+    ) -> Union[dict, list[dict], aiohttp.ClientResponse, requests.Response]:
         """
         Provides async interface for making any request
 

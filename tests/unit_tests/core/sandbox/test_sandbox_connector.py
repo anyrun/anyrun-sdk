@@ -106,7 +106,7 @@ async def test_check_response_content_type_raises_exception_if_event_stream_cont
     connector = SandboxConnector.windows('mock_api_key')
 
     with pytest.raises(RunTimeException) as exception:
-        await connector._check_response_content_type(MockAiohttpClientResponse('application/json'))
+        await connector._check_response_content_type('application/json', MockAiohttpClientResponse('application/json'))
 
     assert exception.value.json == {'description': 'Error message', 'code': 401}
 
@@ -115,7 +115,7 @@ async def test_check_response_content_type_raises_exception_if_event_stream_cont
 async def test_check_response_content_type_returns_none_if_event_stream_content_is_received():
     connector = SandboxConnector.windows('mock_api_key')
 
-    assert await connector._check_response_content_type(MockAiohttpClientResponse('text/event-stream')) is None
+    assert await connector._check_response_content_type('text/event-stream', MockAiohttpClientResponse('text/event-stream')) is None
 
 @pytest.mark.asyncio
 async def test_check_resolve_task_status_returns_correct_statuses():

@@ -18,6 +18,7 @@ def main():
         while True:
             # Load only feeds modified since the last request
             # You can use the match_revoked option to retrieve FalsePositive indicators and remove them from the SIEM
+            print(f'Next fetch from date: {connector.taxii_delta_timestamp}')
             response = connector.get_taxii_stix(collection='url', match_revoked=True, get_delta=True)
             load_indicators_to_siem(response.get('objects'))
             time.sleep(timedelta(hours=2).seconds)

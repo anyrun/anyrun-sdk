@@ -2,10 +2,11 @@ import os
 import json
 from http import HTTPStatus
 from uuid import UUID
-from typing import Optional, Union, BinaryIO, AsyncIterator, Iterator
+from typing import Optional, Union, AsyncIterator, Iterator
 
 import aiohttp
 import aiofiles
+import requests
 
 from anyrun.connectors.base_connector import AnyRunConnector
 from anyrun.utils.config import Config
@@ -238,22 +239,30 @@ class BaseSandboxConnector(AnyRunConnector):
         :param simplify: Returns a simplified dict with the remaining scan time and the current task status
         """
         url = f'{Config.ANY_RUN_API_URL}/analysis/monitor/{task_uuid}'
-        response_data = await self._make_request_async('GET', url, parse_response=False)
 
-        await self._check_response_content_type(response_data)
+        if self._enable_requests:
+            with requests.Session().get(url, headers=self._headers, stream=True) as response:
+                await self._check_response_content_type(response.headers.get('Content-Type'), response)
 
-        while True:
-            # Read the next chunk from the event stream
-            chunk = await response_data.content.readuntil(b'\n')
-            # Skip the end of chunk and any meta information
-            # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
-            if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
-                continue
-            # Stop interation if event stream is closed
-            elif not chunk:
-                break
-            # Decode and yield the next chunk
-            yield await self._prepare_response(chunk, simplify, task_uuid)
+                for chunk in response.iter_lines():
+                    if chunk:
+                        yield await self._prepare_response(chunk, simplify, task_uuid)
+        else:
+            response = await self._make_request_async('GET', url, parse_response=False)
+            await self._check_response_content_type(response.content_type, response)
+
+            while True:
+                # Read the next chunk from the event stream
+                chunk = await response.content.readuntil(b'\n')
+                # Skip the end of chunk and any meta information
+                # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
+                if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
+                    continue
+                # Stop interation if event stream is closed
+                elif not chunk:
+                    break
+                # Decode and yield the next chunk
+                yield await self._prepare_response(chunk, simplify, task_uuid)
 
     def get_user_environment(self) -> dict:
         """
@@ -469,30 +478,44 @@ class BaseSandboxConnector(AnyRunConnector):
             }
         return status_data
 
-    async def _read_content_stream(self, response_data: aiohttp.ClientResponse) -> Union[bytes, dict, str]:
+    async def _read_content_stream(
+            self,
+            response: Union[requests.Response, aiohttp.ClientResponse]
+    ) -> Union[bytes, dict, str]:
         """
         Receives the first fragment of the stream and decodes it
 
-        :param response_data: ClientRepose object
+        :param response: ClientRepose object
         :return: Decoded content
         """
-        await self._check_response_content_type(response_data)
+        if self._enable_requests:
+            await self._check_response_content_type(response.headers.get('Content-Type'), response)
+        else:
+            await self._check_response_content_type(response.content_type, response)
 
-        chunk = await response_data.content.read()
+        if isinstance(response, aiohttp.ClientResponse):
+            chunk = await response.content.read()
+        else:
+            chunk = response.content
         return chunk.decode()
 
-    @staticmethod
-    async def _check_response_content_type(response: aiohttp.ClientResponse) -> None:
+    async def _check_response_content_type(
+        self,
+        content_type: str,
+        response: Union[aiohttp.ClientResponse, requests.Response]) -> None:
         """
         Checks if the response has a **stream-like** content-type
 
         :param response: API response
         :raises RunTimeException: If response has a different content-type
         """
-        if not response.content_type.startswith(('text/event-stream', 'application/octet-stream')):
-            if response.content_type.startswith('application/json'):
-                raise RunTimeException((await response.json()).get('message'), response.status)
-            raise RunTimeException('An unspecified error occurred while reading the stream', response.status)
+
+        if not content_type.startswith(('text/event-stream', 'application/octet-stream')):
+            status = response.status_code if self._enable_requests else response.status
+
+            if content_type.startswith('application/json'):
+                raise RunTimeException(str(response), status)
+            raise RunTimeException('An unspecified error occurred while reading the stream', status)
 
     @staticmethod
     async def _resolve_task_status(status_code: int) -> str:
@@ -582,21 +605,27 @@ class BaseSandboxConnector(AnyRunConnector):
         sample = b''
         response_data = await self._make_request_async('GET', url, parse_response=False)
 
-        while True:
-            # Read the next chunk from the event stream
-            chunk = await response_data.content.readuntil(b'\n')
-            # Skip the end of chunk and any meta information
-            # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
-            if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
-                continue
-            if chunk == b'Not Found' or chunk == b'Content unavailable':
-                raise RunTimeException('The requested file sample was not found', HTTPStatus.NOT_FOUND)
+        if self._enable_requests:
+            with requests.Session().get(url, headers=self._headers, stream=True) as response:
+                for chunk in response.iter_lines():
+                    if chunk:
+                        sample += chunk
+        else:
+            while True:
+                # Read the next chunk from the event stream
+                chunk = await response_data.content.readuntil(b'\n')
+                # Skip the end of chunk and any meta information
+                # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
+                if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
+                    continue
+                if chunk == b'Not Found' or chunk == b'Content unavailable':
+                    raise RunTimeException('The requested file sample was not found', HTTPStatus.NOT_FOUND)
 
-            # Stop interation if event stream is closed
-            elif not chunk:
-                break
+                # Stop interation if event stream is closed
+                elif not chunk:
+                    break
 
-            sample += chunk
+                sample += chunk
 
         if filepath:
             await self._dump_response_content(sample, filepath, task_uuid, content_type)

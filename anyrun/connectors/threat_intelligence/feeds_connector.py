@@ -49,6 +49,11 @@ class FeedsConnector(AnyRunConnector):
 
         self._taxii_delta_timestamp: datetime = datetime(year=1970, month=1, day=1)
 
+    @property
+    def taxii_delta_timestamp(self) -> Optional[str]:
+        if self._taxii_delta_timestamp:
+            return self._taxii_delta_timestamp.strftime(Config.TAXII_DATE_FORMAT)
+
     def check_authorization(self) -> dict:
         """
         Makes a request to check the validity of the API key.
@@ -72,13 +77,13 @@ class FeedsConnector(AnyRunConnector):
     def get_taxii_stix(
             self,
             collection: str = 'full',
-            match_type: Optional[str] = None,
+            match_type: str = 'indicator',
             match_id: Optional[str] = None,
             match_revoked: bool = False,
-            match_version: str = 'last',
+            match_version: str = 'all',
             added_after: Optional[str] = None,
             modified_after: Optional[str] = None,
-            limit: int = 100,
+            limit: int = 10000,
             next_page: Optional[str] = None,
             get_delta: bool = False
     ) -> dict:
@@ -114,13 +119,13 @@ class FeedsConnector(AnyRunConnector):
     async def get_taxii_stix_async(
             self,
             collection: str = 'full',
-            match_type: Optional[str] = None,
+            match_type: str = 'indicator',
             match_id: Optional[str] = None,
             match_revoked: bool = False,
-            match_version: str = 'last',
+            match_version: str = 'all',
             added_after: Optional[str] = None,
             modified_after: Optional[str] = None,
-            limit: int = 100,
+            limit: int = 10000,
             next_page: Optional[str] = None,
             get_delta: bool = False
     ) -> dict:
@@ -142,8 +147,8 @@ class FeedsConnector(AnyRunConnector):
         """
         collection_id = await self._get_collection_id(collection)
 
-        if get_delta and self._taxii_delta_timestamp:
-            modified_after = self._taxii_delta_timestamp.strftime(Config.TAXII_DATE_FORMAT)
+        if get_delta and self.taxii_delta_timestamp:
+            modified_after = self.taxii_delta_timestamp
 
         url = await self._generate_feeds_url(
             f'{Config.ANY_RUN_API_URL}/feeds/taxii2/api1/collections/{collection_id}/objects/?',

@@ -157,8 +157,8 @@ class AnyRunConnector:
     def _setup_headers(self, api_key: str, integration: str) -> None:
         self._headers = {
             'Authorization': api_key,
-            'x_anyrun_connector': integration,
-            'x_anyrun_sdk': Config.SDK_VERSION
+            'x-anyrun-connector': integration,
+            'x-anyrun-sdk': Config.SDK_VERSION
         }
 
     async def _open_session(self) -> None:

@@ -421,7 +421,7 @@ class LookupConnector(AnyRunConnector):
                 'httpResponseFileType': http_response_file_type
             }
         )
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/search'
+        url = f'{Config.ANY_RUN_API_URL}/intelligence/api/search'
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data
 

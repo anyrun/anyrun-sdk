@@ -38,7 +38,7 @@ dev = [
 'Examples' = 'https://github.com/anyrun/anyrun-sdk/tree/legacy/examples'
 
 [build-system]
-requires = ['setuptools >= 59.6']
+requires = ['setuptools==50.3.2']
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools.packages.find]

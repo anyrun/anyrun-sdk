@@ -1,5 +1,4 @@
 from typing import Optional
-from typing_extensions import override
 
 from anyrun.iterators.base_iterator import BaseIterator
 from anyrun.connectors.threat_intelligence.feeds_connector import FeedsConnector
@@ -49,10 +48,9 @@ class TaxiiStixFeedsIterator(BaseIterator):
             'get_delta': get_delta
         }
 
-        self._taxii_page_id: Optional[str] = None
-        self._stop_iteration: bool = False
+        self._taxii_page_id = None
+        self._stop_iteration = False
 
-    @override
     async def _read_next_chunk(self) -> None:
         """ Overrides parent method using TI Feeds requests """
         if self._stop_iteration:

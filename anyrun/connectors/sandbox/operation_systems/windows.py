@@ -206,7 +206,7 @@ class WindowsConnector(BaseSandboxConnector):
             task with new parameters
         :return: Task uuid
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis'
+        url = '{}/analysis'.format(Config.ANY_RUN_API_URL)
 
         body = await self._generate_multipart_request_body(
             file_content,
@@ -370,7 +370,7 @@ class WindowsConnector(BaseSandboxConnector):
             task with new parameters
         :return: Task uuid
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis'
+        url = '{}/analysis'.format(Config.ANY_RUN_API_URL)
 
         body = await self._generate_request_body(
             'url',
@@ -546,7 +546,7 @@ class WindowsConnector(BaseSandboxConnector):
             task with new parameters
         :return: Task uuid
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis'
+        url = '{}/analysis'.format(Config.ANY_RUN_API_URL)
 
         body = await self._generate_request_body(
             'download',

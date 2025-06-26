@@ -27,7 +27,9 @@ async def test_generate_query_returns_valid_query():
     connector = LookupConnector('mock_api_key')
 
     query = await connector._generate_query({'URL': 'https://any.run', 'osBitVersion': '64'})
-    assert 'URL:"https://any.run" AND osBitVersion:"64"' == query
+    
+    assert 'URL:"https://any.run"' in query
+    assert 'osBitVersion:"64"' in query
 
 
 @pytest.mark.asyncio
@@ -49,7 +51,8 @@ async def test_generate_request_body_returns_a_valid_body():
         {'URL': 'https://any.run', 'osBitVersion': '64'}
     )
     assert len(request_body) == 3
-    assert request_body.get('query') == 'URL:"https://any.run" AND osBitVersion:"64"'
+    assert 'URL:"https://any.run"' in request_body.get('query')
+    assert 'osBitVersion:"64"' in request_body.get('query')
     assert request_body.get('startDate') == '2025-01-01'
     assert request_body.get('endDate') == '2025-01-02'
 

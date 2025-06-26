@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -62,7 +62,7 @@ class LookupConnector(AnyRunConnector):
 
         return: Verification status
         """
-        url = f"{Config.ANY_RUN_API_URL}/intelligence/keycheck"
+        url = '{}/intelligence/keycheck'.format(Config.ANY_RUN_API_URL)
         await self._make_request_async('GET', url)
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
@@ -421,7 +421,7 @@ class LookupConnector(AnyRunConnector):
                 'httpResponseFileType': http_response_file_type
             }
         )
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/api/search'
+        url = '{}/intelligence/api/search'.format(Config.ANY_RUN_API_URL)
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data
 
@@ -430,8 +430,8 @@ class LookupConnector(AnyRunConnector):
             start_date: Optional[str],
             end_date: Optional[str],
             query: Optional[str],
-            params: dict[str, str]
-    ) -> dict[str, str]:
+            params: Dict[str, str]
+    ) -> Dict[str, str]:
         """
         Builds complete request body according to specified parameters
 
@@ -446,21 +446,21 @@ class LookupConnector(AnyRunConnector):
         return body
 
     @staticmethod
-    async def _generate_query(params: dict[str, str]) -> str:
+    async def _generate_query(params: Dict[str, str]) -> str:
         """
         Generates filter query using specified parameters
 
         :param params: Dictionary with filter parameters.
         :return: Complete query
         """
-        return ' AND '.join(f'{param}:"{value}"' for param, value in params.items() if value)
+        return ' AND '.join('{}:"{}"'.format(param, value) for param, value in params.items() if value)
 
     @staticmethod
     async def _add_time_ranges(
-            body: dict[str, str],
+            body: Dict[str, str],
             start_date: Optional[str],
             end_date: Optional[str]
-    ) -> dict[str, str]:
+    ) -> Dict[str, str]:
         """
         Checks if time range parameters specified. If specified, appends them to request body
 

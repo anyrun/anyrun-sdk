@@ -1,8 +1,8 @@
 from uuid import UUID
-from typing import Optional, Union, Iterator, AsyncIterator
+from typing import Optional, Union, Iterator, List
 
 import aiohttp
-import asyncio
+import time
 
 from anyrun.connectors.base_connector import AnyRunConnector
 from anyrun.utils.config import Config
@@ -61,7 +61,7 @@ class YaraLookupConnector(AnyRunConnector):
 
         return: Verification status
         """
-        url = f"{Config.ANY_RUN_API_URL}/intelligence/keycheck"
+        url = '{}/intelligence/keycheck'.format(Config.ANY_RUN_API_URL)
         await self._make_request_async('GET', url)
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
@@ -81,7 +81,7 @@ class YaraLookupConnector(AnyRunConnector):
         :param yara_rule: Valid YARA rule
         :return: Search ID
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search'
+        url = '{}/intelligence/yara-lookup/search'.format(Config.ANY_RUN_API_URL)
         body = {'query': yara_rule}
 
         response_data = await self._make_request_async('POST', url, json=body)
@@ -96,9 +96,9 @@ class YaraLookupConnector(AnyRunConnector):
         :return: Number of matches
         """
 
-        return execute_async_iterator(self.get_search_status_async(search_uuid, simplify))
+        return execute_synchronously(self.get_search_status_async, search_uuid, simplify)
 
-    async def get_search_status_async(self, search_uuid: Union[UUID, str], simplify: bool = True) -> AsyncIterator[dict]:
+    def get_search_status_async(self, search_uuid: Union[UUID, str], simplify: bool = True) -> Iterator[dict]:
         """
         Returns an asynchronous iterator to process the actual status until the task is completed.
 
@@ -106,20 +106,20 @@ class YaraLookupConnector(AnyRunConnector):
         :param simplify: Returns a simplified dict with the current search status
         :return: Number of matches
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/count'
+        url = '{}/intelligence/yara-lookup/search/{}/count'.format(Config.ANY_RUN_API_URL, search_uuid)
 
         while True:
-            response_data = await self._make_request_async('GET', url)
+            response_data = execute_synchronously(self._make_request_async, 'GET', url)
 
             if response_data.get('searchInfo').get('status') == 'done':
-                yield await self._prepare_response(response_data, simplify)
+                yield execute_synchronously(self._prepare_response, response_data, simplify)
                 break
             else:
-                yield await self._prepare_response(response_data, simplify)
+                yield execute_synchronously(self._prepare_response, response_data, simplify)
 
-            await asyncio.sleep(Config.DEFAULT_WAITING_TIMEOUT_IN_SECONDS)
+            time.sleep(Config.DEFAULT_WAITING_TIMEOUT_IN_SECONDS)
 
-    def get_search_result(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
+    def get_search_result(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[List[dict]]:
         """
         Returns a list of YARA search matches
 
@@ -129,7 +129,7 @@ class YaraLookupConnector(AnyRunConnector):
         """
         return execute_synchronously(self.get_search_result_async, search_uuid, simplify)
 
-    async def get_search_result_async(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
+    async def get_search_result_async(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[List[dict]]:
         """
         Returns a list of YARA search matches
 
@@ -137,16 +137,16 @@ class YaraLookupConnector(AnyRunConnector):
         :param simplify: Return None if no threats has been detected
         :return: API response in specified format. Returns an empty list if no matches are found
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}'
+        url = '{}/intelligence/yara-lookup/search/{}'.format(Config.ANY_RUN_API_URL, search_uuid)
 
-        response_data = await self._make_request_async('GET', url)
+        response_data = execute_synchronously(self._make_request_async, 'GET', url)
         matches = response_data.get('matches')
 
         if simplify and not matches:
             return
         return matches
 
-    def get_stix_search_result(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
+    def get_stix_search_result(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[List[dict]]:
         """
         Returns a list of YARA search matches in stix format
 
@@ -156,7 +156,7 @@ class YaraLookupConnector(AnyRunConnector):
         """
         return execute_synchronously(self.get_stix_search_result_async, search_uuid, simplify)
 
-    async def get_stix_search_result_async(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
+    async def get_stix_search_result_async(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[List[dict]]:
         """
         Returns a list of YARA search matches in stix format
 
@@ -164,7 +164,7 @@ class YaraLookupConnector(AnyRunConnector):
         :param simplify: Returns None if no threats has been detected
         :return: API response in specified format. Returns an empty list if no matches are found
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/download/stix'
+        url = '{}/intelligence/yara-lookup/search/{}/download/stix'.format(Config.ANY_RUN_API_URL, search_uuid)
 
         response_data = await self._make_request_async('GET', url)
         objects = response_data.get('data').get('objects')
@@ -173,7 +173,7 @@ class YaraLookupConnector(AnyRunConnector):
             return
         return objects
 
-    def get_yara(self, yara_rule: str, stix: bool = False) -> list[Optional[dict]]:
+    def get_yara(self, yara_rule: str, stix: bool = False) -> List[Optional[dict]]:
         """
         Automate YARA search methods management. Returns a complete list of YARA search matches
 
@@ -183,7 +183,7 @@ class YaraLookupConnector(AnyRunConnector):
         """
         return execute_synchronously(self.get_yara_async, yara_rule, stix)
 
-    async def get_yara_async(self, yara_rule: str, stix: bool = False) -> list[Optional[dict]]:
+    async def get_yara_async(self, yara_rule: str, stix: bool = False) -> List[Optional[dict]]:
         """
         Automate YARA search methods management. Returns a complete list of YARA search matches
 

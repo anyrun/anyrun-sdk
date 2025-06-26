@@ -1,6 +1,5 @@
 import asyncio
-from typing import Optional
-from typing_extensions import Self, Union
+from typing import Optional, Union, List
 from abc import abstractmethod
 
 from anyrun.connectors import FeedsConnector, YaraLookupConnector
@@ -26,22 +25,22 @@ class BaseIterator:
         self._connector = connector
         self._chunk_size = chunk_size
 
-        self._buffer: Union[list[Optional[dict]], dict] = []
+        self._buffer = []
         self._pages_counter = 1
 
-    def __iter__(self) -> Self:
+    def __iter__(self):
         return self
 
-    def __next__(self) -> Union[list[Optional[dict]], dict]:
+    def __next__(self) -> Union[List[Optional[dict]], dict]:
         try:
             return execute_synchronously(self.__anext__)
         except StopAsyncIteration as exception:
             raise StopIteration from exception
 
-    def __aiter__(self) -> Self:
+    def __aiter__(self):
         return self
 
-    async def __anext__(self) -> Union[list[Optional[dict]], dict]:
+    async def __anext__(self) -> Union[List[Optional[dict]], dict]:
         if len(self._buffer) == 0:
             await self._read_next_chunk()
 
@@ -59,7 +58,7 @@ class BaseIterator:
         """
         pass
 
-    async def _read_buffer(self) -> Union[list[Optional[dict]], dict]:
+    async def _read_buffer(self) -> Union[List[Optional[dict]], dict]:
         """
         Returns the next feeds chunk. Returns a single feed if chunk size is equal one.
         Uses asyncio.Lock() to securely use the list

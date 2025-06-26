@@ -18,7 +18,7 @@ async def test_generate_multipart_request_body_correctly_saves_file_payload():
 
     payload = next(body_iterator)[0]
     assert payload.headers.get('Content-Disposition').split('"')[3] == 'suspicious_file.txt'
-    assert payload.decode() == 'malware'
+    assert payload._value.decode() == 'malware'
 
     # Use file_content and filename
     multipart_body = await connector._generate_multipart_request_body(
@@ -30,7 +30,7 @@ async def test_generate_multipart_request_body_correctly_saves_file_payload():
 
     payload = next(body_iterator)[0]
     assert payload.headers.get('Content-Disposition').split('"')[3] == 'suspicious_file.txt'
-    assert payload.decode() == 'malware'
+    assert payload._value.decode() == 'malware'
 
 
 @pytest.mark.asyncio
@@ -49,7 +49,7 @@ async def test_generate_multipart_request_body_deletes_none_and_false_parameters
 
     parsed_body_payload = ','.join(
         [
-            f'{payload[0].headers.get("Content-Disposition").split("=")[1]}:{payload[0].decode()}'
+            '{}:{}'.format(payload[0].headers.get('Content-Disposition').split('=')[1], payload[0]._value.decode())
             for payload in body_iterator
         ]
     )
@@ -132,7 +132,7 @@ async def test_check_get_file_payload_returns_valid_payload_if_file_bytes_is_rec
 
     payload, _ = await connector._get_file_payload(file_content=b'some text', filename='suspicious_file.txt')
 
-    assert payload.decode() == 'some text'
+    assert payload._value.decode() == 'some text'
 
 @pytest.mark.asyncio
 async def test_check_get_file_payload_returns_valid_payload_if_file_path_is_received():
@@ -140,7 +140,7 @@ async def test_check_get_file_payload_returns_valid_payload_if_file_path_is_rece
 
     payload, _ = await connector._get_file_payload(filepath='tests/suspicious_file.txt')
 
-    assert payload.decode() == 'malware'
+    assert payload._value.decode() == 'malware'
 
 @pytest.mark.asyncio
 async def test_check_get_file_payload_raises_exception_if_not_a_valid_file_path_is_received():

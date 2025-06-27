@@ -186,14 +186,14 @@ class AnyRunConnector:
                 host, port = connection.split(':')
 
                 return {
-                    'http': 'http://' + user + ':' + password + '@' + host + ':' + port + '/',
-                    'https': 'https://' + user + ':' + password + '@' + host + ':' + port + '/'
+                    'http': 'http://{}:{}@{}:{}'.format(user, password, host, port),
+                    'https': 'https://{}:{}@{}:{}'.format(user, password, host, port)
                 }
 
             host, port = self._proxy[self._proxy.index('//') + 2:].split(':')
             return {
-                'http': 'http://' + host + ':' + port + '/',
-                'https': 'https://' + host + ':' + port + '/'
+                'http': 'http://{}:{}'.format(host, port),
+                'https': 'https://{}:{}'.format(host, port)
             }
 
     @abstractmethod

@@ -8,9 +8,9 @@ class RunTimeException(Exception):
 
     def __str__(self) -> str:
         return (
-            f'[AnyRun Exception] '
-            f'Status code: {int(self._code) if self._code else "unspecified"}. '
-            f'Description: {self._description}'
+            '[AnyRun Exception] '
+            'Status code: {}. '.format(int(self._code) if self._code else "unspecified") +
+            'Description: {}.'.format(self._description)
         )
 
     @property

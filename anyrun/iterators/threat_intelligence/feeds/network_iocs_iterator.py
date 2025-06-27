@@ -1,5 +1,4 @@
 from typing import Optional
-from typing_extensions import override
 
 from anyrun.iterators.base_iterator import BaseIterator
 from anyrun.connectors.threat_intelligence.feeds_connector import FeedsConnector
@@ -50,7 +49,6 @@ class NetworkIOCsFeedsIterator(BaseIterator):
             'limit': limit
         }
 
-    @override
     async def _read_next_chunk(self) -> None:
         """ Overrides parent method using TI Feeds requests """
         self._buffer = await self._connector.get_network_iocs_async(

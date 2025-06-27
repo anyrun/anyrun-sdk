@@ -1,8 +1,6 @@
 from http import HTTPStatus
-from typing import Optional, Union, Any
-from typing_extensions import Self
+from typing import Optional, Union, Dict, List
 from abc import abstractmethod
-from traceback import format_exc
 
 import aiohttp
 import asyncio
@@ -46,22 +44,22 @@ class AnyRunConnector:
         self._timeout = timeout
         self._enable_requests = enable_requests
         self._verify_ssl = verify_ssl
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session = None
 
         self._api_key_validator(api_key)
         self._setup_connector()
         self._setup_headers(api_key, integration)
 
-        self._response_headers: dict[str, Any] = dict()
+        self._response_headers = dict()
 
-    def __enter__(self) -> Self:
+    def __enter__(self):
         execute_synchronously(self._open_session)
         return self
 
     def __exit__(self, item_type, value, traceback) -> None:
         execute_synchronously(self._close_session)
 
-    async def __aenter__(self) -> Self:
+    async def __aenter__(self):
         await self._open_session()
         return self
 
@@ -85,7 +83,7 @@ class AnyRunConnector:
         try:
             await self._make_request_async('GET', 'https://google.com', request_timeout=5)
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
-            raise RunTimeException(f'The proxy request failed. Check the proxy settings are correct') from exception
+            raise RunTimeException('The proxy request failed. Check the proxy settings are correct') from exception
         return {'status': 'ok', 'description': 'Successful proxy verification'}
 
     async def _make_request_async(
@@ -96,7 +94,7 @@ class AnyRunConnector:
             data: Union[dict, aiohttp.MultipartWriter, None] = None,
             parse_response: bool = True,
             request_timeout: Optional[int] = None
-    ) -> Union[dict, list[dict], aiohttp.ClientResponse, requests.Response]:
+    ) -> Union[dict, List[dict], aiohttp.ClientResponse, requests.Response]:
         """
         Provides async interface for making any request
 
@@ -112,7 +110,7 @@ class AnyRunConnector:
         """
         try:
             if self._enable_requests:
-                response: requests.Response = requests.request(
+                response = requests.request(
                     method,
                     url,
                     headers=self._headers,
@@ -124,7 +122,7 @@ class AnyRunConnector:
                     timeout=request_timeout
                 )
             else:
-                response: aiohttp.ClientResponse = await self._session.request(
+                response = await self._session.request(
                     method,
                     url,
                     json=json,
@@ -146,7 +144,7 @@ class AnyRunConnector:
         except AttributeError:
             raise RunTimeException('The connector object must be executed using the context manager')
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
-            raise RunTimeException(f'Connection error: {format_exc(exception)}')
+            raise RunTimeException('Connection error: {}'.format(exception))
 
     def _setup_connector(self) -> None:
         if not self._connector and self._verify_ssl:
@@ -166,7 +164,6 @@ class AnyRunConnector:
             self._session = aiohttp.ClientSession(
                 trust_env=self._trust_env,
                 connector=self._connector,
-                proxy=self._proxy,
                 timeout=aiohttp.ClientTimeout(total=self._timeout),
                 headers=self._headers
             )
@@ -176,7 +173,7 @@ class AnyRunConnector:
             await self._session.close()
             self._session = None
 
-    def _generate_proxy_config(self) -> Optional[dict[str, str]]:
+    def _generate_proxy_config(self) -> Optional[Dict[str, str]]:
         """
         Generates proxies dict using received proxy string
 
@@ -189,14 +186,14 @@ class AnyRunConnector:
                 host, port = connection.split(':')
 
                 return {
-                    'http': f'http://{user}:{password}@{host}:{port}/',
-                    'https': f'https://{user}:{password}@{host}:{port}/'
+                    'http': 'http://{}:{}@{}:{}'.format(user, password, host, port),
+                    'https': 'https://{}:{}@{}:{}'.format(user, password, host, port)
                 }
 
             host, port = self._proxy[self._proxy.index('//') + 2:].split(':')
             return {
-                'http': f'http://{host}:{port}/',
-                'https': f'https://{host}:{port}/'
+                'http': 'http://{}:{}'.format(host, port),
+                'https': 'https://{}:{}'.format(host, port)
             }
 
     @abstractmethod

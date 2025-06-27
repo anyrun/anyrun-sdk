@@ -1,5 +1,3 @@
-from typing_extensions import override
-
 from anyrun.iterators.base_iterator import BaseIterator
 from anyrun.connectors.threat_intelligence.yara_lookup_connector import YaraLookupConnector
 
@@ -23,7 +21,6 @@ class StixYaraIterator(BaseIterator):
 
         self._yara_rule = yara_rule
 
-    @override
     async def _read_next_chunk(self) -> None:
         """ Overrides parent method using Yara Lookup request """
         if self._pages_counter > 1:

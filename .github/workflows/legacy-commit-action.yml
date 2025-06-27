@@ -1,0 +1,73 @@
+name: Legacy Branch Tests
+
+on:
+  push:
+    branches: [ legacy ]
+  pull_request:
+    branches: [ legacy ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ['3.5', '3.6', '3.7', '3.8']
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies for pyenv
+      run: |
+        sudo apt-get update
+        sudo apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+        libreadline-dev libsqlite3-dev curl libncurses5-dev \
+        libncursesw5-dev xz-utils tk-dev
+
+    - name: Install pyenv
+      run: |
+        curl https://pyenv.run | bash
+        echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $GITHUB_ENV
+        echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> $GITHUB_ENV
+    
+    - name: Setup pyenv
+      run: |
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        eval "$(pyenv virtualenv-init -)"
+        echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+        echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+    
+    - name: Install Python ${{ matrix.python-version }}
+      run: |
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        pyenv install ${{ matrix.python-version }}
+        pyenv global ${{ matrix.python-version }}
+        python --version
+    
+    - name: Install pytest
+      run: |
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        python -m pip install --upgrade pip
+        python -m pip install pytest
+    
+    - name: Install project dependencies
+      run: |
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
+        if [ -f setup.py ]; then python -m pip install -e .; fi
+    
+    - name: Run tests with pytest
+      run: |
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        python -m pytest tests -x
+        pytest --cov=anyrun --cov-report=term-missing

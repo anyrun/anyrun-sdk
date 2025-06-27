@@ -2,7 +2,7 @@ import os
 import json
 from http import HTTPStatus
 from uuid import UUID
-from typing import Optional, Union, AsyncIterator, Iterator
+from typing import Optional, Union, Iterator, List, Dict, Tuple
 
 import aiohttp
 import aiofiles
@@ -11,7 +11,7 @@ import requests
 from anyrun.connectors.base_connector import AnyRunConnector
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
-from anyrun.utils.utility_functions import execute_synchronously, execute_async_iterator
+from anyrun.utils.utility_functions import execute_synchronously
 
 
 class BaseSandboxConnector(AnyRunConnector):
@@ -74,7 +74,7 @@ class BaseSandboxConnector(AnyRunConnector):
             team: bool = False,
             skip: int = 0,
             limit: int = 25
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         Returns last tasks from the user's history and their basic information
 
@@ -90,7 +90,7 @@ class BaseSandboxConnector(AnyRunConnector):
             team: bool = False,
             skip: int = 0,
             limit: int = 25
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         Returns last tasks from the user's history and their basic information
 
@@ -99,7 +99,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param limit: Specify the number of tasks in the result set (not more than 100).
         :return: The list of tasks
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis'
+        url = "{}/analysis".format(Config.ANY_RUN_API_URL)
         body = {
             'team': team,
             'skip': skip,
@@ -114,7 +114,7 @@ class BaseSandboxConnector(AnyRunConnector):
             task_uuid: Union[UUID, str],
             report_format: str = 'summary',
             filepath: Optional[str] = None
-    ) -> Union[dict, list[dict], str]:
+    ) -> Union[dict, List[dict], str]:
         """
         Returns a submission analysis report by task ID.
         If **filepath** option is specified, dumps report to the file instead
@@ -132,7 +132,7 @@ class BaseSandboxConnector(AnyRunConnector):
             task_uuid: Union[UUID, str],
             report_format: str = 'summary',
             filepath: Optional[str] = None
-    ) -> Union[dict, list[dict], str, None]:
+    ) -> Union[dict, List[dict], str, None]:
         """
         Returns a submission analysis report by task ID.
         If **filepath** option is specified, dumps report to the file instead
@@ -143,17 +143,17 @@ class BaseSandboxConnector(AnyRunConnector):
         :return: Complete report
         """
         if report_format == 'summary':
-            url = f'{Config.ANY_RUN_API_URL}/analysis/{task_uuid}'
+            url = '{}/analysis/{}'.format(Config.ANY_RUN_API_URL, task_uuid)
             response_data = await self._make_request_async('GET', url)
         elif report_format == 'ioc':
-            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/ioc/json'
+            url = '{}/{}/ioc/json'.format(Config.ANY_RUN_REPORT_URL, task_uuid)
             response_data = await self._make_request_async('GET', url)
         elif report_format == 'html':
-            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/html'
+            url = '{}/{}/summary/html'.format(Config.ANY_RUN_REPORT_URL, task_uuid)
             response = await self._make_request_async('GET', url, parse_response=False)
             response_data = await self._read_content_stream(response)
         else:
-            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/{report_format}'
+            url = '{}/{}/summary/{}'.format(Config.ANY_RUN_REPORT_URL, task_uuid, report_format)
             response_data = await self._make_request_async('GET', url)
 
         if filepath:
@@ -178,7 +178,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/addtime/{task_uuid}'
+        url = '{}/analysis/addtime/{}'.format(Config.ANY_RUN_API_URL, task_uuid)
         return await self._make_request_async('PATCH', url)
 
     def stop_task(self, task_uuid: Union[UUID, str]) -> dict:
@@ -197,7 +197,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/stop/{task_uuid}'
+        url = '{}/analysis/stop/{}'.format(Config.ANY_RUN_API_URL, task_uuid)
         return await self._make_request_async('PATCH', url)
 
     def delete_task(self, task_uuid: Union[UUID, str]) -> dict:
@@ -216,7 +216,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/delete/{task_uuid}'
+        url = '{}/analysis/delete/{}'.format(Config.ANY_RUN_API_URL, task_uuid)
         return await self._make_request_async('DELETE', url)
 
     def get_task_status(self, task_uuid: Union[UUID, str], simplify: bool = True) -> Iterator[dict]:
@@ -228,9 +228,9 @@ class BaseSandboxConnector(AnyRunConnector):
         :param simplify: If enabled, returns a simplified dict with the remaining scan time and the current task status
             else returns the entire response
         """
-        return execute_async_iterator(self.get_task_status_async(task_uuid, simplify))
+        return self.get_task_status_async(task_uuid, simplify)
 
-    async def get_task_status_async(self, task_uuid: Union[UUID, str], simplify: bool = True) -> AsyncIterator[dict]:
+    def get_task_status_async(self, task_uuid: Union[UUID, str], simplify: bool = True) -> Iterator[dict]:
         """
         Information about the task status is sent to the event stream.
         Returns an asynchronous iterator to process the actual status until the task is completed.
@@ -238,22 +238,22 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :param simplify: Returns a simplified dict with the remaining scan time and the current task status
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/monitor/{task_uuid}'
+        url = '{}/analysis/monitor/{}'.format(Config.ANY_RUN_API_URL, task_uuid)
 
         if self._enable_requests:
             with requests.Session().get(url, headers=self._headers, stream=True) as response:
-                await self._check_response_content_type(response.headers.get('Content-Type'), response)
+                execute_synchronously(self._check_response_content_type, response.headers.get('Content-Type'), response)
 
                 for chunk in response.iter_lines():
                     if chunk:
-                        yield await self._prepare_response(chunk, simplify, task_uuid)
+                        yield execute_synchronously(self._prepare_response, chunk, simplify, task_uuid)
         else:
-            response = await self._make_request_async('GET', url, parse_response=False)
-            await self._check_response_content_type(response.content_type, response)
+            response = execute_synchronously(self._make_request_async, 'GET', url, parse_response=False)
+            execute_synchronously(self._check_response_content_type, response.content_type, response)
 
             while True:
                 # Read the next chunk from the event stream
-                chunk = await response.content.readuntil(b'\n')
+                chunk = execute_synchronously(response.content.readline)
                 # Skip the end of chunk and any meta information
                 # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
                 if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
@@ -262,7 +262,7 @@ class BaseSandboxConnector(AnyRunConnector):
                 elif not chunk:
                     break
                 # Decode and yield the next chunk
-                yield await self._prepare_response(chunk, simplify, task_uuid)
+                yield execute_synchronously(self._prepare_response, chunk, simplify, task_uuid)
 
     def get_user_environment(self) -> dict:
         """
@@ -278,7 +278,7 @@ class BaseSandboxConnector(AnyRunConnector):
 
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/environment'
+        url = '{}/environment'.format(Config.ANY_RUN_API_URL)
         return await self._make_request_async('GET', url)
 
     def get_user_limits(self) -> dict:
@@ -295,10 +295,10 @@ class BaseSandboxConnector(AnyRunConnector):
 
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/user'
+        url = '{}/user'.format(Config.ANY_RUN_API_URL)
         return (await self._make_request_async('GET', url)).get('data').get('limits')
 
-    def get_user_presets(self) -> list[dict]:
+    def get_user_presets(self) -> List[dict]:
         """
         Request user's presets
 
@@ -306,13 +306,13 @@ class BaseSandboxConnector(AnyRunConnector):
         """
         return execute_synchronously(self.get_user_presets_async)
 
-    async def get_user_presets_async(self) -> list[dict]:
+    async def get_user_presets_async(self) -> List[dict]:
         """
         Request user's presets
 
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/user/presets'
+        url = '{}/user/presets'.format(Config.ANY_RUN_API_URL)
         return await self._make_request_async('GET', url)
 
     def download_pcap(
@@ -343,7 +343,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param filepath: Path to file
         :return: Network traffic bytes
         """
-        url = f'{Config.ANY_RUN_CONTENT_URL}/{task_uuid}/download/pcap'
+        url = '{}/{}/download/pcap'.format(Config.ANY_RUN_CONTENT_URL, task_uuid)
         return await self._download_sample(url, 'pcap', task_uuid, filepath)
 
     def get_analysis_verdict(self, task_uuid: Union[UUID, str]) -> str:
@@ -413,7 +413,7 @@ class BaseSandboxConnector(AnyRunConnector):
             file_content: Optional[bytes] = None,
             filename: Optional[str] = None,
             filepath: Optional[str] = None,
-            **params,
+            **params
     ) -> aiohttp.MultipartWriter:
         """
         Generates request body for the **form-data** content type
@@ -429,7 +429,7 @@ class BaseSandboxConnector(AnyRunConnector):
         # Prepare file payload
         file_content, filename = await self._get_file_payload(file_content, filename, filepath)
 
-        disposition = f'form-data; name="file"; filename="{filename}"'
+        disposition = 'form-data; name="file"; filename="{}"'.format(filename)
         file_content.headers["Content-Disposition"] = disposition
         form_data.append_payload(file_content)
 
@@ -447,8 +447,8 @@ class BaseSandboxConnector(AnyRunConnector):
     async def _generate_request_body(
             self,
             object_type: str,
-            **params,
-        ) -> dict[str, Union[int, str, bool]]:
+            **params
+        ) -> Dict[str, Union[int, str, bool]]:
         """
          Generates request body for the **application/json** content type
 
@@ -474,7 +474,7 @@ class BaseSandboxConnector(AnyRunConnector):
             return {
                 'status': await self._resolve_task_status(status_data.get('task').get('status')),
                 'seconds_remaining': status_data.get('task').get('remaining'),
-                'info': f'For interactive analysis follow: https://app.any.run/tasks/{task_uuid}'
+                'info': 'For interactive analysis follow: https://app.any.run/tasks/{}'.format(task_uuid)
             }
         return status_data
 
@@ -533,7 +533,7 @@ class BaseSandboxConnector(AnyRunConnector):
             file_content: Optional[bytes] = None,
             filename: Optional[str] = None,
             filepath: Optional[str] = None,
-    ) -> tuple[aiohttp.Payload, str]:
+    ) -> Tuple[aiohttp.Payload, str]:
         """
         Generates file payload from received file content. Tries to open a file if given a file path
 
@@ -547,18 +547,18 @@ class BaseSandboxConnector(AnyRunConnector):
             return aiohttp.get_payload(file_content), filename
         elif filepath:
             if not os.path.isfile(filepath):
-                raise RunTimeException(f'Received not valid filepath: {filepath}')
+                raise RunTimeException('Received not valid filepath: {}'.format(filepath))
 
             async with aiofiles.open(filepath, mode='rb') as file:
                 return aiohttp.get_payload(await file.read()), os.path.basename(filepath)
         else:
-            raise RunTimeException(f'You must specify file_content with filename or filepath to start analysis')
+            raise RunTimeException('You must specify file_content with filename or filepath to start analysis')
 
     @staticmethod
     async def _set_task_object_type(
-            params: dict[str, Union[int, str, bool]],
+            params: Dict[str, Union[int, str, bool]],
             obj_type: str
-    ) -> dict[str, Union[int, str, bool]]:
+    ) -> Dict[str, Union[int, str, bool]]:
         """
         Sets **obj_type** value to 'rerun' if **task_rerun_uuid** parameter is not None.
         Otherwise, sets received object type
@@ -613,7 +613,7 @@ class BaseSandboxConnector(AnyRunConnector):
         else:
             while True:
                 # Read the next chunk from the event stream
-                chunk = await response_data.content.readuntil(b'\n')
+                chunk = await response_data.content.readline()
                 # Skip the end of chunk and any meta information
                 # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
                 if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
@@ -649,17 +649,18 @@ class BaseSandboxConnector(AnyRunConnector):
         :param content_type: Response data content type. Supports binary, html.
             Any other formats will be recognized as json
         """
+        prefix = os.path.abspath(filepath)
         if content_type == 'binary':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_traffic', content, 'wb')
+            await self._process_dump('{}/{}_traffic'.format(prefix, task_uuid), content, 'wb')
         elif content_type == 'html':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_report.html', content, 'w')
+            await self._process_dump('{}/{}_report.html'.format(prefix, task_uuid), content, 'w')
         elif content_type == 'zip':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_file_sample.zip', content, 'wb')
+            await self._process_dump('{}/{}_file_sample.zip'.format(prefix, task_uuid), content, 'wb')
         elif content_type == 'pcap':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_network_traffic_dump.zip', content, 'wb')
+            await self._process_dump('{}/{}_network_traffic_dump.zip'.format(prefix, task_uuid), content, 'wb')
         else:
             await self._process_dump(
-                f'{os.path.abspath(filepath)}/{task_uuid}_report_{content_type}.json', json.dumps(content), 'w'
+                '{}/{}_report_{}.json'.format(prefix, task_uuid, content_type), json.dumps(content), 'w'
             )
 
     @staticmethod

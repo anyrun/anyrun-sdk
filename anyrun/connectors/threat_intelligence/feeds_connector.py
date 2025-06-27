@@ -1,4 +1,4 @@
-from typing import Optional, Union, Any
+from typing import Optional, Union, Any, List
 from datetime import datetime
 
 import aiohttp
@@ -47,7 +47,7 @@ class FeedsConnector(AnyRunConnector):
             enable_requests
         )
 
-        self._taxii_delta_timestamp: datetime = datetime(year=1970, month=1, day=1)
+        self._taxii_delta_timestamp = datetime(year=1970, month=1, day=1)
 
     @property
     def taxii_delta_timestamp(self) -> Optional[str]:
@@ -151,7 +151,7 @@ class FeedsConnector(AnyRunConnector):
             modified_after = self.taxii_delta_timestamp
 
         url = await self._generate_feeds_url(
-            f'{Config.ANY_RUN_API_URL}/feeds/taxii2/api1/collections/{collection_id}/objects/?',
+            '{}/feeds/taxii2/api1/collections/{}/objects/?'.format(Config.ANY_RUN_API_URL, collection_id),
             {
                 'match[type]': match_type,
                 'match[id]': match_id,
@@ -184,7 +184,7 @@ class FeedsConnector(AnyRunConnector):
             date_to: Optional[int] = None,
             limit: int = 100,
             page: int = 1
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         DEPRECATED: please, use get_taxii_stix instead
 
@@ -234,7 +234,7 @@ class FeedsConnector(AnyRunConnector):
             date_to: Optional[int] = None,
             limit: int = 100,
             page: int = 1
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         DEPRECATED: please, use get_taxii_stix_async instead
 
@@ -254,8 +254,8 @@ class FeedsConnector(AnyRunConnector):
         :param page: Page number. The last page marker is a response with a single **identity** object
         :return: The list of feeds in **stix** format
         """
-        url = await self._generate_feeds_url(
-            f'{Config.ANY_RUN_API_URL}/feeds/stix.json?',
+        _url = await self._generate_feeds_url(
+            '{}/feeds/stix.json?'.format(Config.ANY_RUN_API_URL),
             {
                 'IP': ip,
                 'URL': url,
@@ -272,7 +272,7 @@ class FeedsConnector(AnyRunConnector):
              }
         )
 
-        response_data = await self._make_request_async('GET', url)
+        response_data = await self._make_request_async('GET', _url)
         return response_data.get('data').get('objects')
 
 
@@ -288,7 +288,7 @@ class FeedsConnector(AnyRunConnector):
             date_to: Optional[int] = None,
             limit: int = 100,
             page: int = 1
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds misp objects according to the specified query parameters
 
@@ -330,7 +330,7 @@ class FeedsConnector(AnyRunConnector):
             date_to: Optional[int] = None,
             limit: int = 100,
             page: int = 1
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds misp objects according to the specified query parameters
 
@@ -346,8 +346,8 @@ class FeedsConnector(AnyRunConnector):
         :param page: Page number. The last page marker is a response with a single **identity** object
         :return: The list of feeds in **misp** format
         """
-        url = await self._generate_feeds_url(
-            f'{Config.ANY_RUN_API_URL}/feeds/misp.json?',
+        _url = await self._generate_feeds_url(
+            '{}/feeds/misp.json?'.format(Config.ANY_RUN_API_URL),
             {
                 'IP': ip,
                 'URL': url,
@@ -362,7 +362,7 @@ class FeedsConnector(AnyRunConnector):
             }
         )
         
-        response_data = await self._make_request_async('GET', url)
+        response_data = await self._make_request_async('GET', _url)
         return response_data.get('data')
 
     def get_network_iocs(
@@ -377,7 +377,7 @@ class FeedsConnector(AnyRunConnector):
             date_to: Optional[int] = None,
             limit: int = 100,
             page: int = 1
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds network iocs objects according to the specified query parameters
 
@@ -419,7 +419,7 @@ class FeedsConnector(AnyRunConnector):
             date_to: Optional[int] = None,
             limit: int = 100,
             page: int = 1
-    ) -> list[Optional[dict]]:
+    ) -> List[Optional[dict]]:
         """
         Returns a list of ANY.RUN Feeds network iocs objects according to the specified query parameters
 
@@ -435,8 +435,8 @@ class FeedsConnector(AnyRunConnector):
         :param page: Page number. The last page marker is a response with a single **identity** object
         :return: The list of feeds in **network_iocs** format
         """
-        url = await self._generate_feeds_url(
-            f'{Config.ANY_RUN_API_URL}/feeds/network_iocs.json?',
+        _url = await self._generate_feeds_url(
+            '{}/feeds/network_iocs.json?'.format(Config.ANY_RUN_API_URL),
             {
                 'IP': ip,
                 'URL': url,
@@ -451,7 +451,7 @@ class FeedsConnector(AnyRunConnector):
             }
         )
 
-        response_data = await self._make_request_async('GET', url)
+        response_data = await self._make_request_async('GET', _url)
         return response_data.get('data')
 
     async def _generate_feeds_url(self, url: str, params: dict) -> str:
@@ -462,12 +462,12 @@ class FeedsConnector(AnyRunConnector):
         :param params: Dictionary with query parameters
         :return: Complete url
         """
-        query_params = '&'.join(
-            [
-                f'{param}={await self._parse_boolean(value)}'
-                for param, value in params.items() if value
-            ]
-        )
+        query_params = []
+        for param, value in params.items():
+            if value:
+                query_params.append('{}={}'.format(param, await self._parse_boolean(value)))
+
+        query_params = '&'.join(query_params)
         return url + query_params
 
     async def _update_taxii_delta_timestamp(self) -> None:

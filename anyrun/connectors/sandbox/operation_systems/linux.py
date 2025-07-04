@@ -188,38 +188,45 @@ class LinuxConnector(BaseSandboxConnector):
         :return: Task uuid
         """
         url = f'{Config.ANY_RUN_API_URL}/analysis'
+        params = {
+            'env_os': 'linux',
+            'env_version': '22.04.2',
+            'env_bitness': '64',
+            'env_type': 'complete',
+            'env_locale': env_locale,
+            'opt_network_connect': opt_network_connect,
+            'opt_network_fakenet': opt_network_fakenet,
+            'opt_network_tor': opt_network_tor,
+            'opt_network_geo': opt_network_geo,
+            'opt_network_mitm': opt_network_mitm,
+            'opt_network_residential_proxy': opt_network_residential_proxy,
+            'opt_network_residential_proxy_geo': opt_network_residential_proxy_geo,
+            'opt_kernel_heavyevasion': opt_kernel_heavyevasion,
+            'opt_privacy_type': opt_privacy_type,
+            'opt_timeout': opt_timeout,
+            'opt_automated_interactivity': opt_automated_interactivity,
+            'obj_ext_startfolder': obj_ext_startfolder,
+            'obj_ext_cmd': obj_ext_cmd,
+            'obj_force_elevation': None,
+            'auto_confirm_uac': None,
+            'run_as_root': run_as_root,
+            'obj_ext_extension': obj_ext_extension,
+            'task_rerun_uuid': task_rerun_uuid,
+            'user_tag': user_tag
+        }
 
-        body = await self._generate_multipart_request_body(
-            file_content=file_content,
-            filename=filename,
-            filepath=filepath,
-            env_os='linux',
-            env_version='22.04.2',
-            env_bitness='64',
-            env_type='complete',
-            env_locale=env_locale,
-            opt_network_connect=opt_network_connect,
-            opt_network_fakenet=opt_network_fakenet,
-            opt_network_tor=opt_network_tor,
-            opt_network_geo=opt_network_geo,
-            opt_network_mitm=opt_network_mitm,
-            opt_network_residential_proxy=opt_network_residential_proxy,
-            opt_network_residential_proxy_geo=opt_network_residential_proxy_geo,
-            opt_kernel_heavyevasion=opt_kernel_heavyevasion,
-            opt_privacy_type=opt_privacy_type,
-            opt_timeout=opt_timeout,
-            opt_automated_interactivity=opt_automated_interactivity,
-            obj_ext_startfolder=obj_ext_startfolder,
-            obj_ext_cmd=obj_ext_cmd,
-            obj_force_elevation=None,
-            auto_confirm_uac=None,
-            run_as_root=run_as_root,
-            obj_ext_extension=obj_ext_extension,
-            task_rerun_uuid=task_rerun_uuid,
-            user_tag=user_tag
-        )
-
-        response_data = await self._make_request_async('POST', url, data=body)
+        if self._enable_requests:
+            file_content, filename = await self._get_file_payload(file_content, filename, filepath)
+            files = {filename: (filename, file_content)}
+            response_data = await self._make_request_async('POST', url, json=params, files=files)
+        else:
+            body = await self._generate_multipart_request_body(
+                file_content=file_content,
+                filename=filename,
+                filepath=filepath,
+                **params
+            )
+            response_data = await self._make_request_async('POST', url, data=body)
         return response_data.get('data').get('taskid')
 
     def run_url_analysis(

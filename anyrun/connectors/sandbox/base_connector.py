@@ -528,8 +528,8 @@ class BaseSandboxConnector(AnyRunConnector):
             return 'COMPLETED'
         return 'PREPARING'
 
-    @staticmethod
     async def _get_file_payload(
+            self,
             file_content: Optional[bytes] = None,
             filename: Optional[str] = None,
             filepath: Optional[str] = None,
@@ -544,15 +544,18 @@ class BaseSandboxConnector(AnyRunConnector):
         :raises RunTimeException: If invalid filepath is received
         """
         if file_content and filename:
-            return aiohttp.get_payload(file_content), filename
+            return file_content if self._enable_requests else aiohttp.get_payload(file_content), filename
         elif filepath:
             if not os.path.isfile(filepath):
                 raise RunTimeException(f'Received not valid filepath: {filepath}')
 
-            async with aiofiles.open(filepath, mode='rb') as file:
-                return aiohttp.get_payload(await file.read()), os.path.basename(filepath)
+            async with (aiofiles.open(filepath, mode='rb') as file):
+                return (
+                    file_content if self._enable_requests else aiohttp.get_payload(await file.read()),
+                    os.path.basename(filepath)
+                )
         else:
-            raise RunTimeException(f'You must specify file_content with filename or filepath to start analysis')
+            raise RunTimeException('You must specify file_content with filename or filepath to start analysis')
 
     @staticmethod
     async def _set_task_object_type(

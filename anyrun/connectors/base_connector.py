@@ -85,7 +85,7 @@ class AnyRunConnector:
         try:
             await self._make_request_async('GET', 'https://google.com', request_timeout=5)
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
-            raise RunTimeException(f'The proxy request failed. Check the proxy settings are correct') from exception
+            raise RunTimeException('The proxy request failed. Check the proxy settings are correct') from exception
         return {'status': 'ok', 'description': 'Successful proxy verification'}
 
     async def _make_request_async(
@@ -94,6 +94,7 @@ class AnyRunConnector:
             url: str,
             json: Optional[dict] = None,
             data: Union[dict, aiohttp.MultipartWriter, None] = None,
+            files: Optional[dict[str, tuple[str, bytes]]] = None,
             parse_response: bool = True,
             request_timeout: Optional[int] = None
     ) -> Union[dict, list[dict], aiohttp.ClientResponse, requests.Response]:
@@ -104,6 +105,7 @@ class AnyRunConnector:
         :param url: Request url
         :param json: Request json
         :param data: Request data
+        :param files: Request files (only for the requests package)
         :param parse_response: Enable/disable API response parsing. If enabled, returns response.json() object dict
             else aiohttp.ClientResponse instance
         :param request_timeout: HTTP Request timeout
@@ -118,6 +120,7 @@ class AnyRunConnector:
                     headers=self._headers,
                     json=json,
                     params=data,
+                    files=files,
                     verify=True if self._verify_ssl else False,
                     cert=self._verify_ssl,
                     proxies=self._generate_proxy_config() if self._proxy else None,

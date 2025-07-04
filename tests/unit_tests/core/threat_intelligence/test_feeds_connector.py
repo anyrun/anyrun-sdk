@@ -30,8 +30,8 @@ async def test_generate_url_returns_complete_url_if_all_parameters_specified(que
         '&show_revoked=false'
         '&get_new_ioc=false'
         '&period=day'
-        f'&date_from=1710381199'
-        f'&date_to=1740381199'
+        '&date_from=1710381199'
+        '&date_to=1740381199'
         '&limit=100'
     )
 

@@ -67,7 +67,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -92,12 +92,11 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param run_as_root: Run file with superuser privileges
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -126,7 +125,7 @@ class LinuxConnector(BaseSandboxConnector):
             run_as_root=run_as_root,
             obj_ext_extension=obj_ext_extension,
             task_rerun_uuid=task_rerun_uuid,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_file_analysis_async(
@@ -151,7 +150,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -176,12 +175,11 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param run_as_root: Run file with superuser privileges
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -212,7 +210,7 @@ class LinuxConnector(BaseSandboxConnector):
             'run_as_root': run_as_root,
             'obj_ext_extension': obj_ext_extension,
             'task_rerun_uuid': task_rerun_uuid,
-            'user_tag': user_tag
+            'user_tags': user_tags
         }
 
         if self._enable_requests:
@@ -247,7 +245,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_automated_interactivity: bool = True,
             obj_ext_browser: str = 'Google Chrome',
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -271,7 +269,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -296,7 +294,7 @@ class LinuxConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_url_analysis_async(
@@ -317,7 +315,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_automated_interactivity: bool = True,
             obj_ext_browser: str = 'Google Chrome',
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
@@ -341,7 +339,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -371,7 +369,7 @@ class LinuxConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tag=user_tag
+            user_tags=user_tags
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('data').get('taskid')
@@ -397,7 +395,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -419,13 +417,12 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -453,7 +450,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_download_analysis_async(
@@ -477,7 +474,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -499,13 +496,12 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -538,7 +534,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

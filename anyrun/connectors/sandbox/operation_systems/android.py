@@ -62,7 +62,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
             obj_ext_cmd: Optional[str] = None,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -86,7 +86,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_cmd: Optional command line.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -110,7 +110,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             obj_ext_cmd=obj_ext_cmd,
             task_rerun_uuid=task_rerun_uuid,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_file_analysis_async(
@@ -130,7 +130,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
             obj_ext_cmd: Optional[str] = None,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -154,7 +154,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_cmd: Optional command line.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -180,7 +180,7 @@ class AndroidConnector(BaseSandboxConnector):
             'obj_ext_startfolder': 'downloads',
             'obj_ext_cmd': obj_ext_cmd,
             'task_rerun_uuid': task_rerun_uuid,
-            'user_tag': user_tag
+            'user_tags': user_tags
         }
 
         if self._enable_requests:
@@ -211,8 +211,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -232,8 +231,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -254,8 +252,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
-            obj_ext_browser=obj_ext_browser,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_url_analysis_async(
@@ -272,8 +269,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -293,8 +289,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -321,8 +316,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
-            obj_ext_browser=obj_ext_browser,
-            user_tag=user_tag
+            user_tags=user_tags
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('data').get('taskid')
@@ -344,7 +338,7 @@ class AndroidConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             obj_ext_useragent: Optional[str] = None,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -366,7 +360,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param opt_privacy_hidesource: Option for hiding of source URL.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
@@ -391,7 +385,7 @@ class AndroidConnector(BaseSandboxConnector):
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_download_analysis_async(
@@ -411,7 +405,7 @@ class AndroidConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             obj_ext_useragent: Optional[str] = None,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -434,7 +428,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param opt_privacy_hidesource: Option for hiding of source URL.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -465,7 +459,7 @@ class AndroidConnector(BaseSandboxConnector):
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

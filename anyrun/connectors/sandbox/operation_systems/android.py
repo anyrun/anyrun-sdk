@@ -211,7 +211,6 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
             user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -232,7 +231,6 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
@@ -254,7 +252,6 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
-            obj_ext_browser=obj_ext_browser,
             user_tags=user_tags
         )
 
@@ -272,7 +269,6 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
             user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -293,7 +289,6 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
@@ -321,7 +316,6 @@ class AndroidConnector(BaseSandboxConnector):
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
             task_rerun_uuid=task_rerun_uuid,
-            obj_ext_browser=obj_ext_browser,
             user_tags=user_tags
         )
         response_data = await self._make_request_async('POST', url, json=body)

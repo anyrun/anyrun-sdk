@@ -614,21 +614,7 @@ class BaseSandboxConnector(AnyRunConnector):
                     if chunk:
                         sample += chunk
         else:
-            while True:
-                # Read the next chunk from the event stream
-                chunk = await response_data.content.readuntil(b'\n')
-                # Skip the end of chunk and any meta information
-                # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
-                if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
-                    continue
-                if chunk == b'Not Found' or chunk == b'Content unavailable':
-                    raise RunTimeException('The requested file sample was not found', HTTPStatus.NOT_FOUND)
-
-                # Stop interation if event stream is closed
-                elif not chunk:
-                    break
-
-                sample += chunk
+            sample = await response_data.content.read()
 
         if filepath:
             await self._dump_response_content(sample, filepath, task_uuid, content_type)

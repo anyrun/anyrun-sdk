@@ -78,7 +78,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -161,7 +161,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -188,7 +188,7 @@ class LinuxConnector(BaseSandboxConnector):
         url = f'{Config.ANY_RUN_API_URL}/analysis'
         params = {
             'env_os': 'linux',
-            'env_version': '22.04.2',
+            'env_version': '22.04.2' if env_os == 'ubuntu' else '12.2',
             'env_bitness': '64',
             'env_type': 'complete',
             'env_locale': env_locale,
@@ -253,7 +253,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -323,7 +323,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -351,7 +351,7 @@ class LinuxConnector(BaseSandboxConnector):
             'url',
             obj_url=obj_url,
             env_os='linux',
-            env_version='22.04.2',
+            env_version='22.04.2' if env_os == 'ubuntu' else '12.2',
             env_bitness='64',
             env_type='complete',
             env_locale=env_locale,
@@ -403,7 +403,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -482,7 +482,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -513,7 +513,7 @@ class LinuxConnector(BaseSandboxConnector):
             'download',
             obj_url=obj_url,
             env_os='linux',
-            env_version='22.04.2',
+            env_version='22.04.2' if env_os == 'ubuntu' else '12.2',
             env_bitness='64',
             env_type='complete',
             env_locale=env_locale,

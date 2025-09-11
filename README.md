@@ -44,6 +44,15 @@ Supports the following feed formats:
   * [TAXII](https://oasis-open.github.io/cti-documentation/taxii/intro.html) STIX
   * Network IOCs 
 
+### Note:
+Please inline ANY.RUN API-Key and Basic authorization token using the prefix:
+```commandline
+API-KEY format: API-KEY WmNfqnpo...2Sjon7mtvm8e 
+```
+```commandline
+Basic token format: Basic c2VtZW5f...GCd0RvUg==
+```
+
 # The library public interface overview
 
 ```python

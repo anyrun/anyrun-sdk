@@ -528,8 +528,8 @@ class BaseSandboxConnector(AnyRunConnector):
             return 'COMPLETED'
         return 'PREPARING'
 
-    @staticmethod
     async def _get_file_payload(
+            self,
             file_content: Optional[bytes] = None,
             filename: Optional[str] = None,
             filepath: Optional[str] = None,
@@ -544,13 +544,18 @@ class BaseSandboxConnector(AnyRunConnector):
         :raises RunTimeException: If invalid filepath is received
         """
         if file_content and filename:
-            return aiohttp.get_payload(file_content), filename
+            return file_content if self._enable_requests else aiohttp.get_payload(file_content), filename
         elif filepath:
             if not os.path.isfile(filepath):
                 raise RunTimeException('Received not valid filepath: {}'.format(filepath))
 
+            # Use async context manager for aiofiles and return raw bytes for requests mode
             async with aiofiles.open(filepath, mode='rb') as file:
-                return aiohttp.get_payload(await file.read()), os.path.basename(filepath)
+                content_bytes = await file.read()
+            return (
+                content_bytes if self._enable_requests else aiohttp.get_payload(content_bytes),
+                os.path.basename(filepath)
+            )
         else:
             raise RunTimeException('You must specify file_content with filename or filepath to start analysis')
 
@@ -611,21 +616,7 @@ class BaseSandboxConnector(AnyRunConnector):
                     if chunk:
                         sample += chunk
         else:
-            while True:
-                # Read the next chunk from the event stream
-                chunk = await response_data.content.readline()
-                # Skip the end of chunk and any meta information
-                # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
-                if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b"id", b"event", b"entry"]):
-                    continue
-                if chunk == b'Not Found' or chunk == b'Content unavailable':
-                    raise RunTimeException('The requested file sample was not found', HTTPStatus.NOT_FOUND)
-
-                # Stop interation if event stream is closed
-                elif not chunk:
-                    break
-
-                sample += chunk
+            sample = await response_data.content.read()
 
         if filepath:
             await self._dump_response_content(sample, filepath, task_uuid, content_type)

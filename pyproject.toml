@@ -1,6 +1,6 @@
 [project]
 name = 'anyrun-sdk'
-version = '1.9.6'
+version = '1.10.9'
 
 description = 'This is the official Python client library for ANY.RUN. Automate management of ANY.RUN REST endpoints'
 authors = [

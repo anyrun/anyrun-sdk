@@ -21,10 +21,21 @@ async def test_generate_url_returns_complete_url_if_all_parameters_specified(que
     connector = FeedsConnector('mock_api_key')
 
     url = await connector._generate_feeds_url('https://api.any.run/v1/feeds/misp.json?', query_params_config)
-    for param, value in query_params_config.items():
-        if value:
-            assert param in url
-            assert str(value) in url
+    params = url.split('?')[1].split('&')
+    assert sorted(params) == sorted([
+        'ip=true',
+        'url=true',
+        'domain=true',
+        'file=true',
+        'port=true',
+        'show_revoked=false',
+        'get_new_ioc=false',
+        'period=day',
+        'date_from=1710381199',
+        'date_to=1740381199',
+        'limit=100'
+    ])
+
 
 @pytest.mark.asyncio
 async def test_parse_boolean_returns_boolean_value_string_alias_if_boolean_parameter_received():

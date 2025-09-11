@@ -70,7 +70,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_force_elevation: bool = False,
             auto_confirm_uac: bool = True,
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -105,7 +105,7 @@ class WindowsConnector(BaseSandboxConnector):
             (for PE32, PE32+, PE64 files only)
         :param auto_confirm_uac: Auto confirm Windows UAC requests.
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -137,7 +137,7 @@ class WindowsConnector(BaseSandboxConnector):
             auto_confirm_uac=auto_confirm_uac,
             obj_ext_extension=obj_ext_extension,
             task_rerun_uuid=task_rerun_uuid,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_file_analysis_async(
@@ -165,7 +165,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_force_elevation: bool = False,
             auto_confirm_uac: bool = True,
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -200,44 +200,51 @@ class WindowsConnector(BaseSandboxConnector):
             (for PE32, PE32+, PE64 files only)
         :param auto_confirm_uac: Auto confirm Windows UAC requests.
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
         """
         url = '{}/analysis'.format(Config.ANY_RUN_API_URL)
+        params = {
+            'env_os': 'windows',
+            'env_version': env_version,
+            'env_bitness': env_bitness,
+            'env_type': env_type,
+            'env_locale': env_locale,
+            'opt_network_connect': opt_network_connect,
+            'opt_network_fakenet': opt_network_fakenet,
+            'opt_network_tor': opt_network_tor,
+            'opt_network_geo': opt_network_geo,
+            'opt_network_mitm': opt_network_mitm,
+            'opt_network_residential_proxy': opt_network_residential_proxy,
+            'opt_network_residential_proxy_geo': opt_network_residential_proxy_geo,
+            'opt_kernel_heavyevasion': opt_kernel_heavyevasion,
+            'opt_privacy_type': opt_privacy_type,
+            'opt_timeout': opt_timeout,
+            'opt_automated_interactivity': opt_automated_interactivity,
+            'obj_ext_startfolder': obj_ext_startfolder,
+            'obj_ext_cmd': obj_ext_cmd,
+            'obj_force_elevation': obj_force_elevation,
+            'auto_confirm_uac': auto_confirm_uac,
+            'obj_ext_extension': obj_ext_extension,
+            'task_rerun_uuid': task_rerun_uuid,
+            'user_tags': user_tags
+        }
 
-        body = await self._generate_multipart_request_body(
-            file_content,
-            filename,
-            filepath,
-            env_os='windows',
-            env_version=env_version,
-            env_bitness=env_bitness,
-            env_type=env_type,
-            env_locale=env_locale,
-            opt_network_connect=opt_network_connect,
-            opt_network_fakenet=opt_network_fakenet,
-            opt_network_tor=opt_network_tor,
-            opt_network_geo=opt_network_geo,
-            opt_network_mitm=opt_network_mitm,
-            opt_network_residential_proxy=opt_network_residential_proxy,
-            opt_network_residential_proxy_geo=opt_network_residential_proxy_geo,
-            opt_kernel_heavyevasion=opt_kernel_heavyevasion,
-            opt_privacy_type=opt_privacy_type,
-            opt_timeout=opt_timeout,
-            opt_automated_interactivity=opt_automated_interactivity,
-            obj_ext_startfolder=obj_ext_startfolder,
-            obj_ext_cmd=obj_ext_cmd,
-            obj_force_elevation=obj_force_elevation,
-            auto_confirm_uac=auto_confirm_uac,
-            obj_ext_extension=obj_ext_extension,
-            task_rerun_uuid=task_rerun_uuid,
-            user_tag=user_tag
-        )
-
-        response_data = await self._make_request_async('POST', url, data=body)
+        if self._enable_requests:
+            file_content, filename = await self._get_file_payload(file_content, filename, filepath)
+            files = {filename: (filename, file_content)}
+            response_data = await self._make_request_async('POST', url, json=params, files=files)
+        else:
+            body = await self._generate_multipart_request_body(
+                file_content=file_content,
+                filename=filename,
+                filepath=filepath,
+                **params
+            )
+            response_data = await self._make_request_async('POST', url, data=body)
         return response_data.get('data').get('taskid')
 
     def run_url_analysis(
@@ -258,9 +265,9 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
+            obj_ext_browser: str = 'Microsoft Edge',
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -287,7 +294,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox, Internet Explorer, Microsoft Edge
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -314,7 +321,7 @@ class WindowsConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_url_analysis_async(
@@ -335,9 +342,9 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type: str = 'bylink',
             opt_timeout: int = 60,
             opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
+            obj_ext_browser: str = 'Microsoft Edge',
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -364,7 +371,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome Mozilla Firefox, Internet Explorer, Microsoft Edge
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -394,7 +401,7 @@ class WindowsConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tag=user_tag
+            user_tags=user_tags
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('data').get('taskid')
@@ -422,7 +429,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -453,7 +460,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -483,7 +490,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_download_analysis_async(
@@ -509,7 +516,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -540,7 +547,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -573,7 +580,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

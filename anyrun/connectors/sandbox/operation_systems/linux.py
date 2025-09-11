@@ -67,7 +67,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -78,7 +78,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -92,12 +92,11 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param run_as_root: Run file with superuser privileges
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -126,7 +125,7 @@ class LinuxConnector(BaseSandboxConnector):
             run_as_root=run_as_root,
             obj_ext_extension=obj_ext_extension,
             task_rerun_uuid=task_rerun_uuid,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_file_analysis_async(
@@ -151,7 +150,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_cmd: Optional[str] = None,
             run_as_root: bool = False,
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -162,7 +161,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -176,50 +175,56 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param run_as_root: Run file with superuser privileges
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
         :return: Task uuid
         """
         url = '{}/analysis'.format(Config.ANY_RUN_API_URL)
+        params = {
+            'env_os': 'linux',
+            'env_version': '22.04.2' if env_os == 'ubuntu' else '12.2',
+            'env_bitness': '64',
+            'env_type': 'complete',
+            'env_locale': env_locale,
+            'opt_network_connect': opt_network_connect,
+            'opt_network_fakenet': opt_network_fakenet,
+            'opt_network_tor': opt_network_tor,
+            'opt_network_geo': opt_network_geo,
+            'opt_network_mitm': opt_network_mitm,
+            'opt_network_residential_proxy': opt_network_residential_proxy,
+            'opt_network_residential_proxy_geo': opt_network_residential_proxy_geo,
+            'opt_kernel_heavyevasion': opt_kernel_heavyevasion,
+            'opt_privacy_type': opt_privacy_type,
+            'opt_timeout': opt_timeout,
+            'opt_automated_interactivity': opt_automated_interactivity,
+            'obj_ext_startfolder': obj_ext_startfolder,
+            'obj_ext_cmd': obj_ext_cmd,
+            'obj_force_elevation': None,
+            'auto_confirm_uac': None,
+            'run_as_root': run_as_root,
+            'obj_ext_extension': obj_ext_extension,
+            'task_rerun_uuid': task_rerun_uuid,
+            'user_tags': user_tags
+        }
 
-        body = await self._generate_multipart_request_body(
-            file_content=file_content,
-            filename=filename,
-            filepath=filepath,
-            env_os='linux',
-            env_version='22.04.2',
-            env_bitness='64',
-            env_type='complete',
-            env_locale=env_locale,
-            opt_network_connect=opt_network_connect,
-            opt_network_fakenet=opt_network_fakenet,
-            opt_network_tor=opt_network_tor,
-            opt_network_geo=opt_network_geo,
-            opt_network_mitm=opt_network_mitm,
-            opt_network_residential_proxy=opt_network_residential_proxy,
-            opt_network_residential_proxy_geo=opt_network_residential_proxy_geo,
-            opt_kernel_heavyevasion=opt_kernel_heavyevasion,
-            opt_privacy_type=opt_privacy_type,
-            opt_timeout=opt_timeout,
-            opt_automated_interactivity=opt_automated_interactivity,
-            obj_ext_startfolder=obj_ext_startfolder,
-            obj_ext_cmd=obj_ext_cmd,
-            obj_force_elevation=None,
-            auto_confirm_uac=None,
-            run_as_root=run_as_root,
-            obj_ext_extension=obj_ext_extension,
-            task_rerun_uuid=task_rerun_uuid,
-            user_tag=user_tag
-        )
-
-        response_data = await self._make_request_async('POST', url, data=body)
+        if self._enable_requests:
+            file_content, filename = await self._get_file_payload(file_content, filename, filepath)
+            files = {filename: (filename, file_content)}
+            response_data = await self._make_request_async('POST', url, json=params, files=files)
+        else:
+            body = await self._generate_multipart_request_body(
+                file_content=file_content,
+                filename=filename,
+                filepath=filepath,
+                **params
+            )
+            response_data = await self._make_request_async('POST', url, data=body)
         return response_data.get('data').get('taskid')
 
     def run_url_analysis(
@@ -240,7 +245,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_automated_interactivity: bool = True,
             obj_ext_browser: str = 'Google Chrome',
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -248,7 +253,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -264,7 +269,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -289,7 +294,7 @@ class LinuxConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_url_analysis_async(
@@ -310,7 +315,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_automated_interactivity: bool = True,
             obj_ext_browser: str = 'Google Chrome',
             obj_ext_extension: bool = True,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
@@ -318,7 +323,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -334,7 +339,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param obj_ext_extension: Change extension to valid
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -346,7 +351,7 @@ class LinuxConnector(BaseSandboxConnector):
             'url',
             obj_url=obj_url,
             env_os='linux',
-            env_version='22.04.2',
+            env_version='22.04.2' if env_os == 'ubuntu' else '12.2',
             env_bitness='64',
             env_type='complete',
             env_locale=env_locale,
@@ -364,7 +369,7 @@ class LinuxConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tag=user_tag
+            user_tags=user_tags
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data.get('data').get('taskid')
@@ -390,7 +395,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -398,7 +403,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -412,13 +417,12 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -446,7 +450,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
     async def run_download_analysis_async(
@@ -470,7 +474,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent: Optional[str] = None,
             obj_ext_extension: bool = True,
             opt_privacy_hidesource: bool = False,
-            user_tag: Optional[str] = None,
+            user_tags: Optional[str] = None,
             task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
@@ -478,7 +482,7 @@ class LinuxConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_os: Operation system. 
+        :param env_os: Operation system. Supports: ubuntu, debian
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
             Case insensitive.
         :param opt_network_connect: Network connection state
@@ -492,13 +496,12 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
-            root
+        :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param obj_ext_extension: Change extension to valid
         :param opt_privacy_hidesource: Option for hiding of source URL.
-        :param user_tag: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
+        :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
@@ -510,7 +513,7 @@ class LinuxConnector(BaseSandboxConnector):
             'download',
             obj_url=obj_url,
             env_os='linux',
-            env_version='22.04.2',
+            env_version='22.04.2' if env_os == 'ubuntu' else '12.2',
             env_bitness='64',
             env_type='complete',
             env_locale=env_locale,
@@ -531,7 +534,7 @@ class LinuxConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tag=user_tag
+            user_tags=user_tags
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

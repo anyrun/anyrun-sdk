@@ -414,7 +414,7 @@ class LookupConnector(AnyRunConnector):
                 'syncObjectName': sync_object_name,
                 'syncObjectType': sync_object_type,
                 'syncObjectOperation': sync_object_operation,
-                'URL': url,
+                'url': url,
                 'httpRequestContentType': http_request_content_type,
                 'httpResponseContentType': http_response_content_type,
                 'httpRequestFileType': http_request_file_type,

@@ -15,25 +15,29 @@ class LookupConnector(AnyRunConnector):
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
-            self,
-            api_key: str,
-            integration: str = Config.PUBLIC_INTEGRATION,
-            trust_env: bool = False,
-            verify_ssl: Optional[str] = None,
-            proxy: Optional[str] = None,
-            connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-            enable_requests: bool = False
+        self,
+        api_key: str,
+        integration: str = Config.PUBLIC_INTEGRATION,
+        trust_env: bool = False,
+        verify_ssl: Optional[str] = None,
+        proxy: Optional[str] = None,
+        proxy_username: Optional[str] = None,
+        proxy_password: Optional[str] = None,
+        connector: Optional[aiohttp.BaseConnector] = None,
+        timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+        enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API Key in format: API-KEY <api_key>
-        :param integration: Name of the integration
-        :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Path to SSL certificate
-        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
-        :param connector: A custom aiohttp connector
-        :param timeout: Override the session’s timeout
-        :param enable_requests: Use requests.request to make api calls. May block the event loop
+        :param api_key: ANY.RUN API Key in format: API-KEY <api_key>.
+        :param integration: Name of the integration.
+        :param trust_env: Trust environment settings for proxy configuration.
+        :param verify_ssl: Enable/disable SSL verification option.
+        :param proxy: Proxy url. Example: https://<host>:<port>.
+        :param connector: A custom aiohttp connector.
+        :param proxy_username: Proxy username.
+        :param proxy_password: Proxy password.
+        :param timeout: Override the session’s timeout.
+        :param enable_requests: Use requests.request to make api calls. May block the event loop.
         """
         super().__init__(
             api_key,
@@ -41,6 +45,8 @@ class LookupConnector(AnyRunConnector):
             trust_env,
             verify_ssl,
             proxy,
+            proxy_username,
+            proxy_password,
             connector,
             timeout,
             enable_requests
@@ -67,54 +73,54 @@ class LookupConnector(AnyRunConnector):
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
     def get_intelligence(
-            self,
-            start_date: Optional[str] = (datetime.now() - timedelta(days=180)).date().strftime('%Y-%m-%d'),
-            end_date: Optional[str] = datetime.now().date().strftime('%Y-%m-%d'),
-            lookup_depth: Optional[int] = None,
-            query: Optional[str] = None,
-            threat_name: Optional[str] = None,
-            threat_level: Optional[str] = None,
-            task_type: Optional[str] = None,
-            submission_country: Optional[str] = None,
-            os: Optional[str] = None,
-            os_software_set: Optional[str] = None,
-            os_bit_version: Optional[str] = None,
-            registry_key: Optional[str] = None,
-            registry_name: Optional[str] = None,
-            registry_value: Optional[str] = None,
-            module_image_path: Optional[str] = None,
-            rule_threat_level: Optional[str] = None,
-            rule_name: Optional[str] = None,
-            mitre: Optional[str] = None,
-            image_path: Optional[str] = None,
-            command_line: Optional[str] = None,
-            injected_flag: Optional[str] = None,
-            destination_ip: Optional[str] = None,
-            destination_port: Optional[str] = None,
-            destination_ip_asn: Optional[str] = None,
-            destination_ip_geo: Optional[str] = None,
-            domain_name: Optional[str] = None,
-            ja3: Optional[str] = None,
-            ja3s: Optional[str] = None,
-            jarm : Optional[str] = None,
-            file_path: Optional[str] = None,
-            file_event_path: Optional[str] = None,
-            file_extension: Optional[str] = None,
-            sha256: Optional[str] = None,
-            sha1: Optional[str] = None,
-            md5: Optional[str] = None,
-            suricata_class: Optional[str] = None,
-            suricata_message: Optional[str] = None,
-            suricata_threat_level: Optional[str] = None,
-            suricata_id: Optional[str] = None,
-            sync_object_name: Optional[str] = None,
-            sync_object_type: Optional[str] = None,
-            sync_object_operation: Optional[str] = None,
-            url: Optional[str] = None,
-            http_request_content_type: Optional[str] = None,
-            http_response_content_type: Optional[str] = None,
-            http_request_file_type: Optional[str] = None,
-            http_response_file_type: Optional[str] = None
+        self,
+        start_date: Optional[str] = (datetime.now() - timedelta(days=180)).date().strftime('%Y-%m-%d'),
+        end_date: Optional[str] = datetime.now().date().strftime('%Y-%m-%d'),
+        lookup_depth: Optional[int] = None,
+        query: Optional[str] = None,
+        threat_name: Optional[str] = None,
+        threat_level: Optional[str] = None,
+        task_type: Optional[str] = None,
+        submission_country: Optional[str] = None,
+        os: Optional[str] = None,
+        os_software_set: Optional[str] = None,
+        os_bit_version: Optional[str] = None,
+        registry_key: Optional[str] = None,
+        registry_name: Optional[str] = None,
+        registry_value: Optional[str] = None,
+        module_image_path: Optional[str] = None,
+        rule_threat_level: Optional[str] = None,
+        rule_name: Optional[str] = None,
+        mitre: Optional[str] = None,
+        image_path: Optional[str] = None,
+        command_line: Optional[str] = None,
+        injected_flag: Optional[str] = None,
+        destination_ip: Optional[str] = None,
+        destination_port: Optional[str] = None,
+        destination_ip_asn: Optional[str] = None,
+        destination_ip_geo: Optional[str] = None,
+        domain_name: Optional[str] = None,
+        ja3: Optional[str] = None,
+        ja3s: Optional[str] = None,
+        jarm : Optional[str] = None,
+        file_path: Optional[str] = None,
+        file_event_path: Optional[str] = None,
+        file_extension: Optional[str] = None,
+        sha256: Optional[str] = None,
+        sha1: Optional[str] = None,
+        md5: Optional[str] = None,
+        suricata_class: Optional[str] = None,
+        suricata_message: Optional[str] = None,
+        suricata_threat_level: Optional[str] = None,
+        suricata_id: Optional[str] = None,
+        sync_object_name: Optional[str] = None,
+        sync_object_type: Optional[str] = None,
+        sync_object_operation: Optional[str] = None,
+        url: Optional[str] = None,
+        http_request_content_type: Optional[str] = None,
+        http_response_content_type: Optional[str] = None,
+        http_request_file_type: Optional[str] = None,
+        http_response_file_type: Optional[str] = None
     ) -> dict:
         """
         Returns Lookup object according to the specified query parameters.
@@ -245,54 +251,54 @@ class LookupConnector(AnyRunConnector):
         )
 
     async def get_intelligence_async(
-            self,
-            start_date: Optional[str] = (datetime.now() - timedelta(days=180)).date().strftime('%Y-%m-%d'),
-            end_date: Optional[str] = datetime.now().date().strftime('%Y-%m-%d'),
-            lookup_depth: Optional[int] = None,
-            query: Optional[str] = None,
-            threat_name: Optional[str] = None,
-            threat_level: Optional[str] = None,
-            task_type: Optional[str] = None,
-            submission_country: Optional[str] = None,
-            os: Optional[str] = None,
-            os_software_set: Optional[str] = None,
-            os_bit_version: Optional[str] = None,
-            registry_key: Optional[str] = None,
-            registry_name: Optional[str] = None,
-            registry_value: Optional[str] = None,
-            module_image_path: Optional[str] = None,
-            rule_threat_level: Optional[str] = None,
-            rule_name: Optional[str] = None,
-            mitre: Optional[str] = None,
-            image_path: Optional[str] = None,
-            command_line: Optional[str] = None,
-            injected_flag: Optional[str] = None,
-            destination_ip: Optional[str] = None,
-            destination_port: Optional[str] = None,
-            destination_ip_asn: Optional[str] = None,
-            destination_ip_geo: Optional[str] = None,
-            domain_name: Optional[str] = None,
-            ja3: Optional[str] = None,
-            ja3s: Optional[str] = None,
-            jarm : Optional[str] = None,
-            file_path: Optional[str] = None,
-            file_event_path: Optional[str] = None,
-            file_extension: Optional[str] = None,
-            sha256: Optional[str] = None,
-            sha1: Optional[str] = None,
-            md5: Optional[str] = None,
-            suricata_class: Optional[str] = None,
-            suricata_message: Optional[str] = None,
-            suricata_threat_level: Optional[str] = None,
-            suricata_id: Optional[str] = None,
-            sync_object_name: Optional[str] = None,
-            sync_object_type: Optional[str] = None,
-            sync_object_operation: Optional[str] = None,
-            url: Optional[str] = None,
-            http_request_content_type: Optional[str] = None,
-            http_response_content_type: Optional[str] = None,
-            http_request_file_type: Optional[str] = None,
-            http_response_file_type: Optional[str] = None
+        self,
+        start_date: Optional[str] = (datetime.now() - timedelta(days=180)).date().strftime('%Y-%m-%d'),
+        end_date: Optional[str] = datetime.now().date().strftime('%Y-%m-%d'),
+        lookup_depth: Optional[int] = None,
+        query: Optional[str] = None,
+        threat_name: Optional[str] = None,
+        threat_level: Optional[str] = None,
+        task_type: Optional[str] = None,
+        submission_country: Optional[str] = None,
+        os: Optional[str] = None,
+        os_software_set: Optional[str] = None,
+        os_bit_version: Optional[str] = None,
+        registry_key: Optional[str] = None,
+        registry_name: Optional[str] = None,
+        registry_value: Optional[str] = None,
+        module_image_path: Optional[str] = None,
+        rule_threat_level: Optional[str] = None,
+        rule_name: Optional[str] = None,
+        mitre: Optional[str] = None,
+        image_path: Optional[str] = None,
+        command_line: Optional[str] = None,
+        injected_flag: Optional[str] = None,
+        destination_ip: Optional[str] = None,
+        destination_port: Optional[str] = None,
+        destination_ip_asn: Optional[str] = None,
+        destination_ip_geo: Optional[str] = None,
+        domain_name: Optional[str] = None,
+        ja3: Optional[str] = None,
+        ja3s: Optional[str] = None,
+        jarm : Optional[str] = None,
+        file_path: Optional[str] = None,
+        file_event_path: Optional[str] = None,
+        file_extension: Optional[str] = None,
+        sha256: Optional[str] = None,
+        sha1: Optional[str] = None,
+        md5: Optional[str] = None,
+        suricata_class: Optional[str] = None,
+        suricata_message: Optional[str] = None,
+        suricata_threat_level: Optional[str] = None,
+        suricata_id: Optional[str] = None,
+        sync_object_name: Optional[str] = None,
+        sync_object_type: Optional[str] = None,
+        sync_object_operation: Optional[str] = None,
+        url: Optional[str] = None,
+        http_request_content_type: Optional[str] = None,
+        http_response_content_type: Optional[str] = None,
+        http_request_file_type: Optional[str] = None,
+        http_response_file_type: Optional[str] = None
     ) -> dict:
         """
         Returns Lookup object according to the specified query parameters.
@@ -426,11 +432,11 @@ class LookupConnector(AnyRunConnector):
         return response_data
 
     async def _generate_request_body(
-            self,
-            start_date: Optional[str],
-            end_date: Optional[str],
-            query: Optional[str],
-            params: dict[str, str]
+        self,
+        start_date: Optional[str],
+        end_date: Optional[str],
+        query: Optional[str],
+        params: dict[str, str]
     ) -> dict[str, str]:
         """
         Builds complete request body according to specified parameters
@@ -457,9 +463,9 @@ class LookupConnector(AnyRunConnector):
 
     @staticmethod
     async def _add_time_ranges(
-            body: dict[str, str],
-            start_date: Optional[str],
-            end_date: Optional[str]
+        body: dict[str, str],
+        start_date: Optional[str],
+        end_date: Optional[str]
     ) -> dict[str, str]:
         """
         Checks if time range parameters specified. If specified, appends them to request body

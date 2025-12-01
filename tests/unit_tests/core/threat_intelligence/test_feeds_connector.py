@@ -4,7 +4,7 @@ from anyrun.connectors import FeedsConnector
 
 
 @pytest.mark.asyncio
-async def test_generate_url_returns_deletes_empty_parameters(query_params_config):
+async def test_generate_url_deletes_null_parameters(query_params_config):
     connector = FeedsConnector('mock_api_key')
 
     query_params_config['File'] = None
@@ -13,26 +13,15 @@ async def test_generate_url_returns_deletes_empty_parameters(query_params_config
     url = await connector._generate_feeds_url('stix', query_params_config)
 
     assert 'File' not in url
-    assert 'Port' not in url
+    assert 'Port' in url
 
 
 @pytest.mark.asyncio
 async def test_generate_url_returns_complete_url_if_all_parameters_specified(query_params_config):
     connector = FeedsConnector('mock_api_key')
 
-    assert await connector._generate_feeds_url('https://api.any.run/v1/feeds/misp.json?', query_params_config) == (
-        'https://api.any.run/v1/feeds/misp.json?'
-        'ip=true'
-        '&url=true'
-        '&domain=true'
-        '&file=true'
-        '&port=true'
-        '&show_revoked=false'
-        '&get_new_ioc=false'
-        '&period=day'
-        '&date_from=1710381199'
-        '&date_to=1740381199'
-        '&limit=100'
+    assert await connector._generate_feeds_url('https://api.any.run/v1/feeds/taxii2/api1/collections/3dce855a-c044-5d49-9334-533c24678c5a/objects?', query_params_config) == (
+        'https://api.any.run/v1/feeds/taxii2/api1/collections/3dce855a-c044-5d49-9334-533c24678c5a/objects?match[revoked]=false'
     )
 
 

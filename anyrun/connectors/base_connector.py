@@ -8,6 +8,7 @@ import aiohttp
 import asyncio
 import requests
 
+from aiohttp import BasicAuth
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -20,27 +21,33 @@ disable_warnings(InsecureRequestWarning)
 class AnyRunConnector:
 
     def __init__(
-            self,
-            api_key: str,
-            integration: str = Config.PUBLIC_INTEGRATION,
-            trust_env: bool = False,
-            verify_ssl: Optional[str] = None,
-            proxy: Optional[str] = None,
-            connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-            enable_requests: bool = False
+        self,
+        api_key: str,
+        integration: str = Config.PUBLIC_INTEGRATION,
+        trust_env: bool = False,
+        verify_ssl: Optional[str] = None,
+        proxy: Optional[str] = None,
+        proxy_username: Optional[str] = None,
+        proxy_password: Optional[str] = None,
+        connector: Optional[aiohttp.BaseConnector] = None,
+        timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+        enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN Feeds API Key in format: Basic <base64_auth>
-        :param integration: Name of the integration
-        :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Path to SSL certificate
-        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
-        :param connector: A custom aiohttp connector
-        :param timeout: Override the session’s timeout
-        :param enable_requests: Use requests.request to make api calls. May block the event loop
+        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param integration: Name of the integration.
+        :param trust_env: Trust environment settings for proxy configuration.
+        :param verify_ssl: Enable/disable SSL verification option.
+        :param proxy: Proxy url. Example: https://<host>:<port>.
+        :param proxy_username: Proxy username.
+        :param proxy_password: Proxy password.
+        :param connector: A custom aiohttp connector.
+        :param timeout: Override the session’s timeout.
+        :param enable_requests: Use requests.request to make api calls. May block the event loop.
         """
         self._proxy = proxy
+        self._proxy_username = proxy_username
+        self._proxy_password = proxy_password
         self._trust_env = trust_env
         self._connector = connector
         self._timeout = timeout
@@ -89,14 +96,14 @@ class AnyRunConnector:
         return {'status': 'ok', 'description': 'Successful proxy verification'}
 
     async def _make_request_async(
-            self,
-            method: str,
-            url: str,
-            json: Optional[dict] = None,
-            data: Union[dict, aiohttp.MultipartWriter, None] = None,
-            files: Optional[dict[str, tuple[str, bytes]]] = None,
-            parse_response: bool = True,
-            request_timeout: Optional[int] = None
+        self,
+        method: str,
+        url: str,
+        json: Optional[dict] = None,
+        data: Union[dict, aiohttp.MultipartWriter, None] = None,
+        files: Optional[dict[str, tuple[str, bytes]]] = None,
+        parse_response: bool = True,
+        request_timeout: Optional[int] = None
     ) -> Union[dict, list[dict], aiohttp.ClientResponse, requests.Response]:
         """
         Provides async interface for making any request
@@ -121,8 +128,7 @@ class AnyRunConnector:
                     json=json,
                     params=data,
                     files=files,
-                    verify=True if self._verify_ssl else False,
-                    cert=self._verify_ssl,
+                    verify=self._verify_ssl,
                     proxies=self._generate_proxy_config() if self._proxy else None,
                     timeout=request_timeout
                 )
@@ -170,6 +176,7 @@ class AnyRunConnector:
                 trust_env=self._trust_env,
                 connector=self._connector,
                 proxy=self._proxy,
+                auth=BasicAuth(self._proxy_username, self._proxy_password) if self._proxy_username else None,
                 timeout=aiohttp.ClientTimeout(total=self._timeout),
                 headers=self._headers
             )
@@ -186,21 +193,13 @@ class AnyRunConnector:
         :return: Proxy dict
         """
         if self._proxy:
-            if '@' in self._proxy:
-                auth, connection = self._proxy[self._proxy.index('//') + 2:].split('@')
-                user, password = auth.split(':')
-                host, port = connection.split(':')
+            protocol = self._proxy.split(':')[0]
 
-                return {
-                    'http': f'http://{user}:{password}@{host}:{port}/',
-                    'https': f'https://{user}:{password}@{host}:{port}/'
-                }
+            if self._proxy_username and self._proxy_password:
+                connection = self._proxy[self._proxy.index('//') + 2:]
+                return {protocol: f'{protocol}://{self._proxy_username}:{self._proxy_password}@{connection}'}
 
-            host, port = self._proxy[self._proxy.index('//') + 2:].split(':')
-            return {
-                'http': f'http://{host}:{port}/',
-                'https': f'https://{host}:{port}/'
-            }
+            return {protocol: self._proxy}
 
     @abstractmethod
     def check_authorization(self) -> dict:
@@ -243,7 +242,7 @@ class AnyRunConnector:
         """
         Checks if API key format is valid
 
-        :param api_key:
+        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
         :raises RunTimeException: If API key format is not valid
         """
         if not isinstance(api_key, str):

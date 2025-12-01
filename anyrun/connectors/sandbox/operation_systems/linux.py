@@ -14,25 +14,29 @@ class LinuxConnector(BaseSandboxConnector):
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
-            self,
-            api_key: str,
-            integration: str = Config.PUBLIC_INTEGRATION,
-            trust_env: bool = False,
-            verify_ssl: Optional[str] = None,
-            proxy: Optional[str] = None,
-            connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-            enable_requests: bool = False
+        self,
+        api_key: str,
+        integration: str = Config.PUBLIC_INTEGRATION,
+        trust_env: bool = False,
+        verify_ssl: Optional[str] = None,
+        proxy: Optional[str] = None,
+        proxy_username: Optional[str] = None,
+        proxy_password: Optional[str] = None,
+        connector: Optional[aiohttp.BaseConnector] = None,
+        timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+        enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API Key in format: API-KEY <api_key> or Basic <base64_auth>
+        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
         :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Path to SSL certificate
-        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
-        :param connector: A custom aiohttp connector
-        :param timeout: Override the session’s timeout
-        :param enable_requests: Use requests.request to make api calls. May block the event loop
+        :param verify_ssl: Enable/disable SSL verification option.
+        :param proxy: Proxy url. Example: http://<host>:<port>.
+        :param proxy_username: Proxy username.
+        :param proxy_password: Proxy password.
+        :param connector: A custom aiohttp connector.
+        :param timeout: Override the session’s timeout.
+        :param enable_requests: Use requests.request to make api calls. May block the event loop.
         """
         super().__init__(
             api_key,
@@ -40,35 +44,37 @@ class LinuxConnector(BaseSandboxConnector):
             trust_env,
             verify_ssl,
             proxy,
+            proxy_username,
+            proxy_password,
             connector,
             timeout,
             enable_requests
         )
 
     def run_file_analysis(
-            self,
-            file_content: Optional[bytes] = None,
-            filename: Optional[str] = None,
-            filepath: Optional[str] = None,
-            env_os: str = 'ubuntu',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            run_as_root: bool = False,
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        file_content: Optional[bytes] = None,
+        filename: Optional[str] = None,
+        filepath: Optional[str] = None,
+        env_os: str = 'ubuntu',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        run_as_root: bool = False,
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -129,29 +135,29 @@ class LinuxConnector(BaseSandboxConnector):
         )
 
     async def run_file_analysis_async(
-            self,
-            file_content: Optional[bytes] = None,
-            filename: Optional[str] = None,
-            filepath: Optional[str] = None,
-            env_os: str = 'ubuntu',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            run_as_root: bool = False,
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        file_content: Optional[bytes] = None,
+        filename: Optional[str] = None,
+        filepath: Optional[str] = None,
+        env_os: str = 'ubuntu',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        run_as_root: bool = False,
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -228,25 +234,25 @@ class LinuxConnector(BaseSandboxConnector):
         return response_data.get('data').get('taskid')
 
     def run_url_analysis(
-            self,
-            obj_url: str,
-            env_os: str = 'ubuntu',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        obj_url: str,
+        env_os: str = 'ubuntu',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_browser: str = 'Google Chrome',
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -298,25 +304,25 @@ class LinuxConnector(BaseSandboxConnector):
         )
 
     async def run_url_analysis_async(
-            self,
-            obj_url: str,
-            env_os: str = 'ubuntu',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Google Chrome',
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None,
+        self,
+        obj_url: str,
+        env_os: str = 'ubuntu',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_browser: str = 'Google Chrome',
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -375,28 +381,28 @@ class LinuxConnector(BaseSandboxConnector):
         return response_data.get('data').get('taskid')
 
     def run_download_analysis(
-            self,
-            obj_url: str,
-            env_os: str = 'ubuntu',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            obj_ext_useragent: Optional[str] = None,
-            obj_ext_extension: bool = True,
-            opt_privacy_hidesource: bool = False,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        obj_url: str,
+        env_os: str = 'ubuntu',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        obj_ext_useragent: Optional[str] = None,
+        obj_ext_extension: bool = True,
+        opt_privacy_hidesource: bool = False,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -454,28 +460,28 @@ class LinuxConnector(BaseSandboxConnector):
         )
 
     async def run_download_analysis_async(
-            self,
-            obj_url: str,
-            env_os: str = 'ubuntu',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            obj_ext_useragent: Optional[str] = None,
-            obj_ext_extension: bool = True,
-            opt_privacy_hidesource: bool = False,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        obj_url: str,
+        env_os: str = 'ubuntu',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        obj_ext_useragent: Optional[str] = None,
+        obj_ext_extension: bool = True,
+        opt_privacy_hidesource: bool = False,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters

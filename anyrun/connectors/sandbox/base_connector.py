@@ -1,6 +1,5 @@
 import os
 import json
-from http import HTTPStatus
 from uuid import UUID
 from typing import Optional, Union, AsyncIterator, Iterator
 
@@ -20,24 +19,28 @@ class BaseSandboxConnector(AnyRunConnector):
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
-            self,
-            api_key: str,
-            integration: str = Config.PUBLIC_INTEGRATION,
-            trust_env: bool = False,
-            verify_ssl: Optional[str] = None,
-            proxy: Optional[str] = None,
-            connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-            enable_requests: bool = False
+        self,
+        api_key: str,
+        integration: str = Config.PUBLIC_INTEGRATION,
+        trust_env: bool = False,
+        verify_ssl: Optional[str] = None,
+        proxy: Optional[str] = None,
+        proxy_username: Optional[str] = None,
+        proxy_password: Optional[str] = None,
+        connector: Optional[aiohttp.BaseConnector] = None,
+        timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+        enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API Key in format: API-KEY <api_key> or Basic <base64_auth>
-        :param integration: Name of the integration
-        :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Path to SSL certificate
-        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
-        :param connector: A custom aiohttp connector
-        :param timeout: Override the session’s timeout
+        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param integration: Name of the integration.
+        :param trust_env: Trust environment settings for proxy configuration.
+        :param verify_ssl: Enable/disable SSL verification option.
+        :param proxy: Proxy url. Example: http://<host>:<port>.
+        :param proxy_username: Proxy username.
+        :param proxy_password: Proxy password.
+        :param connector: A custom aiohttp connector.
+        :param timeout: Override the session’s timeout.
         """
         super().__init__(
             api_key,
@@ -46,6 +49,8 @@ class BaseSandboxConnector(AnyRunConnector):
             verify_ssl,
             proxy,
             connector,
+            proxy_username,
+            proxy_password,
             timeout,
             enable_requests
         )
@@ -70,10 +75,10 @@ class BaseSandboxConnector(AnyRunConnector):
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
     def get_analysis_history(
-            self,
-            team: bool = False,
-            skip: int = 0,
-            limit: int = 25
+        self,
+        team: bool = False,
+        skip: int = 0,
+        limit: int = 25
     ) -> list[Optional[dict]]:
         """
         Returns last tasks from the user's history and their basic information
@@ -86,10 +91,10 @@ class BaseSandboxConnector(AnyRunConnector):
         return execute_synchronously(self.get_analysis_history_async, team, skip, limit)
 
     async def get_analysis_history_async(
-            self,
-            team: bool = False,
-            skip: int = 0,
-            limit: int = 25
+        self,
+        team: bool = False,
+        skip: int = 0,
+        limit: int = 25
     ) -> list[Optional[dict]]:
         """
         Returns last tasks from the user's history and their basic information
@@ -110,10 +115,10 @@ class BaseSandboxConnector(AnyRunConnector):
         return response_data.get('data').get('tasks')
 
     def get_analysis_report(
-            self,
-            task_uuid: Union[UUID, str],
-            report_format: str = 'summary',
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        report_format: str = 'summary',
+        filepath: Optional[str] = None
     ) -> Union[dict, list[dict], str]:
         """
         Returns a submission analysis report by task ID.
@@ -128,10 +133,10 @@ class BaseSandboxConnector(AnyRunConnector):
 
 
     async def get_analysis_report_async(
-            self,
-            task_uuid: Union[UUID, str],
-            report_format: str = 'summary',
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        report_format: str = 'summary',
+        filepath: Optional[str] = None
     ) -> Union[dict, list[dict], str, None]:
         """
         Returns a submission analysis report by task ID.
@@ -374,9 +379,9 @@ class BaseSandboxConnector(AnyRunConnector):
         return report.get('data').get('analysis').get('scores').get('verdict').get('threatLevelText')
 
     def download_file_sample(
-            self,
-            task_uuid: Union[UUID, str],
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        filepath: Optional[str] = None
     ) -> Optional[bytes]:
         """
         Returns a file sample data inside the **zip** archive.
@@ -390,9 +395,9 @@ class BaseSandboxConnector(AnyRunConnector):
         return execute_synchronously(self.download_file_sample_async, task_uuid, filepath)
 
     async def download_file_sample_async(
-            self,
-            task_uuid: Union[UUID, str],
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        filepath: Optional[str] = None
     ) -> Optional[bytes]:
         """
         Returns a file sample data inside the **zip** archive.
@@ -409,11 +414,11 @@ class BaseSandboxConnector(AnyRunConnector):
         return await self._download_sample(url, 'zip', task_uuid, filepath)
 
     async def _generate_multipart_request_body(
-            self,
-            file_content: Optional[bytes] = None,
-            filename: Optional[str] = None,
-            filepath: Optional[str] = None,
-            **params,
+        self,
+        file_content: Optional[bytes] = None,
+        filename: Optional[str] = None,
+        filepath: Optional[str] = None,
+        **params
     ) -> aiohttp.MultipartWriter:
         """
         Generates request body for the **form-data** content type
@@ -445,10 +450,10 @@ class BaseSandboxConnector(AnyRunConnector):
         return form_data
 
     async def _generate_request_body(
-            self,
-            object_type: str,
-            **params,
-        ) -> dict[str, Union[int, str, bool]]:
+        self,
+        object_type: str,
+        **params
+    ) -> dict[str, Union[int, str, bool]]:
         """
          Generates request body for the **application/json** content type
 
@@ -479,8 +484,8 @@ class BaseSandboxConnector(AnyRunConnector):
         return status_data
 
     async def _read_content_stream(
-            self,
-            response: Union[requests.Response, aiohttp.ClientResponse]
+        self,
+        response: Union[requests.Response, aiohttp.ClientResponse]
     ) -> Union[bytes, dict, str]:
         """
         Receives the first fragment of the stream and decodes it
@@ -502,7 +507,8 @@ class BaseSandboxConnector(AnyRunConnector):
     async def _check_response_content_type(
         self,
         content_type: str,
-        response: Union[aiohttp.ClientResponse, requests.Response]) -> None:
+        response: Union[aiohttp.ClientResponse, requests.Response]
+    ) -> None:
         """
         Checks if the response has a **stream-like** content-type
 
@@ -529,10 +535,10 @@ class BaseSandboxConnector(AnyRunConnector):
         return 'PREPARING'
 
     async def _get_file_payload(
-            self,
-            file_content: Optional[bytes] = None,
-            filename: Optional[str] = None,
-            filepath: Optional[str] = None,
+        self,
+        file_content: Optional[bytes] = None,
+        filename: Optional[str] = None,
+        filepath: Optional[str] = None
     ) -> tuple[aiohttp.Payload, str]:
         """
         Generates file payload from received file content. Tries to open a file if given a file path
@@ -559,8 +565,8 @@ class BaseSandboxConnector(AnyRunConnector):
 
     @staticmethod
     async def _set_task_object_type(
-            params: dict[str, Union[int, str, bool]],
-            obj_type: str
+        params: dict[str, Union[int, str, bool]],
+        obj_type: str
     ) -> dict[str, Union[int, str, bool]]:
         """
         Sets **obj_type** value to 'rerun' if **task_rerun_uuid** parameter is not None.
@@ -591,11 +597,11 @@ class BaseSandboxConnector(AnyRunConnector):
             await file.write(content)
 
     async def _download_sample(
-            self,
-            url: str,
-            content_type: str,
-            task_uuid: Union[UUID, str],
-            filepath: Optional[str] = None
+        self,
+        url: str,
+        content_type: str,
+        task_uuid: Union[UUID, str],
+        filepath: Optional[str] = None
     ) -> Optional[bytes]:
         """
         Reads sample content from the stream
@@ -623,11 +629,11 @@ class BaseSandboxConnector(AnyRunConnector):
         return sample
 
     async def _dump_response_content(
-            self,
-            content: Union[dict, bytes, str],
-            filepath: str,
-            task_uuid: str,
-            content_type: str,
+        self,
+        content: Union[dict, bytes, str],
+        filepath: str,
+        task_uuid: str,
+        content_type: str
     ) -> None:
         """
         Saves response_data to the file according to content type and filepath

@@ -14,25 +14,29 @@ class WindowsConnector(BaseSandboxConnector):
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
-            self,
-            api_key: str,
-            integration: str = Config.PUBLIC_INTEGRATION,
-            trust_env: bool = False,
-            verify_ssl: Optional[str] = None,
-            proxy: Optional[str] = None,
-            connector: Optional[aiohttp.BaseConnector] = None,
-            timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-            enable_requests: bool = False
+        self,
+        api_key: str,
+        integration: str = Config.PUBLIC_INTEGRATION,
+        trust_env: bool = False,
+        verify_ssl: Optional[str] = None,
+        proxy: Optional[str] = None,
+        proxy_username: Optional[str] = None,
+        proxy_password: Optional[str] = None,
+        connector: Optional[aiohttp.BaseConnector] = None,
+        timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+        enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API Key in format: API-KEY <api_key> or Basic <base64_auth>
-        :param integration: Name of the integration
-        :param trust_env: Trust environment settings for proxy configuration
-        :param verify_ssl: Path to SSL certificate
-        :param proxy: Proxy url. Example: http://<user>:<pass>@<proxy>:<port>
-        :param connector: A custom aiohttp connector
-        :param timeout: Override the session’s timeout
-        :param enable_requests: Use requests.request to make api calls. May block the event loop
+        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param integration: Name of the integration.
+        :param trust_env: Trust environment settings for proxy configuration.
+        :param verify_ssl: Enable/disable SSL verification option.
+        :param proxy: Proxy url. Example: http://<host>:<port>.
+        :param proxy_username: Proxy username.
+        :param proxy_password: Proxy password.
+        :param connector: A custom aiohttp connector.
+        :param timeout: Override the session’s timeout.
+        :param enable_requests: Use requests.request to make api calls. May block the event loop.
         """
         super().__init__(
             api_key,
@@ -40,38 +44,40 @@ class WindowsConnector(BaseSandboxConnector):
             trust_env,
             verify_ssl,
             proxy,
+            proxy_username,
+            proxy_password,
             connector,
             timeout,
             enable_requests
         )
 
     def run_file_analysis(
-            self,
-            file_content: Optional[bytes] = None,
-            filename: Optional[str] = None,
-            filepath: Optional[str] = None,
-            env_version: str = '10',
-            env_bitness: int = 64,
-            env_type: str = 'complete',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            obj_force_elevation: bool = False,
-            auto_confirm_uac: bool = True,
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        file_content: Optional[bytes] = None,
+        filename: Optional[str] = None,
+        filepath: Optional[str] = None,
+        env_version: str = '10',
+        env_bitness: int = 64,
+        env_type: str = 'complete',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        obj_force_elevation: bool = False,
+        auto_confirm_uac: bool = True,
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -81,7 +87,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_version: Version of OS. Supports: 7, 10, 11
+        :param env_version: Version of OS. Supports: 7, 10, 11.
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
@@ -141,32 +147,32 @@ class WindowsConnector(BaseSandboxConnector):
         )
 
     async def run_file_analysis_async(
-            self,
-            file_content: Optional[bytes] = None,
-            filename: Optional[str] = None,
-            filepath: Optional[str] = None,
-            env_version: str = '10',
-            env_bitness: int = 64,
-            env_type: str = 'complete',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            obj_force_elevation: bool = False,
-            auto_confirm_uac: bool = True,
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        file_content: Optional[bytes] = None,
+        filename: Optional[str] = None,
+        filepath: Optional[str] = None,
+        env_version: str = '10',
+        env_bitness: int = 64,
+        env_type: str = 'complete',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        obj_force_elevation: bool = False,
+        auto_confirm_uac: bool = True,
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -176,7 +182,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_version: Version of OS. Supports: 7, 10, 11
+        :param env_version: Version of OS. Supports: 7, 10, 11.
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
@@ -248,34 +254,34 @@ class WindowsConnector(BaseSandboxConnector):
         return response_data.get('data').get('taskid')
 
     def run_url_analysis(
-            self,
-            obj_url: str,
-            env_version: str = '10',
-            env_bitness: int = 64,
-            env_type: str = 'complete',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Microsoft Edge',
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        obj_url: str,
+        env_version: str = '10',
+        env_bitness: int = 64,
+        env_type: str = 'complete',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_browser: str = 'Microsoft Edge',
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
         
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11
+        :param env_version: Version of OS. Supports: 7, 10, 11.
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
@@ -293,6 +299,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox, Internet Explorer, Microsoft Edge
+            for Windows 7, 10, 11.
         :param obj_ext_extension: Change extension to valid
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
@@ -325,34 +332,34 @@ class WindowsConnector(BaseSandboxConnector):
         )
 
     async def run_url_analysis_async(
-            self,
-            obj_url: str,
-            env_version: str = '10',
-            env_bitness: int = 64,
-            env_type: str = 'complete',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_browser: str = 'Microsoft Edge',
-            obj_ext_extension: bool = True,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        obj_url: str,
+        env_version: str = '10',
+        env_bitness: int = 64,
+        env_type: str = 'complete',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_browser: str = 'Microsoft Edge',
+        obj_ext_extension: bool = True,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11
+        :param env_version: Version of OS. Supports: 7, 10, 11.
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
@@ -369,7 +376,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
-        :param obj_ext_browser: Browser name. Supports: Google Chrome Mozilla Firefox, Internet Explorer, Microsoft Edge
+        :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox, Internet Explorer, Microsoft Edge
+            for Windows 7, 10, 11.
         :param obj_ext_extension: Change extension to valid
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
@@ -407,37 +415,37 @@ class WindowsConnector(BaseSandboxConnector):
         return response_data.get('data').get('taskid')
 
     def run_download_analysis(
-            self,
-            obj_url: str,
-            env_version: str = '10',
-            env_bitness: int = 64,
-            env_type: str = 'complete',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            obj_ext_useragent: Optional[str] = None,
-            obj_ext_extension: bool = True,
-            opt_privacy_hidesource: bool = False,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        obj_url: str,
+        env_version: str = '10',
+        env_bitness: int = 64,
+        env_type: str = 'complete',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        obj_ext_useragent: Optional[str] = None,
+        obj_ext_extension: bool = True,
+        opt_privacy_hidesource: bool = False,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
         
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11
+        :param env_version: Version of OS. Supports: 7, 10, 11.
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
@@ -494,37 +502,37 @@ class WindowsConnector(BaseSandboxConnector):
         )
 
     async def run_download_analysis_async(
-            self,
-            obj_url: str,
-            env_version: str = '10',
-            env_bitness: int = 64,
-            env_type: str = 'complete',
-            env_locale: str = 'en-US',
-            opt_network_connect: bool = True,
-            opt_network_fakenet: bool = False,
-            opt_network_tor: bool = False,
-            opt_network_geo: str = 'fastest',
-            opt_network_mitm: bool = False,
-            opt_network_residential_proxy: bool = False,
-            opt_network_residential_proxy_geo: str = 'fastest',
-            opt_kernel_heavyevasion: bool = False,
-            opt_privacy_type: str = 'bylink',
-            opt_timeout: int = 60,
-            opt_automated_interactivity: bool = True,
-            obj_ext_startfolder: str = 'temp',
-            obj_ext_cmd: Optional[str] = None,
-            obj_ext_useragent: Optional[str] = None,
-            obj_ext_extension: bool = True,
-            opt_privacy_hidesource: bool = False,
-            user_tags: Optional[str] = None,
-            task_rerun_uuid: Optional[str] = None
+        self,
+        obj_url: str,
+        env_version: str = '10',
+        env_bitness: int = 64,
+        env_type: str = 'complete',
+        env_locale: str = 'en-US',
+        opt_network_connect: bool = True,
+        opt_network_fakenet: bool = False,
+        opt_network_tor: bool = False,
+        opt_network_geo: str = 'fastest',
+        opt_network_mitm: bool = False,
+        opt_network_residential_proxy: bool = False,
+        opt_network_residential_proxy_geo: str = 'fastest',
+        opt_kernel_heavyevasion: bool = False,
+        opt_privacy_type: str = 'bylink',
+        opt_timeout: int = 60,
+        opt_automated_interactivity: bool = True,
+        obj_ext_startfolder: str = 'temp',
+        obj_ext_cmd: Optional[str] = None,
+        obj_ext_useragent: Optional[str] = None,
+        obj_ext_extension: bool = True,
+        opt_privacy_hidesource: bool = False,
+        user_tags: Optional[str] = None,
+        task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11
+        :param env_version: Version of OS. Supports: 7, 10, 11.
         :param env_bitness: Bitness of Operation System. Supports 32, 64
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required

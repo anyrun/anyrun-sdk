@@ -1,4 +1,6 @@
 import asyncio
+import warnings
+import functools
 from typing import Callable, Any, AsyncIterator
 
 
@@ -29,4 +31,15 @@ def get_running_loop() -> asyncio.AbstractEventLoop:
         return event_loop
 
 
+def deprecated(reason: str = ""):
+    def decorator(func):
+        message = f"{func.__name__} is deprecated."
+        if reason:
+            message += f" {reason}"
 
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            warnings.warn(message, DeprecationWarning, stacklevel=2)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

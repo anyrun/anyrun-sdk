@@ -7,18 +7,18 @@ from anyrun.connectors.threat_intelligence.feeds_connector import FeedsConnector
 
 class TaxiiStixFeedsIterator(BaseIterator):
     def __init__(
-            self,
-            connector: FeedsConnector,
-            chunk_size: int = 1,
-            collection: str = 'full',
-            match_type: Optional[str] = None,
-            match_id: Optional[str] = None,
-            match_version: str = 'last',
-            match_revoked: bool = False,
-            added_after: Optional[str] = None,
-            modified_after: Optional[str] = None,
-            limit: int = 100,
-            get_delta: bool = False
+        self,
+        connector: FeedsConnector,
+        chunk_size: int = 1,
+        collection: str = 'full',
+        match_type: Optional[str] = 'indicator',
+        match_id: Optional[str] = None,
+        match_version: str = 'all',
+        match_revoked: bool = False,
+        added_after: Optional[str] = None,
+        modified_after: Optional[str] = None,
+        limit: int = 10000,
+        get_delta: bool = False
     ) -> None:
         """
         Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters

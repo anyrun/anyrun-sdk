@@ -236,7 +236,7 @@ class LinuxConnector(BaseSandboxConnector):
     def run_url_analysis(
         self,
         obj_url: str,
-        env_os: str = 'debian',
+        env_os: str = 'ubuntu',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,

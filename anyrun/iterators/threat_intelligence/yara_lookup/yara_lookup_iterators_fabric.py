@@ -6,9 +6,9 @@ class YaraIterator:
     """ Iterator Factory. Creates a concrete iterator instance according to the method called """
     @staticmethod
     def stix(
-            connector: YaraLookupConnector,
-            yara_rule: str,
-            chunk_size: int = 1
+        connector: YaraLookupConnector,
+        yara_rule: str,
+        chunk_size: int = 1
     ) -> StixYaraIterator:
         """
         Iterates through the yara search matches. Returns matches in **json** format
@@ -27,9 +27,9 @@ class YaraIterator:
 
     @staticmethod
     def json(
-            connector: YaraLookupConnector,
-            yara_rule: str,
-            chunk_size: int = 1
+        connector: YaraLookupConnector,
+        yara_rule: str,
+        chunk_size: int = 1
     ) -> JsonYaraIterator:
         """
         Iterates through the yara search matches. Returns matches in **json** format

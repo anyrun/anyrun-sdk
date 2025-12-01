@@ -11,9 +11,9 @@ from anyrun.utils.utility_functions import execute_synchronously
 class BaseIterator:
     """ Implements custom iterator protocol """
     def __init__(
-            self,
-            connector: Union[FeedsConnector, YaraLookupConnector],
-            chunk_size: int = 1
+        self,
+        connector: Union[FeedsConnector, YaraLookupConnector],
+        chunk_size: int = 1
     ) -> None:
         """
         Iterates through the feeds objects.

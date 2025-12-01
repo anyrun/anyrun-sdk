@@ -14,7 +14,7 @@ With this library you can interact with the ANY.RUN REST API and automate your w
 
 * Built-in objects iterator and exception handling 
 * Synchronous and asynchronous interface 
-* Python 3.9-3.13 support 
+* Python [3.5]((https://github.com/anyrun/anyrun-sdk/tree/legacy))-3.13 support 
 
 ### Sandbox API
 [ANY.RUN Sandbox](https://app.any.run/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=appanyrun) is an online interactive sandbox for malware analysis, a tool for detection, monitoring, and research of cyber threats in real time. 
@@ -39,10 +39,7 @@ Perform deep searches, look up threats online, and enrich your security solution
 ### TI Feeds API  
 [Threat Intelligence Feeds](https://intelligence.any.run/feeds/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=intelligence-feeds) 
 provide data on the known indicators of compromise: malicious IPs, URLs, Domains
-Supports the following feed formats: 
-  * MISP 
-  * [TAXII](https://oasis-open.github.io/cti-documentation/taxii/intro.html) STIX
-  * Network IOCs 
+Supports the [TAXII](https://oasis-open.github.io/cti-documentation/taxii/intro.html) STIX feed format.
 
 ### Note:
 Please inline ANY.RUN API-Key and Basic authorization token using the prefix:

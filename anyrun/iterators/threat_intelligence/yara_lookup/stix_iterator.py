@@ -6,10 +6,10 @@ from anyrun.connectors.threat_intelligence.yara_lookup_connector import YaraLook
 
 class StixYaraIterator(BaseIterator):
     def __init__(
-            self,
-            connector: YaraLookupConnector,
-            yara_rule: str,
-            chunk_size: int = 1
+        self,
+        connector: YaraLookupConnector,
+        yara_rule: str,
+        chunk_size: int = 1
     ) -> None:
         """
         Iterates through the yara search matches. Returns matches in **stix** format

@@ -235,7 +235,10 @@ class AnyRunConnector:
         if status in (HTTPStatus.OK, HTTPStatus.CREATED, HTTPStatus.ACCEPTED):
             return response_data
 
-        raise RunTimeException(response_data.get('message'), status or HTTPStatus.BAD_REQUEST)
+        raise RunTimeException(
+            response_data.get('message') or response_data.get('description'),
+            status or HTTPStatus.BAD_REQUEST
+        )
 
     @staticmethod
     def _api_key_validator(api_key: str) -> None:

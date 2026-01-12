@@ -3,6 +3,7 @@ from typing import Optional, Union, Any
 from typing_extensions import Self
 from abc import abstractmethod
 from traceback import format_exc
+from warnings import warn
 
 import aiohttp
 import asyncio
@@ -54,10 +55,11 @@ class AnyRunConnector:
         self._enable_requests = enable_requests
         self._verify_ssl = verify_ssl
         self._session: Optional[aiohttp.ClientSession] = None
+        self._api_key: Optional[str] = None
 
         self._api_key_validator(api_key)
         self._setup_connector()
-        self._setup_headers(api_key, integration)
+        self._setup_headers(integration)
 
         self._response_headers: dict[str, Any] = dict()
 
@@ -163,9 +165,9 @@ class AnyRunConnector:
             asyncio.set_event_loop(event_loop)
             self._connector = aiohttp.TCPConnector(ssl=self._verify_ssl, loop=event_loop)
 
-    def _setup_headers(self, api_key: str, integration: str) -> None:
+    def _setup_headers(self, integration: str) -> None:
         self._headers = {
-            'Authorization': api_key,
+            'Authorization': self._api_key,
             'x-anyrun-connector': integration,
             'x-anyrun-sdk': Config.SDK_VERSION
         }
@@ -240,13 +242,24 @@ class AnyRunConnector:
             status or HTTPStatus.BAD_REQUEST
         )
 
-    @staticmethod
-    def _api_key_validator(api_key: str) -> None:
+    def _api_key_validator(self, api_key: str) -> None:
         """
         Checks if API key format is valid
 
         :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
         :raises RunTimeException: If API key format is not valid
         """
-        if not isinstance(api_key, str):
-            raise RunTimeException('The ANY.RUN api key must be a valid string')
+        if not api_key:
+            raise RunTimeException('The ANY.RUN API key can not be empty.')
+        elif not isinstance(api_key, str):
+            raise RunTimeException('The ANY.RUN API key must be a valid string')
+        elif api_key.lower().startswith('api-key') or api_key.lower().startswith('basic'):
+            warn(
+                'To access the license for all ANY.RUN services, please, use API key without the prefix. '
+                'The use of an API key with a prefix and access to the TI Feeds service via Basic authentication '
+                'are left for backward compatibility, but will be removed in future releases.'
+            )
+        else:
+            api_key = 'API-KEY ' + api_key
+
+        self._api_key = api_key

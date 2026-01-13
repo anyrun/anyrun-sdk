@@ -87,4 +87,4 @@ async def test_api_key_validator_raises_exception_if_api_key_is_not_a_string():
     with pytest.raises(RunTimeException) as exception:
         AnyRunConnector(123)
 
-    assert exception.value.description == 'The ANY.RUN api key must be a valid string'
+    assert exception.value.description == 'The ANY.RUN API key must be a valid string'

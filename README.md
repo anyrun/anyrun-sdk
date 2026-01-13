@@ -42,12 +42,9 @@ provide data on the known indicators of compromise: malicious IPs, URLs, Domains
 Supports the [TAXII](https://oasis-open.github.io/cti-documentation/taxii/intro.html) STIX feed format.
 
 ### Note:
-Please inline ANY.RUN API-Key and Basic authorization token using the prefix:
+You can access ANY.RUN services using an API key without a prefix. Legacy access methods are supported for backward compatibility but will be removed in future releases.
 ```commandline
-API-KEY format: API-KEY WmNfqnpo...2Sjon7mtvm8e 
-```
-```commandline
-Basic token format: Basic c2VtZW5f...GCd0RvUg==
+API key format: WmNfqnpo...2Sjon7mtvm8e 
 ```
 
 # The library public interface overview
@@ -69,6 +66,10 @@ def main():
         for status in connector.get_task_status(task_id):
             print(status)
         
+        # Get analysis verdict
+        verdict = connector.get_analysis_verdict(task_id)
+        print(verdict)
+            
         # Get report results
         report = connector.get_analysis_report(task_id)
         pprint(report)

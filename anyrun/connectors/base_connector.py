@@ -255,9 +255,9 @@ class AnyRunConnector:
             raise RunTimeException('The ANY.RUN API key must be a valid string')
         elif api_key.lower().startswith('api-key') or api_key.lower().startswith('basic'):
             warn(
-                'To access the license for all ANY.RUN services, please, use API key without the prefix. '
-                'The use of an API key with a prefix and access to the TI Feeds service via Basic authentication '
-                'are left for backward compatibility, but will be removed in future releases.'
+                'To access all ANY.RUN services, please use an API key without a prefix. '
+                'API keys with a prefix and access to TI Feeds via Basic Authentication are '
+                'supported only for backward compatibility and will be removed in future releases.'
             )
         else:
             api_key = 'API-KEY ' + api_key

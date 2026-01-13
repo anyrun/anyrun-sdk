@@ -42,7 +42,7 @@ provide data on the known indicators of compromise: malicious IPs, URLs, Domains
 Supports the [TAXII](https://oasis-open.github.io/cti-documentation/taxii/intro.html) STIX feed format.
 
 ### Note:
-You can access the license for ANY.RUN services using an APY key without a prefix. Old access methods are retained for backward compatibility but will be removed in future releases.
+You can access ANY.RUN services using an API key without a prefix. Legacy access methods are supported for backward compatibility but will be removed in future releases.
 ```commandline
 API key format: WmNfqnpo...2Sjon7mtvm8e 
 ```

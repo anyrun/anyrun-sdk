@@ -6,6 +6,10 @@
 
 ______________________________________________________________________
 
+[![PyPI version](https://badge.fury.io/py/anyrun-sdk.svg)](https://badge.fury.io/py/anyrun-sdk)
+[![Downloads](https://pepy.tech/badge/anyrun-sdk)](https://pepy.tech/project/anyrun-sdk)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/anyrun/anyrun-sdk/blob/main/CONTRIBUTING.md)
+
 # ANY.RUN SDK
 This is the official Python client library for [ANY.RUN](https://app.any.run/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=appanyrun), supporting the cybersecurity solutions like the Interactive Sandbox, TI Lookup, and TI Feeds.  
 With this library you can interact with the ANY.RUN REST API and automate your workflow quickly and efficiently. 
@@ -14,7 +18,7 @@ With this library you can interact with the ANY.RUN REST API and automate your w
 
 * Built-in objects iterator and exception handling 
 * Synchronous and asynchronous interface 
-* Python [3.5]((https://github.com/anyrun/anyrun-sdk/tree/legacy))-3.13 support 
+* Python [3.5](https://github.com/anyrun/anyrun-sdk/tree/legacy)-3.13 support 
 
 ### Sandbox API
 [ANY.RUN Sandbox](https://app.any.run/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=appanyrun) is an online interactive sandbox for malware analysis, a tool for detection, monitoring, and research of cyber threats in real time. 

@@ -117,7 +117,7 @@ class BaseSandboxConnector(AnyRunConnector):
     def get_analysis_report(
         self,
         task_uuid: Union[UUID, str],
-        report_format: str = 'summary',
+        report_format: Literal['summary', 'ioc', 'html', 'stix', 'misp'] = 'summary',
         filepath: Optional[str] = None,
         ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
     ) -> Union[dict, list[dict], str]:
@@ -144,7 +144,7 @@ class BaseSandboxConnector(AnyRunConnector):
     async def get_analysis_report_async(
         self,
         task_uuid: Union[UUID, str],
-        report_format: str = 'summary',
+        report_format: Literal['summary', 'ioc', 'html', 'stix', 'misp'] = 'summary',
         filepath: Optional[str] = None,
         ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
     ) -> Union[dict, list[dict], str, None]:

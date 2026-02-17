@@ -10,7 +10,7 @@ def main():
     lookup_result = generic_connector.generic_request(api_key, "POST", json={"query": 'destinationIP:"1.1.1.1"'})
     pprint(lookup_result)
 
-    # Set a custom request URL and use any default connector
+    # Set a custom request URL and use any connector
     with GenericEnvironment("https://custom_endpoint_name"):
         with LookupConnector(api_key) as connector:
             lookup_result = connector.get_intelligence(destination_ip='1.1.1.1')

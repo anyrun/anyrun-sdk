@@ -63,23 +63,23 @@ from anyrun.connectors import SandboxConnector
 def main():
     with SandboxConnector.android(api_key) as connector:
         # Initialize the url analysis
-        task_id = connector.run_url_analysis('https://any.run')
-        print(f'Analysis successfully initialized. Task uuid: {task_id}')
+        analysis_id = connector.run_url_analysis('https://any.run')
+        print(f'Analysis successfully initialized. Analysis uuid: {analysis_id}')
         
         # View analysis status in real time
-        for status in connector.get_task_status(task_id):
+        for status in connector.get_task_status(analysis_id):
             print(status)
         
         # Get analysis verdict
-        verdict = connector.get_analysis_verdict(task_id)
+        verdict = connector.get_analysis_verdict(analysis_id)
         print(verdict)
             
         # Get report results
-        report = connector.get_analysis_report(task_id)
+        report = connector.get_analysis_report(analysis_id)
         pprint(report)
         
-        # Remove the task from history
-        connector.delete_task(task_id)
+        # Remove the analysis from history
+        connector.delete_task(analysis_id)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -7,6 +7,7 @@ from anyrun.connectors.base_connector import AnyRunConnector
 
 from anyrun.utils.config import Config
 from anyrun.utils.utility_functions import execute_synchronously
+from anyrun.models.lookup_summary import LookupSummary
 
 
 class LookupConnector(AnyRunConnector):
@@ -120,8 +121,9 @@ class LookupConnector(AnyRunConnector):
         http_request_content_type: Optional[str] = None,
         http_response_content_type: Optional[str] = None,
         http_request_file_type: Optional[str] = None,
-        http_response_file_type: Optional[str] = None
-    ) -> dict:
+        http_response_file_type: Optional[str] = None,
+        parse_response: bool = False
+    ) -> Union[dict, LookupSummary]:
         """
         Returns Lookup object according to the specified query parameters.
         Supports two ways to build a request query:
@@ -197,6 +199,7 @@ class LookupConnector(AnyRunConnector):
             "binary"
         :param http_response_file_type: The file type of the file being downloaded in the HTTP response. Example:
             "binary"
+        :param parse_response: Returns pydantic model if enabled.
         :return: API response in **json** format
         """
         return execute_synchronously(
@@ -247,7 +250,8 @@ class LookupConnector(AnyRunConnector):
             http_request_content_type=http_request_content_type,
             http_response_content_type=http_response_content_type,
             http_request_file_type=http_request_file_type,
-            http_response_file_type=http_response_file_type
+            http_response_file_type=http_response_file_type,
+            parse_response=parse_response
         )
 
     async def get_intelligence_async(
@@ -298,8 +302,9 @@ class LookupConnector(AnyRunConnector):
         http_request_content_type: Optional[str] = None,
         http_response_content_type: Optional[str] = None,
         http_request_file_type: Optional[str] = None,
-        http_response_file_type: Optional[str] = None
-    ) -> dict:
+        http_response_file_type: Optional[str] = None,
+        parse_response: bool = False
+    ) -> Union[dict, LookupSummary]:
         """
         Returns Lookup object according to the specified query parameters.
         Supports two ways to build a request query:
@@ -375,6 +380,7 @@ class LookupConnector(AnyRunConnector):
             "binary"
         :param http_response_file_type: The file type of the file being downloaded in the HTTP response. Example:
             "binary"
+        :param parse_response: Returns pydantic model if enabled.
         :return: API response in **json** format
         """
         body = await self._generate_request_body(
@@ -429,7 +435,7 @@ class LookupConnector(AnyRunConnector):
         )
         url = f'{Config.ANY_RUN_API_URL}/intelligence/api/search'
         response_data = await self._make_request_async('POST', url, json=body)
-        return response_data
+        return LookupSummary(**response_data) if parse_response else response_data
 
     async def _generate_request_body(
         self,

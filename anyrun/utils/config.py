@@ -18,3 +18,4 @@ class Config:
     DEFAULT_WAITING_TIMEOUT_IN_SECONDS: int = 3
     PUBLIC_INTEGRATION: str = f'Public:{sys.version.split()[0]}'
     SDK_VERSION: str = f'anyrun_sdk:{__version__}'
+

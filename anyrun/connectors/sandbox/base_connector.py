@@ -1,7 +1,7 @@
 import os
 import json
 from uuid import UUID
-from typing import Optional, Union, AsyncIterator, Iterator
+from typing import Optional, Union, AsyncIterator, Iterator, Literal
 
 import aiohttp
 import aiofiles
@@ -118,7 +118,8 @@ class BaseSandboxConnector(AnyRunConnector):
         self,
         task_uuid: Union[UUID, str],
         report_format: str = 'summary',
-        filepath: Optional[str] = None
+        filepath: Optional[str] = None,
+        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
     ) -> Union[dict, list[dict], str]:
         """
         Returns a submission analysis report by task ID.
@@ -127,16 +128,25 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :param report_format: Supports summary, html, stix, misp, ioc
         :param filepath: Path to file
-        :return: Complete report in **json** format
+        :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
+            "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.
+            Works only with format=iocs.
+        :return: Complete report in specified format
         """
-        return execute_synchronously(self.get_analysis_report_async, task_uuid, report_format, filepath)
-
+        return execute_synchronously(
+            self.get_analysis_report_async,
+            task_uuid,
+            report_format,
+            filepath,
+            ioc_reputation
+        )
 
     async def get_analysis_report_async(
         self,
         task_uuid: Union[UUID, str],
         report_format: str = 'summary',
-        filepath: Optional[str] = None
+        filepath: Optional[str] = None,
+        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
     ) -> Union[dict, list[dict], str, None]:
         """
         Returns a submission analysis report by task ID.
@@ -145,7 +155,10 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :param report_format: Supports summary, html, stix, misp, ioc
         :param filepath: Path to file
-        :return: Complete report
+        :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
+            "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.
+            Works only with format=iocs.
+        :return: Complete report in specified format
         """
         if report_format == 'summary':
             url = f'{Config.ANY_RUN_API_URL}/analysis/{task_uuid}'
@@ -153,6 +166,8 @@ class BaseSandboxConnector(AnyRunConnector):
         elif report_format == 'ioc':
             url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/ioc/json'
             response_data = await self._make_request_async('GET', url)
+            if ioc_reputation != 'all':
+                response_data = await self._prepare_iocs(response_data, ioc_reputation)
         elif report_format == 'html':
             url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/html'
             response = await self._make_request_async('GET', url, parse_response=False)
@@ -321,9 +336,9 @@ class BaseSandboxConnector(AnyRunConnector):
         return await self._make_request_async('GET', url)
 
     def download_pcap(
-            self,
-            task_uuid: Union[UUID, str],
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        filepath: Optional[str] = None
     ) -> Optional[bytes]:
         """
         Returns a dump of network traffic obtained during the analysis.
@@ -336,9 +351,9 @@ class BaseSandboxConnector(AnyRunConnector):
         return execute_synchronously(self.download_pcap_async, task_uuid, filepath)
 
     async def download_pcap_async(
-            self,
-            task_uuid: Union[UUID, str],
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        filepath: Optional[str] = None
     ) -> Optional[bytes]:
         """
         Returns a dump of network traffic obtained during the analysis.
@@ -673,3 +688,19 @@ class BaseSandboxConnector(AnyRunConnector):
             raise RunTimeException('The requested analysis does not contain a file sample')
 
         return report.get('analysis').get('content').get('mainObject').get('permanentUrl')
+
+    async def _prepare_iocs(self, iocs: list[dict], iocs_reputaiton: str) -> list[dict]:
+        """
+        Filter IOCs collection using specified reputation type.
+
+        :param iocs: The list of the IOCs
+        :param iocs_reputaiton: IOCs reputation
+
+        :return: Filtered IOCs collection
+        """
+        iocs_matching = {'all': [0, 1, 2], 'suspicious': [1, 2], 'malicious': [2]}.get(iocs_reputaiton)
+
+        if not iocs_matching:
+            raise RunTimeException('Unspecified IOCs reputation. Supports: all, suspicious, malicious')
+
+        return [ioc for ioc in iocs if ioc.get('reputation') in iocs_matching]

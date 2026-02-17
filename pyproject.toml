@@ -1,6 +1,6 @@
 [project]
 name = 'anyrun-sdk'
-version = '1.12.11'
+version = '1.13.11'
 
 description = 'This is the official Python client library for ANY.RUN. Automate management of ANY.RUN REST endpoints'
 authors = [
@@ -22,7 +22,8 @@ dependencies = [
     'aiohttp>=3.12.14',
     'aiofiles>=24.1.0',
     'typing-extensions>=4.12.2',
-    'requests>=2.32.4'
+    'requests>=2.32.4',
+    'pydantic>=2.12.15'
 ]
 
 [project.optional-dependencies]

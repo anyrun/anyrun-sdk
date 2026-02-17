@@ -8,8 +8,11 @@ def main():
         connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.', report_format='stix')
         connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.', report_format='misp')
         connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.', report_format='html')
-        connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.', report_format='ioc')
         connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.', report_format='summary')
+
+        iocs = connector.get_analysis_report('4b3dc852-3535-48f9-bf28-f95a27da2415', report_format='ioc', ioc_reputation='malicious')
+        print(iocs)
+
         print(connector.get_analysis_verdict('4b3dc852-3535-48f9-bf28-f95a27da2415'))
         # File samples management
         connector.download_pcap('4b3dc852-3535-48f9-bf28-f95a27da2415', filepath='.')

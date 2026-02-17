@@ -25,7 +25,8 @@ def main():
         # You can also access lookup object fields directly
         print(lookup_result.related_urls)
         print(lookup_result.related_dns)
-        print(lookup_result.destination_ip)
+        print(lookup_result.related_ips)
+        print(lookup_result.related_files)
 
 
 if __name__ == '__main__':

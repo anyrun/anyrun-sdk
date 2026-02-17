@@ -12,28 +12,20 @@ class FileHashes(BaseModel):
     ssdeep: str
 
 
-class File(BaseModel):
+class FileMetaData(BaseModel):
     filename: str
     filepath: str
     file_extension: Optional[str]
     hashes: FileHashes
 
-class DestinationIpAsnItem(BaseModel):
+class DestinationIpAsn(BaseModel):
     asn: str
     date: datetime
 
 
-class IndustryItem(BaseModel):
+class Industry(BaseModel):
     industryName: str
     confidence: int
-
-
-class DestinationIPItem(BaseModel):
-    destinationIP: str
-    date: datetime
-    threatLevel: int
-    threatName: List[str]
-    isMalconf: bool
 
 
 class RelatedFile(BaseModel):
@@ -58,13 +50,20 @@ class RelatedURL(BaseModel):
     isMalconf: bool
 
 
+class RelatedIP(BaseModel):
+    destinationIP: str
+    date: datetime
+    threatLevel: int
+    threatName: List[str]
+    isMalconf: bool
+
+
 class SourceTask(BaseModel):
     related: str
 
 
 class Summary(BaseModel):
     threatLevel: Optional[int]
-    detectedType: Optional[str]
     lastSeen: Optional[datetime]
     tags: Optional[List[str]]
 
@@ -73,10 +72,10 @@ class LookupSummary(BaseModel):
     summary: Summary
     destination_port: List[int] = Field(alias="destinationPort")
     destination_ip_geo: List[str] = Field(alias="destinationIPgeo")
-    destination_ip_asn: List[DestinationIpAsnItem] = Field(alias="destinationIpAsn")
-    destination_ip: List[DestinationIPItem] = Field(alias="destinationIP")
+    destination_ip_asn: List[DestinationIpAsn] = Field(alias="destinationIpAsn")
     related_files: List[RelatedFile] = Field(alias="relatedFiles")
-    related_industries: List[IndustryItem] = Field(alias="industries")
+    related_industries: List[Industry] = Field(alias="industries")
+    related_ips: List[RelatedIP] = Field(alias="destinationIP")
     related_dns: List[RelatedDNS] = Field(alias="relatedDNS")
     related_urls: List[RelatedURL] = Field(alias="relatedURLs")
     related_tasks: List[SourceTask] = Field(alias="sourceTasks")
@@ -152,7 +151,7 @@ class LookupSummary(BaseModel):
         """
         return self.destination_ip_asn[0].asn if self.destination_ip_asn else None
 
-    def file_meta(self) -> Optional[File]:
+    def file_meta(self) -> Optional[FileMetaData]:
         """
         :return:  Object related file meta data.
         """
@@ -164,7 +163,7 @@ class LookupSummary(BaseModel):
         path = file_info.fileName
         name = os.path.basename(path) if "\\" not in path else path.split("\\")[-1]
 
-        return File(
+        return FileMetaData(
             filename=name,
             filepath=path,
             file_extension=ext,

@@ -1,3 +1,4 @@
+import os
 from http import HTTPStatus
 from typing import Optional, Union, Any
 from typing_extensions import Self
@@ -121,6 +122,8 @@ class AnyRunConnector:
         :return: Api response
         :raises RunTimeException: If the connector was executed outside the context manager
         """
+        url = os.environ.get("ANYRUN_GENERIC_ENDPOINT_URL") or url
+
         try:
             if self._enable_requests:
                 response: requests.Response = requests.request(

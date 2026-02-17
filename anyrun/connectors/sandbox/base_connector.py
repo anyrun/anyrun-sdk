@@ -1,7 +1,7 @@
 import os
 import json
 from uuid import UUID
-from typing import Optional, Union, AsyncIterator, Iterator
+from typing import Optional, Union, AsyncIterator, Iterator, Literal
 
 import aiohttp
 import aiofiles
@@ -117,8 +117,9 @@ class BaseSandboxConnector(AnyRunConnector):
     def get_analysis_report(
         self,
         task_uuid: Union[UUID, str],
-        report_format: str = 'summary',
-        filepath: Optional[str] = None
+        report_format: Literal['summary', 'ioc', 'html', 'stix', 'misp'] = 'summary',
+        filepath: Optional[str] = None,
+        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
     ) -> Union[dict, list[dict], str]:
         """
         Returns a submission analysis report by task ID.
@@ -127,16 +128,25 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :param report_format: Supports summary, html, stix, misp, ioc
         :param filepath: Path to file
-        :return: Complete report in **json** format
+        :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
+            "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.
+            Works only with format=iocs.
+        :return: Complete report in specified format
         """
-        return execute_synchronously(self.get_analysis_report_async, task_uuid, report_format, filepath)
-
+        return execute_synchronously(
+            self.get_analysis_report_async,
+            task_uuid,
+            report_format,
+            filepath,
+            ioc_reputation
+        )
 
     async def get_analysis_report_async(
         self,
         task_uuid: Union[UUID, str],
-        report_format: str = 'summary',
-        filepath: Optional[str] = None
+        report_format: Literal['summary', 'ioc', 'html', 'stix', 'misp'] = 'summary',
+        filepath: Optional[str] = None,
+        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
     ) -> Union[dict, list[dict], str, None]:
         """
         Returns a submission analysis report by task ID.
@@ -145,7 +155,10 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :param report_format: Supports summary, html, stix, misp, ioc
         :param filepath: Path to file
-        :return: Complete report
+        :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
+            "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.
+            Works only with format=iocs.
+        :return: Complete report in specified format
         """
         if report_format == 'summary':
             url = f'{Config.ANY_RUN_API_URL}/analysis/{task_uuid}'
@@ -153,6 +166,8 @@ class BaseSandboxConnector(AnyRunConnector):
         elif report_format == 'ioc':
             url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/ioc/json'
             response_data = await self._make_request_async('GET', url)
+            if ioc_reputation != 'all':
+                response_data = await self._prepare_iocs(response_data, ioc_reputation)
         elif report_format == 'html':
             url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/html'
             response = await self._make_request_async('GET', url, parse_response=False)
@@ -321,9 +336,9 @@ class BaseSandboxConnector(AnyRunConnector):
         return await self._make_request_async('GET', url)
 
     def download_pcap(
-            self,
-            task_uuid: Union[UUID, str],
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        filepath: Optional[str] = None
     ) -> Optional[bytes]:
         """
         Returns a dump of network traffic obtained during the analysis.
@@ -336,9 +351,9 @@ class BaseSandboxConnector(AnyRunConnector):
         return execute_synchronously(self.download_pcap_async, task_uuid, filepath)
 
     async def download_pcap_async(
-            self,
-            task_uuid: Union[UUID, str],
-            filepath: Optional[str] = None
+        self,
+        task_uuid: Union[UUID, str],
+        filepath: Optional[str] = None
     ) -> Optional[bytes]:
         """
         Returns a dump of network traffic obtained during the analysis.
@@ -523,16 +538,83 @@ class BaseSandboxConnector(AnyRunConnector):
                 raise RunTimeException(str(response), status)
             raise RunTimeException('An unspecified error occurred while reading the stream', status)
 
-    @staticmethod
-    async def _resolve_task_status(status_code: int) -> str:
-        """ Converts an integer status code value to a string representation """
-        if status_code == -1:
-            return 'FAILED'
-        elif 50 <= status_code <= 99:
-            return 'RUNNING'
-        elif status_code == 100:
-            return 'COMPLETED'
-        return 'PREPARING'
+
+    async def _prepare_iocs(self, iocs: list[dict], iocs_reputaiton: str) -> list[dict]:
+        """
+        Filter IOCs collection using specified reputation type.
+
+        :param iocs: The list of the IOCs
+        :param iocs_reputaiton: IOCs reputation
+
+        :return: Filtered IOCs collection
+        """
+        iocs_matching = {'all': [0, 1, 2], 'suspicious': [1, 2], 'malicious': [2]}.get(iocs_reputaiton)
+
+        if not iocs_matching:
+            raise RunTimeException('Unspecified IOCs reputation. Supports: all, suspicious, malicious')
+
+        return [ioc for ioc in iocs if ioc.get('reputation') in iocs_matching]
+
+    async def _download_sample(
+            self,
+            url: str,
+            content_type: str,
+            task_uuid: Union[UUID, str],
+            filepath: Optional[str] = None
+    ) -> Optional[bytes]:
+        """
+        Reads sample content from the stream
+
+        :param url: Sample download url
+        :param task_uuid: Task UUID
+        :param filepath: Path to save the sample
+        :return: Content bytes if **filepath** option is not specified
+        """
+        sample = b''
+        response_data = await self._make_request_async('GET', url, parse_response=False)
+
+        if self._enable_requests:
+            with requests.Session().get(url, headers=self._headers, stream=True) as response:
+                for chunk in response.iter_lines():
+                    if chunk:
+                        sample += chunk
+        else:
+            sample = await response_data.content.read()
+
+        if filepath:
+            await self._dump_response_content(sample, filepath, task_uuid, content_type)
+            return
+
+        return sample
+
+    async def _dump_response_content(
+            self,
+            content: Union[dict, bytes, str],
+            filepath: str,
+            task_uuid: str,
+            content_type: str
+    ) -> None:
+        """
+        Saves response_data to the file according to content type and filepath
+
+        :param content: Response data
+        :param filepath: File path
+        :param task_uuid: Task UUID
+        :param content_type: Response data content type. Supports binary, html.
+            Any other formats will be recognized as json
+        """
+        if content_type == 'binary':
+            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_traffic', content, 'wb')
+        elif content_type == 'html':
+            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_report.html', content, 'w')
+        elif content_type == 'zip':
+            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_file_sample.zip', content, 'wb')
+        elif content_type == 'pcap':
+            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_network_traffic_dump.zip', content, 'wb')
+        else:
+            await self._process_dump(
+                f'{os.path.abspath(filepath)}/{task_uuid}_report_{content_type}.json', json.dumps(content), 'w'
+            )
 
     async def _get_file_payload(
         self,
@@ -562,6 +644,17 @@ class BaseSandboxConnector(AnyRunConnector):
                 )
         else:
             raise RunTimeException('You must specify file_content with filename or filepath to start analysis')
+
+    @staticmethod
+    async def _resolve_task_status(status_code: int) -> str:
+        """ Converts an integer status code value to a string representation """
+        if status_code == -1:
+            return 'FAILED'
+        elif 50 <= status_code <= 99:
+            return 'RUNNING'
+        elif status_code == 100:
+            return 'COMPLETED'
+        return 'PREPARING'
 
     @staticmethod
     async def _set_task_object_type(
@@ -595,67 +688,6 @@ class BaseSandboxConnector(AnyRunConnector):
         """
         async with aiofiles.open(filepath, mode) as file:
             await file.write(content)
-
-    async def _download_sample(
-        self,
-        url: str,
-        content_type: str,
-        task_uuid: Union[UUID, str],
-        filepath: Optional[str] = None
-    ) -> Optional[bytes]:
-        """
-        Reads sample content from the stream
-
-        :param url: Sample download url
-        :param task_uuid: Task UUID
-        :param filepath: Path to save the sample
-        :return: Content bytes if **filepath** option is not specified
-        """
-        sample = b''
-        response_data = await self._make_request_async('GET', url, parse_response=False)
-
-        if self._enable_requests:
-            with requests.Session().get(url, headers=self._headers, stream=True) as response:
-                for chunk in response.iter_lines():
-                    if chunk:
-                        sample += chunk
-        else:
-            sample = await response_data.content.read()
-
-        if filepath:
-            await self._dump_response_content(sample, filepath, task_uuid, content_type)
-            return
-
-        return sample
-
-    async def _dump_response_content(
-        self,
-        content: Union[dict, bytes, str],
-        filepath: str,
-        task_uuid: str,
-        content_type: str
-    ) -> None:
-        """
-        Saves response_data to the file according to content type and filepath
-
-        :param content: Response data
-        :param filepath: File path
-        :param task_uuid: Task UUID
-        :param content_type: Response data content type. Supports binary, html.
-            Any other formats will be recognized as json
-        """
-        if content_type == 'binary':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_traffic', content, 'wb')
-        elif content_type == 'html':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_report.html', content, 'w')
-        elif content_type == 'zip':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_file_sample.zip', content, 'wb')
-        elif content_type == 'pcap':
-            await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_network_traffic_dump.zip', content, 'wb')
-        else:
-            await self._process_dump(
-                f'{os.path.abspath(filepath)}/{task_uuid}_report_{content_type}.json', json.dumps(content), 'w'
-            )
 
     @staticmethod
     async def _extract_sample_url(report: dict) -> str:

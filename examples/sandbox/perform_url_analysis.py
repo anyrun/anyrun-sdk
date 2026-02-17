@@ -6,16 +6,16 @@ from anyrun.connectors import SandboxConnector
 
 def main():
     with SandboxConnector.android(api_key) as connector:
-        task_id = connector.run_url_analysis('https://any.run')
-        print(f'Analysis successfully initialized. Task uuid: {task_id}')
+        analysis_id = connector.run_url_analysis('https://any.run')
+        print(f'Analysis successfully initialized. Analysis uuid: {analysis_id}')
 
-        for status in connector.get_task_status(task_id):
+        for status in connector.get_task_status(analysis_id):
             print(status)
 
-        report = connector.get_analysis_report(task_id)
+        report = connector.get_analysis_report(analysis_id)
         pprint(report)
 
-        connector.delete_task(task_id)
+        connector.delete_task(analysis_id)
 
 
 if __name__ == '__main__':

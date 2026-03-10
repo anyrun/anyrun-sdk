@@ -17,7 +17,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
@@ -29,7 +29,6 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest tests -x --cov=anyrun --cov-report=term-missing --cov-report=json
-    # Badge is published to gh-pages (branch is auto-created by the action). Enable GitHub Pages: Settings → Pages → Source: Deploy from branch → gh-pages / (root).
     - name: Update Coverage Badge
       if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && matrix.python-version == '3.12'
       uses: we-cli/coverage-badge-action@v1.0.1

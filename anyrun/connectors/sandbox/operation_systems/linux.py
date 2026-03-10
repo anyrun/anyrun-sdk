@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, Union
+from typing import Optional, Union, Literal
 
 import aiohttp
 
@@ -10,7 +10,7 @@ from anyrun.utils.utility_functions import execute_synchronously
 
 class LinuxConnector(BaseSandboxConnector):
     """
-    Provides ANY.RUN TI Yara Lookup endpoints management.
+    Provides ANY.RUN Sandbox endpoints management for Linux VM.
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
@@ -27,7 +27,7 @@ class LinuxConnector(BaseSandboxConnector):
         enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration
         :param trust_env: Trust environment settings for proxy configuration
         :param verify_ssl: Enable/disable SSL verification option.
@@ -56,7 +56,7 @@ class LinuxConnector(BaseSandboxConnector):
         file_content: Optional[bytes] = None,
         filename: Optional[str] = None,
         filepath: Optional[str] = None,
-        env_os: str = 'ubuntu',
+        env_os: Literal['ubuntu', 'debian'] = 'ubuntu',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -66,10 +66,11 @@ class LinuxConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'temp'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         run_as_root: bool = False,
         obj_ext_extension: bool = True,
@@ -98,6 +99,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param run_as_root: Run file with superuser privileges
@@ -126,6 +128,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             obj_ext_cmd=obj_ext_cmd,
             run_as_root=run_as_root,
@@ -139,7 +142,7 @@ class LinuxConnector(BaseSandboxConnector):
         file_content: Optional[bytes] = None,
         filename: Optional[str] = None,
         filepath: Optional[str] = None,
-        env_os: str = 'ubuntu',
+        env_os: Literal['ubuntu', 'debian'] = 'ubuntu',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -149,10 +152,11 @@ class LinuxConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'temp'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         run_as_root: bool = False,
         obj_ext_extension: bool = True,
@@ -181,6 +185,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param run_as_root: Run file with superuser privileges
@@ -209,6 +214,7 @@ class LinuxConnector(BaseSandboxConnector):
             'opt_privacy_type': opt_privacy_type,
             'opt_timeout': opt_timeout,
             'opt_automated_interactivity': opt_automated_interactivity,
+            'opt_auto_delete_after': opt_auto_delete_after,
             'obj_ext_startfolder': obj_ext_startfolder,
             'obj_ext_cmd': obj_ext_cmd,
             'obj_force_elevation': None,
@@ -236,7 +242,7 @@ class LinuxConnector(BaseSandboxConnector):
     def run_url_analysis(
         self,
         obj_url: str,
-        env_os: str = 'ubuntu',
+        env_os: Literal['ubuntu', 'debian'] = 'ubuntu',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -246,10 +252,11 @@ class LinuxConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
-        obj_ext_browser: str = 'Google Chrome',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_browser: Literal['Google Chrome', 'Mozilla Firefox'] = 'Google Chrome',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -273,6 +280,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param obj_ext_extension: Change extension to valid
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
@@ -297,6 +305,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
@@ -306,7 +315,7 @@ class LinuxConnector(BaseSandboxConnector):
     async def run_url_analysis_async(
         self,
         obj_url: str,
-        env_os: str = 'ubuntu',
+        env_os: Literal['ubuntu', 'debian'] = 'ubuntu',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -316,10 +325,11 @@ class LinuxConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
-        obj_ext_browser: str = 'Google Chrome',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_browser: Literal['Google Chrome', 'Mozilla Firefox'] = 'Google Chrome',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -343,6 +353,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox
         :param obj_ext_extension: Change extension to valid
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
@@ -372,6 +383,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
@@ -383,7 +395,7 @@ class LinuxConnector(BaseSandboxConnector):
     def run_download_analysis(
         self,
         obj_url: str,
-        env_os: str = 'ubuntu',
+        env_os: Literal['ubuntu', 'debian'] = 'ubuntu',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -393,10 +405,11 @@ class LinuxConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'temp'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         obj_ext_extension: bool = True,
@@ -423,6 +436,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
@@ -450,6 +464,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_cmd=obj_ext_cmd,
@@ -462,7 +477,7 @@ class LinuxConnector(BaseSandboxConnector):
     async def run_download_analysis_async(
         self,
         obj_url: str,
-        env_os: str = 'ubuntu',
+        env_os: Literal['ubuntu', 'debian'] = 'ubuntu',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -472,10 +487,11 @@ class LinuxConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'temp'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         obj_ext_extension: bool = True,
@@ -502,6 +518,7 @@ class LinuxConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, temp
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
@@ -534,6 +551,7 @@ class LinuxConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_cmd=obj_ext_cmd,

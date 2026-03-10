@@ -51,7 +51,7 @@ class GenericEnvironment:
         """
         Provides sync interface for making any request
 
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param method: HTTP method
         :param json: Request json
         :param data: Request data
@@ -113,7 +113,7 @@ class GenericEnvironment:
         """
         Provides async interface for making any request
 
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param method: HTTP method
         :param json: Request json
         :param data: Request data

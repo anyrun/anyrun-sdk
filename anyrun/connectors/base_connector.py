@@ -12,13 +12,14 @@ import requests
 
 from aiohttp import BasicAuth
 from urllib3 import disable_warnings
-from urllib3.exceptions import InsecureRequestWarning
+from urllib3.exceptions import InsecureRequestWarning, NotOpenSSLWarning
 
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
 from anyrun.utils.utility_functions import execute_synchronously, get_running_loop
 
 disable_warnings(InsecureRequestWarning)
+disable_warnings(NotOpenSSLWarning)
 
 class AnyRunConnector:
 
@@ -36,7 +37,7 @@ class AnyRunConnector:
         enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.
@@ -249,7 +250,7 @@ class AnyRunConnector:
         """
         Checks if API key format is valid
 
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :raises RunTimeException: If API key format is not valid
         """
         if not api_key:

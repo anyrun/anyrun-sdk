@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, Union
+from typing import Optional, Union, Literal
 
 import aiohttp
 
@@ -10,7 +10,7 @@ from anyrun.utils.utility_functions import execute_synchronously
 
 class AndroidConnector(BaseSandboxConnector):
     """
-    Provides ANY.RUN TI Yara Lookup endpoints management.
+    Provides ANY.RUN Sandbox endpoints management for Android VM.
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
@@ -27,7 +27,7 @@ class AndroidConnector(BaseSandboxConnector):
         enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.
@@ -64,9 +64,10 @@ class AndroidConnector(BaseSandboxConnector):
         opt_network_mitm: bool = False,
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
         obj_ext_cmd: Optional[str] = None,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -91,6 +92,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_cmd: Optional command line.
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
@@ -114,6 +116,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_cmd=obj_ext_cmd,
             task_rerun_uuid=task_rerun_uuid,
             user_tags=user_tags
@@ -132,9 +135,10 @@ class AndroidConnector(BaseSandboxConnector):
         opt_network_mitm: bool = False,
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
         obj_ext_cmd: Optional[str] = None,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -159,6 +163,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_cmd: Optional command line.
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
@@ -183,6 +188,7 @@ class AndroidConnector(BaseSandboxConnector):
             'opt_privacy_type': opt_privacy_type,
             'opt_timeout': opt_timeout,
             'opt_automated_interactivity': opt_automated_interactivity,
+            'opt_auto_delete_after': opt_auto_delete_after,
             'obj_ext_startfolder': 'downloads',
             'obj_ext_cmd': obj_ext_cmd,
             'task_rerun_uuid': task_rerun_uuid,
@@ -214,9 +220,10 @@ class AndroidConnector(BaseSandboxConnector):
         opt_network_mitm: bool = False,
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -237,6 +244,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
@@ -257,6 +265,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
             user_tags=user_tags
         )
@@ -272,9 +281,10 @@ class AndroidConnector(BaseSandboxConnector):
         opt_network_mitm: bool = False,
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -295,6 +305,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
@@ -321,6 +332,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
             user_tags=user_tags
         )
@@ -338,12 +350,13 @@ class AndroidConnector(BaseSandboxConnector):
         opt_network_mitm: bool = False,
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         opt_privacy_hidesource: bool = False,
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -366,6 +379,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_automated_interactivity: Automated Interactivity (ML) option
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param opt_privacy_hidesource: Option for hiding of source URL.
@@ -387,6 +401,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
@@ -405,12 +420,13 @@ class AndroidConnector(BaseSandboxConnector):
         opt_network_mitm: bool = False,
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         opt_privacy_hidesource: bool = False,
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -431,6 +447,7 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_cmd: Optional command line.
         :param obj_ext_useragent: User-Agent value.
         :param opt_privacy_hidesource: Option for hiding of source URL.
@@ -465,6 +482,7 @@ class AndroidConnector(BaseSandboxConnector):
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             opt_privacy_hidesource=opt_privacy_hidesource,
+            opt_auto_delete_after=opt_auto_delete_after,
             user_tags=user_tags
         )
 

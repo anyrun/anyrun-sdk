@@ -29,7 +29,7 @@ class LookupConnector(AnyRunConnector):
         enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API Key in format: API-KEY <api_key>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.

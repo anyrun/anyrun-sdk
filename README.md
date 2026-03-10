@@ -8,6 +8,7 @@ ______________________________________________________________________
 
 [![PyPI version](https://badge.fury.io/py/anyrun-sdk.svg)](https://badge.fury.io/py/anyrun-sdk)
 [![Downloads](https://pepy.tech/badge/anyrun-sdk)](https://pepy.tech/project/anyrun-sdk)
+[![Coverage](https://anyrun.github.io/anyrun-sdk/badges/coverage.svg)](https://github.com/anyrun/anyrun-sdk/actions)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/anyrun/anyrun-sdk/blob/main/CONTRIBUTING.md)
 
 # ANY.RUN SDK

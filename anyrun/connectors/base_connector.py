@@ -11,15 +11,10 @@ import asyncio
 import requests
 
 from aiohttp import BasicAuth
-from urllib3 import disable_warnings
-from urllib3.exceptions import InsecureRequestWarning, NotOpenSSLWarning
 
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
 from anyrun.utils.utility_functions import execute_synchronously, get_running_loop
-
-disable_warnings(InsecureRequestWarning)
-disable_warnings(NotOpenSSLWarning)
 
 class AnyRunConnector:
 

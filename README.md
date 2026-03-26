@@ -56,8 +56,6 @@ API key format: WmNfqnpo...2Sjon7mtvm8e
 
 ```python
 import os
-from pprint import pprint
-
 from anyrun.connectors import SandboxConnector
 
 
@@ -73,11 +71,10 @@ def main():
         
         # Get analysis verdict
         verdict = connector.get_analysis_verdict(analysis_id)
-        print(verdict)
-            
-        # Get report results
-        report = connector.get_analysis_report(analysis_id)
-        pprint(report)
+        
+        if verdict in ('Suspicious', 'Malicious'):
+            # Get analysis report
+            connector.get_analysis_report(analysis_id, report_format='html', filepath='.')
         
         # Remove the analysis from history
         connector.delete_task(analysis_id)
@@ -115,5 +112,6 @@ We welcome contributions! Please see our [Contributing Guide](https://github.com
 
 # Contact us 
 
-Support, sales, and trial inquiries – support@any.run  
-Public relations and partnerships – pr@any.run 
+Sales, demo and trial inquiries - [sales@any.run](mailto:sales@any.run)  
+Technical support - [techsupport@any.run](mailto:techsupport@any.run)  
+Public relations and partnerships – [pr@any.run](mailto:pr@any.run])  

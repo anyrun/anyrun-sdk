@@ -3,6 +3,8 @@ import warnings
 import functools
 from typing import Callable, Any, AsyncIterator
 
+from anyrun import RunTimeException
+
 
 def execute_async_iterator(async_iterator: AsyncIterator[dict]) -> Any:
     """ Provides an async iterator management for the synchronous code """
@@ -29,6 +31,23 @@ def get_running_loop() -> asyncio.AbstractEventLoop:
         event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(event_loop)
         return event_loop
+
+
+def check_if_analysis_initialized(func):
+    """ Checks if taskid in Sandbox API response JSON """
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        params = await func(*args, **kwargs)
+
+        if params is None:
+            raise RunTimeException('Analysis is not started.', 500)
+
+        if 'queueTaskId' in params.get('data'):
+            raise RunTimeException(f'Analysis is not started. Queue ID: {params.get("data").get("queueTaskId")}', 500)
+
+        return params.get('data').get('taskid')
+
+    return wrapper
 
 
 def deprecated(reason: str = ""):

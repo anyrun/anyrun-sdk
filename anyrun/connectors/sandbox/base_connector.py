@@ -117,16 +117,16 @@ class BaseSandboxConnector(AnyRunConnector):
     def get_analysis_report(
         self,
         task_uuid: Union[UUID, str],
-        report_format: Literal['summary', 'ioc', 'html', 'stix', 'misp'] = 'summary',
+        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp'] = 'json',
         filepath: Optional[str] = None,
-        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
+        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'suspicious'
     ) -> Union[dict, list[dict], str]:
         """
         Returns a submission analysis report by task ID.
         If **filepath** option is specified, dumps report to the file instead
 
         :param task_uuid: Task uuid
-        :param report_format: Supports summary, html, stix, misp, ioc
+        :param report_format: Supports json, html, stix, misp, ioc
         :param filepath: Path to file
         :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
             "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.
@@ -144,23 +144,23 @@ class BaseSandboxConnector(AnyRunConnector):
     async def get_analysis_report_async(
         self,
         task_uuid: Union[UUID, str],
-        report_format: Literal['summary', 'ioc', 'html', 'stix', 'misp'] = 'summary',
+        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp'] = 'json',
         filepath: Optional[str] = None,
-        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'all'
+        ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'suspicious'
     ) -> Union[dict, list[dict], str, None]:
         """
         Returns a submission analysis report by task ID.
         If **filepath** option is specified, dumps report to the file instead
 
         :param task_uuid: Task uuid
-        :param report_format: Supports summary, html, stix, misp, ioc
+        :param report_format: Supports json, html, stix, misp, ioc
         :param filepath: Path to file
         :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
             "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.
             Works only with format=iocs.
         :return: Complete report in specified format
         """
-        if report_format == 'summary':
+        if report_format == 'json':
             url = f'{Config.ANY_RUN_API_URL}/analysis/{task_uuid}'
             response_data = await self._make_request_async('GET', url)
         elif report_format == 'ioc':
@@ -535,7 +535,8 @@ class BaseSandboxConnector(AnyRunConnector):
             status = response.status_code if self._enable_requests else response.status
 
             if content_type.startswith('application/json'):
-                raise RunTimeException(str(response), status)
+                description = response.json() if self._enable_requests else await response.json()
+                raise RunTimeException(description.get('message'), status)
             raise RunTimeException('An unspecified error occurred while reading the stream', status)
 
 

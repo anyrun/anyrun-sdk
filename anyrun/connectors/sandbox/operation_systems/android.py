@@ -5,7 +5,7 @@ import aiohttp
 
 from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
 from anyrun.utils.config import Config
-from anyrun.utils.utility_functions import execute_synchronously
+from anyrun.utils.utility_functions import execute_synchronously, check_if_analysis_initialized
 
 
 class AndroidConnector(BaseSandboxConnector):
@@ -122,6 +122,7 @@ class AndroidConnector(BaseSandboxConnector):
             user_tags=user_tags
         )
 
+    @check_if_analysis_initialized
     async def run_file_analysis_async(
         self,
         file_content: Optional[bytes] = None,
@@ -207,7 +208,7 @@ class AndroidConnector(BaseSandboxConnector):
                 **params
             )
             response_data = await self._make_request_async('POST', url, data=body)
-        return response_data.get('data').get('taskid')
+        return response_data
 
     def run_url_analysis(
         self,
@@ -270,6 +271,7 @@ class AndroidConnector(BaseSandboxConnector):
             user_tags=user_tags
         )
 
+    @check_if_analysis_initialized
     async def run_url_analysis_async(
         self,
         obj_url: str,
@@ -337,7 +339,7 @@ class AndroidConnector(BaseSandboxConnector):
             user_tags=user_tags
         )
         response_data = await self._make_request_async('POST', url, json=body)
-        return response_data.get('data').get('taskid')
+        return response_data
 
     def run_download_analysis(
         self,
@@ -409,6 +411,7 @@ class AndroidConnector(BaseSandboxConnector):
             user_tags=user_tags
         )
 
+    @check_if_analysis_initialized
     async def run_download_analysis_async(
         self,
         obj_url: str,
@@ -487,4 +490,4 @@ class AndroidConnector(BaseSandboxConnector):
         )
 
         response_data = await self._make_request_async('POST', url, json=body)
-        return response_data.get('data').get('taskid')
+        return response_data

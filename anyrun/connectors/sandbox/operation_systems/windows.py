@@ -1,16 +1,16 @@
 from uuid import UUID
-from typing import Optional, Union
+from typing import Optional, Union, Literal
 
 import aiohttp
 
 from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
 from anyrun.utils.config import Config
-from anyrun.utils.utility_functions import execute_synchronously
+from anyrun.utils.utility_functions import execute_synchronously, check_if_analysis_initialized
 
 
 class WindowsConnector(BaseSandboxConnector):
     """
-    Provides ANY.RUN TI Yara Lookup endpoints management.
+    Provides ANY.RUN Sandbox endpoints management for Windows VM.
     Uses aiohttp library for the asynchronous calls
     """
     def __init__(
@@ -27,7 +27,7 @@ class WindowsConnector(BaseSandboxConnector):
         enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.
@@ -56,9 +56,9 @@ class WindowsConnector(BaseSandboxConnector):
         file_content: Optional[bytes] = None,
         filename: Optional[str] = None,
         filepath: Optional[str] = None,
-        env_version: str = '10',
+        env_version: Literal['7', '10', '11', 'server 2025'] = '10',
         env_bitness: int = 64,
-        env_type: str = 'complete',
+        env_type: Literal['complete', 'development'] = 'complete',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -68,10 +68,11 @@ class WindowsConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'appdata', 'temp', 'windows', 'root'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         obj_force_elevation: bool = False,
         auto_confirm_uac: bool = True,
@@ -87,8 +88,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_version: Version of OS. Supports: 7, 10, 11.
-        :param env_bitness: Bitness of Operation System. Supports 32, 64
+        :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -104,6 +105,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
             root
         :param obj_ext_cmd: Optional command line.
@@ -137,6 +139,7 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             obj_ext_cmd=obj_ext_cmd,
             obj_force_elevation=obj_force_elevation,
@@ -146,14 +149,15 @@ class WindowsConnector(BaseSandboxConnector):
             user_tags=user_tags
         )
 
+    @check_if_analysis_initialized
     async def run_file_analysis_async(
         self,
         file_content: Optional[bytes] = None,
         filename: Optional[str] = None,
         filepath: Optional[str] = None,
-        env_version: str = '10',
+        env_version: Literal['7', '10', '11', 'server 2025'] = '10',
         env_bitness: int = 64,
-        env_type: str = 'complete',
+        env_type: Literal['complete', 'development'] = 'complete',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -163,10 +167,11 @@ class WindowsConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'appdata', 'temp', 'windows', 'root'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         obj_force_elevation: bool = False,
         auto_confirm_uac: bool = True,
@@ -182,8 +187,8 @@ class WindowsConnector(BaseSandboxConnector):
         :param file_content: File bytes to analyse.
         :param filename: Filename with file extension.
         :param filepath: Absolute path to file. If specified, automatically process file content and filename
-        :param env_version: Version of OS. Supports: 7, 10, 11.
-        :param env_bitness: Bitness of Operation System. Supports 32, 64
+        :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -199,6 +204,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
             root
         :param obj_ext_cmd: Optional command line.
@@ -230,6 +236,7 @@ class WindowsConnector(BaseSandboxConnector):
             'opt_privacy_type': opt_privacy_type,
             'opt_timeout': opt_timeout,
             'opt_automated_interactivity': opt_automated_interactivity,
+            'opt_auto_delete_after': opt_auto_delete_after,
             'obj_ext_startfolder': obj_ext_startfolder,
             'obj_ext_cmd': obj_ext_cmd,
             'obj_force_elevation': obj_force_elevation,
@@ -251,14 +258,14 @@ class WindowsConnector(BaseSandboxConnector):
                 **params
             )
             response_data = await self._make_request_async('POST', url, data=body)
-        return response_data.get('data').get('taskid')
+        return response_data
 
     def run_url_analysis(
         self,
         obj_url: str,
-        env_version: str = '10',
+        env_version: Literal['7', '10', '11', 'server 2025'] = '10',
         env_bitness: int = 64,
-        env_type: str = 'complete',
+        env_type: Literal['complete', 'development'] = 'complete',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -268,10 +275,11 @@ class WindowsConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
-        obj_ext_browser: str = 'Microsoft Edge',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_browser: Literal['Microsoft Edge', 'Internet Explorer', 'Google Chrome', 'Mozilla Firefox'] = 'Microsoft Edge',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -281,8 +289,8 @@ class WindowsConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
         
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11.
-        :param env_bitness: Bitness of Operation System. Supports 32, 64
+        :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -298,8 +306,9 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox, Internet Explorer, Microsoft Edge
-            for Windows 7, 10, 11.
+            for Windows 7, 10, 11. Microsoft Edge for Windows Server 2025.
         :param obj_ext_extension: Change extension to valid
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
@@ -325,18 +334,20 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
             user_tags=user_tags
         )
 
+    @check_if_analysis_initialized
     async def run_url_analysis_async(
         self,
         obj_url: str,
-        env_version: str = '10',
+        env_version: Literal['7', '10', '11', 'server 2025'] = '10',
         env_bitness: int = 64,
-        env_type: str = 'complete',
+        env_type: Literal['complete', 'development'] = 'complete',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -346,10 +357,11 @@ class WindowsConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
-        obj_ext_browser: str = 'Microsoft Edge',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_browser: Literal['Microsoft Edge', 'Internet Explorer', 'Google Chrome', 'Mozilla Firefox'] = 'Microsoft Edge',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -359,8 +371,8 @@ class WindowsConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11.
-        :param env_bitness: Bitness of Operation System. Supports 32, 64
+        :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -376,8 +388,9 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_browser: Browser name. Supports: Google Chrome, Mozilla Firefox, Internet Explorer, Microsoft Edge
-            for Windows 7, 10, 11.
+            for Windows 7, 10, 11. Microsoft Edge for Windows Server 2025.
         :param obj_ext_extension: Change extension to valid
         :param user_tags: Append user tags to new analysis. Only characters a-z, A-Z, 0-9, hyphen (-), and comma (,)
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
@@ -406,20 +419,21 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
             user_tags=user_tags
         )
         response_data = await self._make_request_async('POST', url, json=body)
-        return response_data.get('data').get('taskid')
+        return response_data
 
     def run_download_analysis(
         self,
         obj_url: str,
-        env_version: str = '10',
+        env_version: Literal['7', '10', '11', 'server 2025'] = '10',
         env_bitness: int = 64,
-        env_type: str = 'complete',
+        env_type: Literal['complete', 'development'] = 'complete',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -429,10 +443,11 @@ class WindowsConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'appdata', 'temp', 'windows', 'root'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         obj_ext_extension: bool = True,
@@ -445,8 +460,8 @@ class WindowsConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
         
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11.
-        :param env_bitness: Bitness of Operation System. Supports 32, 64
+        :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025 for Windows.
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -462,6 +477,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
             root
         :param obj_ext_cmd: Optional command line.
@@ -492,6 +508,7 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_cmd=obj_ext_cmd,
@@ -501,12 +518,13 @@ class WindowsConnector(BaseSandboxConnector):
             user_tags=user_tags
         )
 
+    @check_if_analysis_initialized
     async def run_download_analysis_async(
         self,
         obj_url: str,
-        env_version: str = '10',
+        env_version: Literal['7', '10', '11', 'server 2025'] = '10',
         env_bitness: int = 64,
-        env_type: str = 'complete',
+        env_type: Literal['complete', 'development'] = 'complete',
         env_locale: str = 'en-US',
         opt_network_connect: bool = True,
         opt_network_fakenet: bool = False,
@@ -516,10 +534,11 @@ class WindowsConnector(BaseSandboxConnector):
         opt_network_residential_proxy: bool = False,
         opt_network_residential_proxy_geo: str = 'fastest',
         opt_kernel_heavyevasion: bool = False,
-        opt_privacy_type: str = 'bylink',
-        opt_timeout: int = 60,
+        opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
+        opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        obj_ext_startfolder: str = 'temp',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        obj_ext_startfolder: Literal['desktop', 'home', 'downloads', 'appdata', 'temp', 'windows', 'root'] = 'temp',
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         obj_ext_extension: bool = True,
@@ -532,8 +551,8 @@ class WindowsConnector(BaseSandboxConnector):
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
 
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
-        :param env_version: Version of OS. Supports: 7, 10, 11.
-        :param env_bitness: Bitness of Operation System. Supports 32, 64
+        :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
+        :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025
         :param env_type: Environment preset type. You can select **development** env for OS Windows 10 x64. For all
             other cases, **complete** env is required
         :param env_locale: Operation system's language. Use locale identifier or country name (Ex: "en-US" or "Brazil").
@@ -549,6 +568,7 @@ class WindowsConnector(BaseSandboxConnector):
         :param opt_privacy_type: Privacy settings. Supports: public, bylink, owner, byteam
         :param opt_timeout: Timeout option. Size range: 10-660
         :param opt_automated_interactivity: Automated Interactivity (ML) option
+        :param opt_auto_delete_after: Specify after what period of time this report should be deleted
         :param obj_ext_startfolder: Start object from. Supports: desktop, home, downloads, appdata, temp, windows,
             root
         :param obj_ext_cmd: Optional command line.
@@ -582,6 +602,7 @@ class WindowsConnector(BaseSandboxConnector):
             opt_privacy_type=opt_privacy_type,
             opt_timeout=opt_timeout,
             opt_automated_interactivity=opt_automated_interactivity,
+            opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_cmd=obj_ext_cmd,
@@ -592,4 +613,4 @@ class WindowsConnector(BaseSandboxConnector):
         )
 
         response_data = await self._make_request_async('POST', url, json=body)
-        return response_data.get('data').get('taskid')
+        return response_data

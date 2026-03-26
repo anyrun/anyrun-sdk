@@ -1,3 +1,6 @@
+import os as os_module
+import tempfile
+
 import pytest
 
 from anyrun.connectors import SandboxConnector
@@ -174,3 +177,140 @@ async def test_set_task_object_type_returns_params_with_specified_obj_type_if_re
 
     assert params.get('obj_type') == 'url'
     assert params.get('obj_url') == 'https://any.run'
+
+
+@pytest.mark.asyncio
+async def test_prepare_iocs_filters_by_reputation():
+    connector = SandboxConnector.windows('mock_api_key')
+    iocs = [
+        {'reputation': 0, 'id': '1'},
+        {'reputation': 1, 'id': '2'},
+        {'reputation': 2, 'id': '3'},
+    ]
+    result = await connector._prepare_iocs(iocs, 'suspicious')
+    assert len(result) == 2
+    assert all(ioc['reputation'] in (1, 2) for ioc in result)
+
+    result = await connector._prepare_iocs(iocs, 'malicious')
+    assert len(result) == 1
+    assert result[0]['reputation'] == 2
+
+
+@pytest.mark.asyncio
+async def test_prepare_iocs_raises_for_unknown_reputation():
+    connector = SandboxConnector.windows('mock_api_key')
+    from anyrun.utils.exceptions import RunTimeException
+    with pytest.raises(RunTimeException) as exc_info:
+        await connector._prepare_iocs([], 'invalid')
+    assert 'Unspecified IOCs reputation' in exc_info.value.description
+
+
+@pytest.mark.asyncio
+async def test_extract_sample_url_raises_for_private_sample():
+    connector = SandboxConnector.windows('mock_api_key')
+    from anyrun.utils.exceptions import RunTimeException
+    report = {
+        'analysis': {
+            'options': {'privateSample': 'false'},
+            'content': {'mainObject': {'type': 'file', 'permanentUrl': 'https://example.com/file'}},
+        }
+    }
+    with pytest.raises(RunTimeException) as exc_info:
+        await connector._extract_sample_url(report)
+    assert 'private' in exc_info.value.description.lower()
+
+
+@pytest.mark.asyncio
+async def test_extract_sample_url_raises_when_not_file():
+    connector = SandboxConnector.windows('mock_api_key')
+    from anyrun.utils.exceptions import RunTimeException
+    report = {
+        'analysis': {
+            'options': {'privateSample': 'true'},
+            'content': {'mainObject': {'type': 'url', 'permanentUrl': 'https://example.com'}},
+        }
+    }
+    with pytest.raises(RunTimeException) as exc_info:
+        await connector._extract_sample_url(report)
+    assert 'file sample' in exc_info.value.description.lower()
+
+
+@pytest.mark.asyncio
+async def test_extract_sample_url_returns_url_when_valid():
+    connector = SandboxConnector.windows('mock_api_key')
+    report = {
+        'analysis': {
+            'options': {'privateSample': 'true'},
+            'content': {'mainObject': {'type': 'file', 'permanentUrl': 'https://content.any.run/sample.zip'}},
+        }
+    }
+    url = await connector._extract_sample_url(report)
+    assert url == 'https://content.any.run/sample.zip'
+
+
+@pytest.mark.asyncio
+async def test_dump_response_content_binary():
+    connector = SandboxConnector.windows('mock_api_key')
+    with tempfile.TemporaryDirectory() as tmpdir:
+        await connector._dump_response_content(b'binary data', tmpdir, 'task-1', 'pcap')
+        path = os_module.path.join(tmpdir, 'task-1_network_traffic_dump.zip')
+        assert os_module.path.isfile(path)
+        with open(path, 'rb') as f:
+            assert f.read() == b'binary data'
+
+
+@pytest.mark.asyncio
+async def test_dump_response_content_json():
+    connector = SandboxConnector.windows('mock_api_key')
+    with tempfile.TemporaryDirectory() as tmpdir:
+        await connector._dump_response_content({'key': 'value'}, tmpdir, 'task-1', 'summary')
+        path = os_module.path.join(tmpdir, 'task-1_report_summary.json')
+        assert os_module.path.isfile(path)
+
+
+@pytest.mark.asyncio
+async def test_dump_response_content_html():
+    connector = SandboxConnector.windows('mock_api_key')
+    with tempfile.TemporaryDirectory() as tmpdir:
+        await connector._dump_response_content('<html>report</html>', tmpdir, 'task-1', 'html')
+        path = os_module.path.join(tmpdir, 'task-1_report.html')
+        assert os_module.path.isfile(path)
+        with open(path) as f:
+            assert f.read() == '<html>report</html>'
+
+
+@pytest.mark.asyncio
+async def test_dump_response_content_binary_type():
+    connector = SandboxConnector.windows('mock_api_key')
+    with tempfile.TemporaryDirectory() as tmpdir:
+        await connector._dump_response_content(b'traffic', tmpdir, 'task-1', 'binary')
+        path = os_module.path.join(tmpdir, 'task-1_traffic')
+        assert os_module.path.isfile(path)
+        with open(path, 'rb') as f:
+            assert f.read() == b'traffic'
+
+
+@pytest.mark.asyncio
+async def test_dump_response_content_zip():
+    connector = SandboxConnector.windows('mock_api_key')
+    with tempfile.TemporaryDirectory() as tmpdir:
+        await connector._dump_response_content(b'zip content', tmpdir, 'task-1', 'zip')
+        path = os_module.path.join(tmpdir, 'task-1_file_sample.zip')
+        assert os_module.path.isfile(path)
+
+
+@pytest.mark.asyncio
+async def test_get_file_payload_raises_when_no_file_specified():
+    connector = SandboxConnector.windows('mock_api_key')
+    with pytest.raises(RunTimeException) as exc_info:
+        await connector._get_file_payload()
+    assert 'file_content with filename or filepath' in exc_info.value.description
+
+
+@pytest.mark.asyncio
+async def test_check_response_content_type_raises_for_unspecified_stream_error():
+    connector = SandboxConnector.windows('mock_api_key')
+    mock_response = type('R', (), {'status': 500, 'status_code': 500})()
+    with pytest.raises(RunTimeException) as exc_info:
+        await connector._check_response_content_type('text/plain', mock_response)
+    assert 'unspecified error' in exc_info.value.description.lower()

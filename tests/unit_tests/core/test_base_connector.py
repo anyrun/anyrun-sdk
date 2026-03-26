@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import aiohttp
@@ -88,3 +89,78 @@ async def test_api_key_validator_raises_exception_if_api_key_is_not_a_string():
         AnyRunConnector(123)
 
     assert exception.value.description == 'The ANY.RUN API key must be a valid string'
+
+
+@pytest.mark.asyncio
+async def test_api_key_validator_raises_exception_if_api_key_is_empty():
+    with pytest.raises(RunTimeException) as exception:
+        AnyRunConnector('')
+
+    assert exception.value.description == 'The ANY.RUN API key can not be empty.'
+
+
+def test_generate_proxy_config_without_auth():
+    base_connector = AnyRunConnector('mock_api_key')
+    base_connector._proxy = 'https://proxy.example.com:8080'
+    base_connector._proxy_username = None
+    base_connector._proxy_password = None
+    config = base_connector._generate_proxy_config()
+    assert config == {'https': 'https://proxy.example.com:8080'}
+
+
+def test_generate_proxy_config_with_auth():
+    base_connector = AnyRunConnector('mock_api_key')
+    base_connector._proxy = 'https://proxy.example.com:8080'
+    base_connector._proxy_username = 'user'
+    base_connector._proxy_password = 'pass'
+    config = base_connector._generate_proxy_config()
+    assert 'https' in config
+    assert 'user' in config['https']
+    assert 'pass' in config['https']
+
+
+def test_generate_proxy_config_returns_none_when_no_proxy():
+    base_connector = AnyRunConnector('mock_api_key')
+    base_connector._proxy = None
+    assert base_connector._generate_proxy_config() is None
+
+
+@pytest.mark.asyncio
+async def test_check_response_status_uses_description_key_when_message_missing():
+    base_connector = AnyRunConnector('mock_api_key')
+    error_response = {'description': 'Error from description field', 'code': 400}
+    with pytest.raises(RunTimeException) as exc_info:
+        await base_connector._check_response_status(error_response, 400)
+    assert exc_info.value.description == 'Error from description field'
+
+
+def test_sync_context_manager_opens_and_closes_session():
+    base_connector = AnyRunConnector('mock_api_key')
+    with base_connector:
+        assert base_connector._session is not None
+    assert base_connector._session is None
+
+
+@pytest.mark.asyncio
+async def test_async_context_manager_opens_and_closes_session():
+    base_connector = AnyRunConnector('mock_api_key')
+    async with base_connector:
+        assert base_connector._session is not None
+    assert base_connector._session is None
+
+
+@pytest.mark.asyncio
+async def test_check_proxy_async_returns_ok_when_request_succeeds():
+    base_connector = AnyRunConnector('mock_api_key')
+    with patch.object(base_connector, '_make_request_async', new_callable=AsyncMock, return_value=None):
+        async with base_connector:
+            result = await base_connector.check_proxy_async()
+    assert result == {'status': 'ok', 'description': 'Successful proxy verification'}
+
+
+def test_check_proxy_sync_returns_ok():
+    base_connector = AnyRunConnector('mock_api_key')
+    with patch.object(base_connector, '_make_request_async', new_callable=AsyncMock, return_value=None):
+        with base_connector:
+            result = base_connector.check_proxy()
+    assert result['status'] == 'ok'

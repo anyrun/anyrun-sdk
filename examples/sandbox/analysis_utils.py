@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 
 from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
@@ -9,7 +11,7 @@ def main():
         connector.get_analysis_report(analysis_uuid, filepath='.', report_format='stix')
         connector.get_analysis_report(analysis_uuid, filepath='.', report_format='misp')
         connector.get_analysis_report(analysis_uuid, filepath='.', report_format='html')
-        connector.get_analysis_report(analysis_uuid, filepath='.', report_format='summary')
+        connector.get_analysis_report(analysis_uuid, filepath='.', report_format='json')
 
         iocs = connector.get_analysis_report(analysis_uuid, report_format='ioc', ioc_reputation='malicious')
         print(iocs)

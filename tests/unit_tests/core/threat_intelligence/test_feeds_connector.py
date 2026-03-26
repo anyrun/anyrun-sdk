@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
 
 from anyrun.connectors import FeedsConnector
@@ -38,3 +40,55 @@ async def test_parse_boolean_returns_param_if_boolean_parameter_is_not_received(
 
     assert await connector._parse_boolean(1) == 1
     assert await connector._parse_boolean('test') == 'test'
+
+
+@pytest.mark.asyncio
+async def test_get_collection_id_returns_correct_ids():
+    connector = FeedsConnector('mock_api_key')
+    from anyrun.utils.config import Config
+
+    assert await connector._get_collection_id('full') == Config.TAXII_FULL
+    assert await connector._get_collection_id('ip') == Config.TAXII_IP
+    assert await connector._get_collection_id('domain') == Config.TAXII_DOMAIN
+    assert await connector._get_collection_id('url') == Config.TAXII_URL
+
+
+@pytest.mark.asyncio
+async def test_get_collection_id_raises_for_invalid_name():
+    connector = FeedsConnector('mock_api_key')
+    from anyrun.utils.exceptions import RunTimeException
+
+    with pytest.raises(RunTimeException) as exc_info:
+        await connector._get_collection_id('invalid')
+    assert 'Invalid TAXII collection' in exc_info.value.description
+
+
+@pytest.mark.asyncio
+async def test_update_taxii_delta_timestamp_updates_when_header_present():
+    from datetime import datetime
+    connector = FeedsConnector('mock_api_key')
+    connector._response_headers = {'X-TAXII-Date-Modified-Last': '2025-03-10T12:00:00.000000Z'}
+    await connector._update_taxii_delta_timestamp()
+    assert connector._taxii_delta_timestamp == datetime(2025, 3, 10, 12, 0, 0)
+
+
+@pytest.mark.asyncio
+async def test_taxii_delta_timestamp_property_returns_formatted_string():
+    from datetime import datetime
+    connector = FeedsConnector('mock_api_key')
+    connector._taxii_delta_timestamp = datetime(2025, 3, 10, 12, 0, 0)
+    assert connector.taxii_delta_timestamp == '2025-03-10T12:00:00.000000Z'
+
+
+@pytest.mark.asyncio
+async def test_get_taxii_stix_async_uses_delta_timestamp_when_get_delta():
+    from datetime import datetime
+    connector = FeedsConnector('mock_api_key')
+    connector._taxii_delta_timestamp = datetime(2025, 3, 1, 12, 0, 0)
+    connector._response_headers = {}
+    with patch.object(connector, '_make_request_async', new_callable=AsyncMock) as mock_req:
+        mock_req.return_value = {'objects': [], 'next': None}
+        async with connector:
+            await connector.get_taxii_stix_async(collection='full', get_delta=True)
+        call_kwargs = mock_req.call_args
+        assert call_kwargs is not None

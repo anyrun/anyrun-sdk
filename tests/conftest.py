@@ -16,6 +16,5 @@ class MockAiohttpClientResponse:
         self.content_type = content_type
         self.status = 401
 
-    def __str__(self) -> str:
-        return 'Error message'
-
+    async def json(self) -> dict:
+        return {'message': 'Error message'}

@@ -1,6 +1,6 @@
 [project]
 name = 'anyrun-sdk'
-version = '1.13.11'
+version = '1.14.11'
 
 description = 'This is the official Python client library for ANY.RUN. Automate management of ANY.RUN REST endpoints'
 authors = [
@@ -44,3 +44,23 @@ build-backend = 'setuptools.build_meta'
 
 [tool.setuptools.packages.find]
 include = ["anyrun*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["anyrun"]
+omit = [
+    "anyrun/connectors/sandbox/operation_systems/android.py",
+    "anyrun/connectors/sandbox/operation_systems/linux.py",
+    "anyrun/connectors/sandbox/operation_systems/macos.py",
+    "anyrun/connectors/sandbox/operation_systems/windows.py",
+    "anyrun/utils/config.py",
+    "anyrun/version.py"
+]
+
+[tool.coverage.report]
+fail_under = 90
+exclude_lines = ["pragma: no cover"]

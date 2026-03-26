@@ -29,7 +29,7 @@ class FeedsConnector(AnyRunConnector):
         enable_requests: bool = False
     ) -> None:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.

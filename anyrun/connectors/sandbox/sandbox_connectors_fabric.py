@@ -3,7 +3,12 @@ from typing import Optional
 import aiohttp
 
 from anyrun.utils.config import Config
-from anyrun.connectors.sandbox.operation_systems import WindowsConnector, AndroidConnector, LinuxConnector
+from anyrun.connectors.sandbox.operation_systems import (
+    WindowsConnector,
+    AndroidConnector,
+    LinuxConnector,
+    MacOSConnector
+)
 
 
 class SandboxConnector:
@@ -22,7 +27,7 @@ class SandboxConnector:
         enable_requests: bool = False
     ) -> WindowsConnector:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.
@@ -60,7 +65,7 @@ class SandboxConnector:
         enable_requests: bool = False
     ) -> LinuxConnector:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.
@@ -98,7 +103,7 @@ class SandboxConnector:
         enable_requests: bool = False
     ) -> AndroidConnector:
         """
-        :param api_key: ANY.RUN API-KEY in format: API-KEY <token> or Basic token in format: Basic <base64_auth>.
+        :param api_key: ANY.RUN API-KEY without a prefix.
         :param integration: Name of the integration.
         :param trust_env: Trust environment settings for proxy configuration.
         :param verify_ssl: Enable/disable SSL verification option.
@@ -121,3 +126,42 @@ class SandboxConnector:
             timeout=timeout,
             enable_requests=enable_requests
         )
+
+    @staticmethod
+    def macos(
+        api_key: str,
+        integration: str = Config.PUBLIC_INTEGRATION,
+        trust_env: bool = False,
+        verify_ssl: Optional[str] = None,
+        proxy: Optional[str] = None,
+        proxy_username: Optional[str] = None,
+        proxy_password: Optional[str] = None,
+        connector: Optional[aiohttp.BaseConnector] = None,
+        timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
+        enable_requests: bool = False
+    ) -> MacOSConnector:
+        """
+        :param api_key: ANY.RUN API-KEY without a prefix.
+        :param integration: Name of the integration.
+        :param trust_env: Trust environment settings for proxy configuration.
+        :param verify_ssl: Enable/disable SSL verification option.
+        :param proxy: Proxy url. Example: https://<host>:<port>.
+        :param proxy_username: Proxy username.
+        :param proxy_password: Proxy password.
+        :param connector: A custom aiohttp connector.
+        :param timeout: Override the session’s timeout.
+        :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        """
+        return MacOSConnector(
+            api_key=api_key,
+            integration=integration,
+            trust_env=trust_env,
+            verify_ssl=verify_ssl,
+            proxy=proxy,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+            connector=connector,
+            timeout=timeout,
+            enable_requests=enable_requests
+        )
+

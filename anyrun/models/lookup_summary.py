@@ -110,7 +110,7 @@ class LookupSummary(BaseModel):
         :param tasks_range: The number of tasks to return.
         :return: The list of the last related tasks.
         """
-        return [task.related for task in self.related_tasks[:tasks_range]] if self.related_tasks else None
+        return ",".join([task.related for task in self.related_tasks[:tasks_range]]) if self.related_tasks else None
 
     def tags(self) -> Optional[str]:
         """

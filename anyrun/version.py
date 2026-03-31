@@ -1,3 +1,3 @@
 """Defines ANY.RUN release version."""
 
-__version__ = '1.14.11'
+__version__ = '1.14.12'

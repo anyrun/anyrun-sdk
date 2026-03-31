@@ -390,7 +390,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :return: Threat level text
         """
-        report = await self.get_analysis_report_async(task_uuid, report_format='summary')
+        report = await self.get_analysis_report_async(task_uuid, report_format='json')
         return report.get('data').get('analysis').get('scores').get('verdict').get('threatLevelText')
 
     def download_file_sample(
@@ -423,7 +423,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param filepath: Path to file
         :return: Network traffic bytes
         """
-        report = await self.get_analysis_report_async(task_uuid, report_format='summary')
+        report = await self.get_analysis_report_async(task_uuid, report_format='json')
         url = await self._extract_sample_url(report.get('data'))
 
         return await self._download_sample(url, 'zip', task_uuid, filepath)

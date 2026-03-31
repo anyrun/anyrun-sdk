@@ -136,8 +136,8 @@ def test_lookup_summary_tasks():
         ],
     }
     obj = LookupSummary(**data)
-    assert obj.tasks() == ['task1', 'task2', 'task3']
-    assert obj.tasks(tasks_range=2) == ['task1', 'task2']
+    assert obj.tasks() == 'task1,task2,task3'
+    assert obj.tasks(tasks_range=2) == 'task1,task2'
 
     data['sourceTasks'] = []
     obj = LookupSummary(**data)

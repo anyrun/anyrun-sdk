@@ -29,7 +29,8 @@ class BaseSandboxConnector(AnyRunConnector):
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -41,6 +42,8 @@ class BaseSandboxConnector(AnyRunConnector):
         :param proxy_password: Proxy password.
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
+        :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root url.
         """
         super().__init__(
             api_key,
@@ -52,7 +55,8 @@ class BaseSandboxConnector(AnyRunConnector):
             proxy_username,
             proxy_password,
             timeout,
-            enable_requests
+            enable_requests,
+            root_url
         )
 
     def check_authorization(self) -> dict:
@@ -104,7 +108,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param limit: Specify the number of tasks in the result set (not more than 100).
         :return: The list of tasks
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis'
+        url = f'{self.ANY_RUN_API_URL}/analysis'
         body = {
             'team': team,
             'skip': skip,
@@ -144,7 +148,7 @@ class BaseSandboxConnector(AnyRunConnector):
     async def get_analysis_report_async(
         self,
         task_uuid: Union[UUID, str],
-        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp'] = 'json',
+        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp', 'brief'] = 'json',
         filepath: Optional[str] = None,
         ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'suspicious'
     ) -> Union[dict, list[dict], str, None]:
@@ -153,7 +157,7 @@ class BaseSandboxConnector(AnyRunConnector):
         If **filepath** option is specified, dumps report to the file instead
 
         :param task_uuid: Task uuid
-        :param report_format: Supports json, html, stix, misp, ioc
+        :param report_format: Supports json, html, stix, misp, ioc, brief
         :param filepath: Path to file
         :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
             "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.
@@ -161,19 +165,22 @@ class BaseSandboxConnector(AnyRunConnector):
         :return: Complete report in specified format
         """
         if report_format == 'json':
-            url = f'{Config.ANY_RUN_API_URL}/analysis/{task_uuid}'
+            url = f'{self.ANY_RUN_API_URL}/analysis/{task_uuid}'
             response_data = await self._make_request_async('GET', url)
         elif report_format == 'ioc':
-            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/ioc/json'
+            url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/ioc/json'
             response_data = await self._make_request_async('GET', url)
             if ioc_reputation != 'all':
                 response_data = await self._prepare_iocs(response_data, ioc_reputation)
         elif report_format == 'html':
-            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/html'
+            url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/html'
             response = await self._make_request_async('GET', url, parse_response=False)
             response_data = await self._read_content_stream(response)
+        elif report_format == 'brief':
+            url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/brief'
+            response_data = await self._make_request_async('GET', url)
         else:
-            url = f'{Config.ANY_RUN_REPORT_URL}/{task_uuid}/summary/{report_format}'
+            url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/{report_format}'
             response_data = await self._make_request_async('GET', url)
 
         if filepath:
@@ -198,7 +205,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/addtime/{task_uuid}'
+        url = f'{self.ANY_RUN_API_URL}/analysis/addtime/{task_uuid}'
         return await self._make_request_async('PATCH', url)
 
     def stop_task(self, task_uuid: Union[UUID, str]) -> dict:
@@ -217,7 +224,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/stop/{task_uuid}'
+        url = f'{self.ANY_RUN_API_URL}/analysis/stop/{task_uuid}'
         return await self._make_request_async('PATCH', url)
 
     def delete_task(self, task_uuid: Union[UUID, str]) -> dict:
@@ -236,7 +243,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/delete/{task_uuid}'
+        url = f'{self.ANY_RUN_API_URL}/analysis/delete/{task_uuid}'
         return await self._make_request_async('DELETE', url)
 
     def get_task_status(self, task_uuid: Union[UUID, str], simplify: bool = True) -> Iterator[dict]:
@@ -258,7 +265,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param task_uuid: Task uuid
         :param simplify: Returns a simplified dict with the remaining scan time and the current task status
         """
-        url = f'{Config.ANY_RUN_API_URL}/analysis/monitor/{task_uuid}'
+        url = f'{self.ANY_RUN_API_URL}/analysis/monitor/{task_uuid}'
 
         if self._enable_requests:
             with requests.Session().get(url, headers=self._headers, stream=True) as response:
@@ -298,7 +305,7 @@ class BaseSandboxConnector(AnyRunConnector):
 
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/environment'
+        url = f'{self.ANY_RUN_API_URL}/environment'
         return await self._make_request_async('GET', url)
 
     def get_user_limits(self) -> dict:
@@ -315,7 +322,7 @@ class BaseSandboxConnector(AnyRunConnector):
 
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/user'
+        url = f'{self.ANY_RUN_API_URL}/user'
         return (await self._make_request_async('GET', url)).get('data').get('limits')
 
     def get_user_presets(self) -> list[dict]:
@@ -332,7 +339,7 @@ class BaseSandboxConnector(AnyRunConnector):
 
         :return: API response json
         """
-        url = f'{Config.ANY_RUN_API_URL}/user/presets'
+        url = f'{self.ANY_RUN_API_URL}/user/presets'
         return await self._make_request_async('GET', url)
 
     def download_pcap(
@@ -363,7 +370,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param filepath: Path to file
         :return: Network traffic bytes
         """
-        url = f'{Config.ANY_RUN_CONTENT_URL}/{task_uuid}/download/pcap'
+        url = f'{self.ANY_RUN_CONTENT_URL}/{task_uuid}/download/pcap'
         return await self._download_sample(url, 'pcap', task_uuid, filepath)
 
     def get_analysis_verdict(self, task_uuid: Union[UUID, str]) -> str:
@@ -494,7 +501,7 @@ class BaseSandboxConnector(AnyRunConnector):
             return {
                 'status': await self._resolve_task_status(status_data.get('task').get('status')),
                 'seconds_remaining': status_data.get('task').get('remaining'),
-                'info': f'For interactive analysis follow: https://app.any.run/tasks/{task_uuid}'
+                'info': f'For interactive analysis follow: {self.ANY_RUN_APP_URL}/tasks/{task_uuid}'
             }
         return status_data
 

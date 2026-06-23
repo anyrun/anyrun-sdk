@@ -24,7 +24,8 @@ class SandboxConnector:
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> WindowsConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -37,6 +38,7 @@ class SandboxConnector:
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root url.
         """
         return WindowsConnector(
             api_key=api_key,
@@ -48,7 +50,8 @@ class SandboxConnector:
             proxy_password=proxy_password,
             connector=connector,
             timeout=timeout,
-            enable_requests=enable_requests
+            enable_requests=enable_requests,
+            root_url=root_url
         )
 
     @staticmethod
@@ -62,7 +65,8 @@ class SandboxConnector:
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> LinuxConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -75,6 +79,7 @@ class SandboxConnector:
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root URL for the API.
         """
         return LinuxConnector(
             api_key=api_key,
@@ -86,7 +91,8 @@ class SandboxConnector:
             proxy_password=proxy_password,
             connector=connector,
             timeout=timeout,
-            enable_requests=enable_requests
+            enable_requests=enable_requests,
+            root_url=root_url
         )
 
     @staticmethod
@@ -100,7 +106,8 @@ class SandboxConnector:
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> AndroidConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -113,6 +120,7 @@ class SandboxConnector:
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root URL for the API.
         """
         return AndroidConnector(
             api_key=api_key,
@@ -124,7 +132,8 @@ class SandboxConnector:
             proxy_password=proxy_password,
             connector=connector,
             timeout=timeout,
-            enable_requests=enable_requests
+            enable_requests=enable_requests,
+            root_url=root_url
         )
 
     @staticmethod
@@ -138,7 +147,8 @@ class SandboxConnector:
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> MacOSConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -151,6 +161,7 @@ class SandboxConnector:
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root URL for the API.
         """
         return MacOSConnector(
             api_key=api_key,
@@ -162,6 +173,7 @@ class SandboxConnector:
             proxy_password=proxy_password,
             connector=connector,
             timeout=timeout,
-            enable_requests=enable_requests
+            enable_requests=enable_requests,
+            root_url=root_url
         )
 

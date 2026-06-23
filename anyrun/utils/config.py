@@ -4,9 +4,10 @@ from anyrun.version import __version__
 
 
 class Config:
-    ANY_RUN_API_URL: str = 'https://api.any.run/v1'
-    ANY_RUN_CONTENT_URL: str = 'https://content.any.run/tasks'
-    ANY_RUN_REPORT_URL: str = 'https://api.any.run/report'
+    ANY_RUN_API_URL: str = 'https://api.{root_url}/v1'
+    ANY_RUN_CONTENT_URL: str = 'https://content.{root_url}/tasks'
+    ANY_RUN_REPORT_URL: str = 'https://api.{root_url}/report'
+    ANY_RUN_APP_URL: str = 'https://app.{root_url}'
 
     TAXII_FULL: str = '3dce855a-c044-5d49-9334-533c24678c5a'
     TAXII_IP: str = '55cda200-e261-5908-b910-f0e18909ef3d'
@@ -16,6 +17,7 @@ class Config:
 
     DEFAULT_REQUEST_TIMEOUT_IN_SECONDS: int = 300
     DEFAULT_WAITING_TIMEOUT_IN_SECONDS: int = 3
+    DEFAULT_ROOT_URL: str = 'any.run'
     PUBLIC_INTEGRATION: str = f'Public:{sys.version.split()[0]}'
     SDK_VERSION: str = f'anyrun_sdk:{__version__}'
 

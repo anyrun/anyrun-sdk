@@ -29,7 +29,8 @@ class AnyRunConnector:
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -42,6 +43,7 @@ class AnyRunConnector:
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root url.
         """
         self._proxy = proxy
         self._proxy_username = proxy_username
@@ -59,6 +61,11 @@ class AnyRunConnector:
         self._setup_headers(integration)
 
         self._response_headers: dict[str, Any] = dict()
+
+        self.ANY_RUN_API_URL = Config.ANY_RUN_API_URL.format(root_url=root_url)
+        self.ANY_RUN_CONTENT_URL = Config.ANY_RUN_CONTENT_URL.format(root_url=root_url)
+        self.ANY_RUN_REPORT_URL = Config.ANY_RUN_REPORT_URL.format(root_url=root_url)
+        self.ANY_RUN_APP_URL = Config.ANY_RUN_APP_URL.format(root_url=root_url)
 
     def __enter__(self) -> Self:
         execute_synchronously(self._open_session)

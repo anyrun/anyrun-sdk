@@ -150,10 +150,10 @@ class LookupConnector(AnyRunConnector):
             complete**
         :param os_bit_version: The bitness of the operating system. Supports: **32, 64**
         :param registry_key: The specific key within the registry hive where the modification occurred. Please note:
-            when entering registry keys, use a double backslash (\) to escape the single backslash. Example:
+            when entering registry keys, use a double backslash (\\\\) to escape the single backslash. Example:
             "Windows\\CurrentVersion\\RunOnce"
         :param registry_name: The name of the Windows Registry key field. Example: "browseinplace"
-        :param registry_value: The value of the Windows Registry key. Example: "Internet Explorer\iexplore.exe"
+        :param registry_value: The value of the Windows Registry key. Example: "Internet Explorer\\\\iexplore.exe"
         :param module_image_path: The full path to the module’s image file, the location on the disk where the module’s
             executable is stored. Example: "SysWOW64\\cryptbase.dll"
         :param rule_threat_level: The threat level assigned to a particular event. Supports: **suspicious, malicious,
@@ -331,10 +331,10 @@ class LookupConnector(AnyRunConnector):
             complete**
         :param os_bit_version: The bitness of the operating system. Supports: **32, 64**
         :param registry_key: The specific key within the registry hive where the modification occurred. Please note:
-            when entering registry keys, use a double backslash (\) to escape the single backslash. Example:
+            when entering registry keys, use a double backslash (\\\\) to escape the single backslash. Example:
             "Windows\\CurrentVersion\\RunOnce"
         :param registry_name: The name of the Windows Registry key field. Example: "browseinplace"
-        :param registry_value: The value of the Windows Registry key. Example: "Internet Explorer\iexplore.exe"
+        :param registry_value: The value of the Windows Registry key. Example: "Internet Explorer\\\\iexplore.exe"
         :param module_image_path: The full path to the module’s image file, the location on the disk where the module’s
             executable is stored. Example: "SysWOW64\\cryptbase.dll"
         :param rule_threat_level: The threat level assigned to a particular event. Supports: **suspicious, malicious,

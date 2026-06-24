@@ -26,7 +26,8 @@ class LookupConnector(AnyRunConnector):
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -39,6 +40,7 @@ class LookupConnector(AnyRunConnector):
         :param proxy_password: Proxy password.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root URL for the API.
         """
         super().__init__(
             api_key,
@@ -50,7 +52,8 @@ class LookupConnector(AnyRunConnector):
             proxy_password,
             connector,
             timeout,
-            enable_requests
+            enable_requests,
+            root_url
         )
 
     def check_authorization(self) -> dict:
@@ -69,7 +72,7 @@ class LookupConnector(AnyRunConnector):
 
         return: Verification status
         """
-        url = f"{Config.ANY_RUN_API_URL}/intelligence/keycheck"
+        url = f"{self.ANY_RUN_API_URL}/intelligence/keycheck"
         await self._make_request_async('GET', url)
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
@@ -433,7 +436,7 @@ class LookupConnector(AnyRunConnector):
                 'httpResponseFileType': http_response_file_type
             }
         )
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/api/search'
+        url = f'{self.ANY_RUN_API_URL}/intelligence/api/search'
         response_data = await self._make_request_async('POST', url, json=body)
         return LookupSummary(**response_data) if parse_response else response_data
 

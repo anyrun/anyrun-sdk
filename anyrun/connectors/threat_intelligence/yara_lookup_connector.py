@@ -24,7 +24,8 @@ class YaraLookupConnector(AnyRunConnector):
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -37,6 +38,7 @@ class YaraLookupConnector(AnyRunConnector):
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root URL for the API.
         """
         super().__init__(
             api_key,
@@ -48,7 +50,8 @@ class YaraLookupConnector(AnyRunConnector):
             proxy_password,
             connector,
             timeout,
-            enable_requests
+            enable_requests,
+            root_url
         )
 
     def check_authorization(self) -> dict:
@@ -67,7 +70,7 @@ class YaraLookupConnector(AnyRunConnector):
 
         return: Verification status
         """
-        url = f"{Config.ANY_RUN_API_URL}/intelligence/keycheck"
+        url = f"{self.ANY_RUN_API_URL}/intelligence/keycheck"
         await self._make_request_async('GET', url)
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
@@ -87,7 +90,7 @@ class YaraLookupConnector(AnyRunConnector):
         :param yara_rule: Valid YARA rule
         :return: Search ID
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search'
+        url = f'{self.ANY_RUN_API_URL}/intelligence/yara-lookup/search'
         body = {'query': yara_rule}
 
         response_data = await self._make_request_async('POST', url, json=body)
@@ -112,7 +115,7 @@ class YaraLookupConnector(AnyRunConnector):
         :param simplify: Returns a simplified dict with the current search status
         :return: Number of matches
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/count'
+        url = f'{self.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/count'
 
         while True:
             response_data = await self._make_request_async('GET', url)
@@ -143,7 +146,7 @@ class YaraLookupConnector(AnyRunConnector):
         :param simplify: Return None if no threats has been detected
         :return: API response in specified format. Returns an empty list if no matches are found
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}'
+        url = f'{self.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}'
 
         response_data = await self._make_request_async('GET', url)
         matches = response_data.get('matches')
@@ -170,7 +173,7 @@ class YaraLookupConnector(AnyRunConnector):
         :param simplify: Returns None if no threats has been detected
         :return: API response in specified format. Returns an empty list if no matches are found
         """
-        url = f'{Config.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/download/stix'
+        url = f'{self.ANY_RUN_API_URL}/intelligence/yara-lookup/search/{search_uuid}/download/stix'
 
         response_data = await self._make_request_async('GET', url)
         objects = response_data.get('data').get('objects')

@@ -26,7 +26,8 @@ class FeedsConnector(AnyRunConnector):
         proxy_password: Optional[str] = None,
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
-        enable_requests: bool = False
+        enable_requests: bool = False,
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -39,6 +40,7 @@ class FeedsConnector(AnyRunConnector):
         :param connector: A custom aiohttp connector.
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
+        :param root_url: Root URL for the API.
         """
         super().__init__(
             api_key,
@@ -50,7 +52,8 @@ class FeedsConnector(AnyRunConnector):
             proxy_password,
             connector,
             timeout,
-            enable_requests
+            enable_requests,
+            root_url
         )
 
         self._taxii_delta_timestamp: datetime = datetime(year=1970, month=1, day=1)
@@ -157,7 +160,7 @@ class FeedsConnector(AnyRunConnector):
             modified_after = self.taxii_delta_timestamp
 
         url = await self._generate_feeds_url(
-            f'{Config.ANY_RUN_API_URL}/feeds/taxii2/api1/collections/{collection_id}/objects/?',
+            f'{self.ANY_RUN_API_URL}/feeds/taxii2/api1/collections/{collection_id}/objects/?',
             {
                 'match[type]': match_type,
                 'match[id]': match_id,

@@ -70,7 +70,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
         opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         obj_ext_cmd: Optional[str] = None,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -142,7 +142,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
         opt_timeout: int = 240,
         opt_automated_interactivity: bool = True,
-        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         obj_ext_cmd: Optional[str] = None,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
@@ -227,7 +227,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
         opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
-        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -289,7 +289,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_privacy_type: Literal['public', 'bylink', 'owner', 'byteam'] = 'bylink',
         opt_timeout: int = 120,
         opt_automated_interactivity: bool = True,
-        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -361,7 +361,7 @@ class AndroidConnector(BaseSandboxConnector):
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         opt_privacy_hidesource: bool = False,
-        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:
@@ -432,7 +432,7 @@ class AndroidConnector(BaseSandboxConnector):
         obj_ext_cmd: Optional[str] = None,
         obj_ext_useragent: Optional[str] = None,
         opt_privacy_hidesource: bool = False,
-        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month'] = 'month',
+        opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None
     ) -> Union[UUID, str]:

@@ -121,7 +121,7 @@ class BaseSandboxConnector(AnyRunConnector):
     def get_analysis_report(
         self,
         task_uuid: Union[UUID, str],
-        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp'] = 'json',
+        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp',  'brief'] = 'json',
         filepath: Optional[str] = None,
         ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'suspicious'
     ) -> Union[dict, list[dict], str]:
@@ -130,7 +130,7 @@ class BaseSandboxConnector(AnyRunConnector):
         If **filepath** option is specified, dumps report to the file instead
 
         :param task_uuid: Task uuid
-        :param report_format: Supports json, html, stix, misp, ioc
+        :param report_format: Supports json, html, stix, misp, ioc, brief
         :param filepath: Path to file
         :param ioc_reputation: Receive IOCs with specified reputation. "all" -> Unknown, Suspicious and Malicious IOCs,
             "suspicious" -> Suspicious and Malicious IOCs, "malicious" -> only Malicious IOCs.

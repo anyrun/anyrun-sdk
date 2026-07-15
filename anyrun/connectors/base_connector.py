@@ -109,7 +109,8 @@ class AnyRunConnector:
         data: Union[dict, aiohttp.MultipartWriter, None] = None,
         files: Optional[dict[str, tuple[str, bytes]]] = None,
         parse_response: bool = True,
-        request_timeout: Optional[int] = None
+        request_timeout: Optional[int] = None,
+        params: Optional[dict] = None
     ) -> Union[dict, list[dict], aiohttp.ClientResponse, requests.Response]:
         """
         Provides async interface for making any request
@@ -134,7 +135,7 @@ class AnyRunConnector:
                     url,
                     headers=self._headers,
                     json=json,
-                    params=data,
+                    params=params,
                     files=files,
                     verify=self._verify_ssl,
                     proxies=self._generate_proxy_config() if self._proxy else None,
@@ -147,7 +148,8 @@ class AnyRunConnector:
                     json=json,
                     data=data,
                     ssl=True if self._verify_ssl else False,
-                    timeout=request_timeout
+                    timeout=request_timeout,
+                    params=params
                 )
 
             self._response_headers = response.headers

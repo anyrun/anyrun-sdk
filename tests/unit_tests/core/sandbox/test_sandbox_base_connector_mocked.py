@@ -316,9 +316,9 @@ async def test_get_analysis_history_async_with_params():
         assert len(result) == 2
         mock_req.assert_called_once()
         call_kwargs = mock_req.call_args
-        assert call_kwargs[1]['json']['team'] is True
-        assert call_kwargs[1]['json']['skip'] == 10
-        assert call_kwargs[1]['json']['limit'] == 50
+        assert call_kwargs[1]['params']['team'] == 'true'
+        assert call_kwargs[1]['params']['skip'] == 10
+        assert call_kwargs[1]['params']['limit'] == 50
 
 
 @pytest.mark.asyncio

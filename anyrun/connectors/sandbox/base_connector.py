@@ -110,12 +110,12 @@ class BaseSandboxConnector(AnyRunConnector):
         """
         url = f'{self.ANY_RUN_API_URL}/analysis'
         body = {
-            'team': team,
+            'team': str(team).lower(),
             'skip': skip,
             'limit': limit
         }
 
-        response_data = await self._make_request_async('GET', url, json=body)
+        response_data = await self._make_request_async('GET', url, params=body)
         return response_data.get('data').get('tasks')
 
     def get_analysis_report(

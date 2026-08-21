@@ -107,8 +107,9 @@ We welcome contributions! Please see our [Contributing Guide](https://github.com
 
 # Useful links
 
-[TI Lookup query Guide](https://intelligence.any.run/TI_Lookup_Query_Guide_v4.pdf)  
-[ANY.RUN API documentation](https://any.run/api-documentation/#api-Request-Request)
+[Sandbox API documentation](https://any.run/api-documentation/#sandbox)
+[TI Lookup API documentation](https://any.run/api-documentation/#tag/ti-lookup)
+[TI Feeds API documentation](https://any.run/api-documentation/#tag/ti-feeds)
 
 # Contact us 
 

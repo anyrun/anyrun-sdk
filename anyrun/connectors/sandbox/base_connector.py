@@ -465,7 +465,7 @@ class BaseSandboxConnector(AnyRunConnector):
 
         # Prepare analysis settings payload
         for param, value in params.items():
-            if value:
+            if value or value in (True, False):
                 part = form_data.append(str(value))
                 part.set_content_disposition('form-data', name=param)
 
@@ -483,7 +483,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param params: Dictionary with task settings
         :return: Request payload stored in dictionary
         """
-        request_body = {param: value for param, value in params.items() if value}
+        request_body = {param: value for param, value in params.items() if value or value in (True, False)}
         return await self._set_task_object_type(request_body, object_type)
 
     async def _prepare_response(self, chunk: bytes, simplify: bool, task_uuid: str) -> dict:

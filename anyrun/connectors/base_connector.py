@@ -3,7 +3,6 @@ from http import HTTPStatus
 from typing import Optional, Union, Any
 from typing_extensions import Self
 from abc import abstractmethod
-from traceback import format_exc
 from warnings import warn
 
 import aiohttp
@@ -165,7 +164,9 @@ class AnyRunConnector:
         except AttributeError:
             raise RunTimeException('The connector object must be executed using the context manager')
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
-            raise RunTimeException(f'Connection error: {format_exc(exception)}')
+            raise RunTimeException('Connection error: {}'.format(exception))
+        except Exception as e:
+            raise RunTimeException('Unknown error: {}'.format(e))
 
     def _setup_connector(self) -> None:
         if not self._connector and self._verify_ssl:

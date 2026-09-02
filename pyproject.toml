@@ -1,10 +1,10 @@
 [project]
 name = 'anyrun-sdk'
-version = '1.14.16'
+version = '1.14.17'
 
 description = 'This is the official Python client library for ANY.RUN. Automate management of ANY.RUN REST endpoints'
 authors = [
-    {name = 'Semen Shalnev', email = 'support@any.run'}
+    {name = 'ANY.RUN', email = 'techsupport@any.run'}
 ]
 license = {text = 'Apache v2.0'}
 readme = 'README.md'

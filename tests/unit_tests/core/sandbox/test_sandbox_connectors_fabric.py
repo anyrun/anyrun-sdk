@@ -29,3 +29,9 @@ def test_sandbox_connector_android_returns_android_connector():
 def test_sandbox_connector_macos_returns_macos_connector():
     connector = SandboxConnector.macos('mock_api_key')
     assert isinstance(connector, MacOSConnector)
+
+
+def test_sandbox_connector_windows_propagates_custom_root_url():
+    connector = SandboxConnector.windows('mock_api_key', root_url='anyrun.us')
+    assert connector.ANY_RUN_API_URL == 'https://api.anyrun.us/v1'
+    assert connector.ANY_RUN_APP_URL == 'https://app.anyrun.us'

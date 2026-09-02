@@ -164,3 +164,21 @@ def test_check_proxy_sync_returns_ok():
         with base_connector:
             result = base_connector.check_proxy()
     assert result['status'] == 'ok'
+
+
+def test_root_url_defaults_to_any_run():
+    base_connector = AnyRunConnector('mock_api_key')
+
+    assert base_connector.ANY_RUN_API_URL == 'https://api.any.run/v1'
+    assert base_connector.ANY_RUN_CONTENT_URL == 'https://content.any.run/tasks'
+    assert base_connector.ANY_RUN_REPORT_URL == 'https://api.any.run/report'
+    assert base_connector.ANY_RUN_APP_URL == 'https://app.any.run'
+
+
+def test_root_url_can_be_set_to_anyrun_us():
+    base_connector = AnyRunConnector('mock_api_key', root_url='anyrun.us')
+
+    assert base_connector.ANY_RUN_API_URL == 'https://api.anyrun.us/v1'
+    assert base_connector.ANY_RUN_CONTENT_URL == 'https://content.anyrun.us/tasks'
+    assert base_connector.ANY_RUN_REPORT_URL == 'https://api.anyrun.us/report'
+    assert base_connector.ANY_RUN_APP_URL == 'https://app.anyrun.us'

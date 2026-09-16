@@ -1,0 +1,74 @@
+fix = true
+line-length = 140
+
+[format]
+quote-style = "single"
+
+[lint]
+mccabe.max-complexity = 5
+select = [
+    "A",    # flake8-builtins
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "C90",  # mccabe complexity
+    "COM",  # flake8-commas
+    "D",    # pydocstyle
+    "DTZ",  # flake8-datetimez
+    "E",    # pycodestyle
+    "ERA",  # flake8-eradicate
+    "EXE",  # flake8-executable
+    "F",    # pyflakes
+    "FBT",  # flake8-boolean-trap
+    "FLY",  # pyflint
+    "G",    # flake8-logging-format
+    "I",    # isort
+    "ICN",  # flake8-import-conventions
+    "ISC",  # flake8-implicit-str-concat
+    "LOG",  # flake8-logging
+    "N",    # pep8-naming
+    "PERF", # perflint
+    "PIE",  # flake8-pie
+    "PL",   # pylint
+    "Q",    # flake8-quotes
+    "RET",  # flake8-return
+    "RSE",  # flake8-raise
+    "RUF",  # ruff
+    "S",    # flake8-bandit
+    "SIM",  # flake8-simpify
+    "SLF",  # flake8-self
+    "SLOT", # flake8-slots
+    "T100", # flake8-debugger
+    "TRY",  # tryceratops
+    "UP",   # pyupgrade
+    "W",    # pycodestyle
+    "YTT",  # flake8-2020
+]
+ignore = [
+    "A005",    # allow to shadow stdlib and builtin module names
+    "COM812",  # trailing comma, conflicts with `ruff format`
+    "D100",    # undocumented public module
+    "D101",    # ignore docstrings for classes
+    "D103",    # ignore docstrings for functions
+    "D104",    # undocumented public package
+    "D106",    # undocumented public nested class
+    "D203",    # using blank line to separate the docstring from the class
+    "D205",
+    "D212",    # checks for docstring summary lines that are not positioned on the first physical line of the docstring
+    "D400",    # check for docstring first line ends with comma
+    "D415",
+    "D401",    # checks for docstring first lines that are not in an imperative mood
+    "D404",    # checks for docstrings that start with This
+    "ISC001",  # implicit string concat conflicts with `ruff format`
+    "ISC003",  # prefer explicit string concat over implicit concat
+    "PLR09",   # we have our own complexity rules
+    "PLR2004", # do not report magic numbers
+    "PLR6301", # do not require classmethod / staticmethod when self not used
+    "Q000",    # double quotes instead single rule
+    "Q003",    # double quotes instead single rule
+    "S101",    # assert using
+    "TRY003",  # long exception messages from `tryceratops`
+    "FBT001",  # boolean error (it suggests to separate functions instead of passing boolean parameters)
+    "FBT002",
+    "C901",
+    "RUF002",
+]

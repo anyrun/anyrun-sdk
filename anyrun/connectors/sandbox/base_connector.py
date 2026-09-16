@@ -372,7 +372,7 @@ class BaseSandboxConnector(AnyRunConnector):
 
         return verdict
 
-    async def get_analysis_verdict_async(self, task_uuid: Union[UUID, str]) -> str | None:
+    async def get_analysis_verdict_async(self, task_uuid: Union[UUID, str]) -> Union[str, None]:
         """
         Returns a threat level text. Possible values:
 

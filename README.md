@@ -9,7 +9,6 @@ ______________________________________________________________________
 [![PyPI version](https://badge.fury.io/py/anyrun-sdk.svg)](https://badge.fury.io/py/anyrun-sdk)
 [![Downloads](https://pepy.tech/badge/anyrun-sdk)](https://pepy.tech/project/anyrun-sdk)
 [![Coverage](https://anyrun.github.io/anyrun-sdk/badges/coverage.svg)](https://github.com/anyrun/anyrun-sdk/actions)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/anyrun/anyrun-sdk/blob/main/CONTRIBUTING.md)
 
 # ANY.RUN SDK
 This is the official Python client library for [ANY.RUN](https://app.any.run/?utm_source=sdk_projects&utm_medium=integration&utm_campaign=appanyrun), supporting the cybersecurity solutions like the Interactive Sandbox, TI Lookup, and TI Feeds.  
@@ -102,9 +101,6 @@ $ cd anyrun-sdk
 $ python -m pip install .
 ```
 
-# Contributing
-We welcome contributions! Please see our [Contributing Guide](https://github.com/anyrun/anyrun-sdk/blob/main/CONTRIBUTING.md) for details.
-
 # Useful links
 
 [Sandbox API documentation](https://any.run/api-documentation/#sandbox)  
@@ -115,4 +111,4 @@ We welcome contributions! Please see our [Contributing Guide](https://github.com
 
 Sales, demo and trial inquiries - [sales@any.run](mailto:sales@any.run)  
 Technical support - [techsupport@any.run](mailto:techsupport@any.run)  
-Public relations and partnerships – [pr@any.run](mailto:pr@any.run])  
+Public relations and partnerships – [pr@any.run](mailto:pr@any.run])

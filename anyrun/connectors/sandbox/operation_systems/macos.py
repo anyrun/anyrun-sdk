@@ -1,11 +1,11 @@
+from typing import Literal, Optional, Union
 from uuid import UUID
-from typing import Optional, Union, Literal
 
 import aiohttp
 
 from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
 from anyrun.utils.config import Config
-from anyrun.utils.utility_functions import execute_synchronously, check_if_analysis_initialized
+from anyrun.utils.utility_functions import check_if_analysis_initialized, execute_synchronously
 
 
 class MacOSConnector(BaseSandboxConnector):
@@ -13,6 +13,7 @@ class MacOSConnector(BaseSandboxConnector):
     Provides ANY.RUN Sandbox endpoints management for macOS VM.
     Uses aiohttp library for the asynchronous calls
     """
+
     def __init__(
         self,
         api_key: str,
@@ -25,7 +26,10 @@ class MacOSConnector(BaseSandboxConnector):
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -39,19 +43,25 @@ class MacOSConnector(BaseSandboxConnector):
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root URL for the API.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         super().__init__(
-            api_key,
-            integration,
-            trust_env,
-            verify_ssl,
-            proxy,
-            proxy_username,
-            proxy_password,
-            connector,
-            timeout,
-            enable_requests,
-            root_url
+            api_key=api_key,
+            integration=integration,
+            trust_env=trust_env,
+            verify_ssl=verify_ssl,
+            proxy=proxy,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+            connector=connector,
+            timeout=timeout,
+            enable_requests=enable_requests,
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
+            case_id=case_id,
         )
 
     def run_file_analysis(
@@ -75,7 +85,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_cmd: Optional[str] = None,
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -128,7 +138,7 @@ class MacOSConnector(BaseSandboxConnector):
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_extension=obj_ext_extension,
             task_rerun_uuid=task_rerun_uuid,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
     @check_if_analysis_initialized
@@ -153,7 +163,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_cmd: Optional[str] = None,
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -209,7 +219,7 @@ class MacOSConnector(BaseSandboxConnector):
             'auto_confirm_uac': None,
             'obj_ext_extension': obj_ext_extension,
             'task_rerun_uuid': task_rerun_uuid,
-            'user_tags': user_tags
+            'user_tags': user_tags,
         }
 
         if self._enable_requests:
@@ -217,12 +227,7 @@ class MacOSConnector(BaseSandboxConnector):
             files = {filename: (filename, file_content)}
             response_data = await self._make_request_async('POST', url, json=params, files=files)
         else:
-            body = await self._generate_multipart_request_body(
-                file_content=file_content,
-                filename=filename,
-                filepath=filepath,
-                **params
-            )
+            body = await self._generate_multipart_request_body(file_content=file_content, filename=filename, filepath=filepath, **params)
             response_data = await self._make_request_async('POST', url, data=body)
         return response_data
 
@@ -244,7 +249,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_browser: Literal['Safari', 'Google Chrome', 'Mozilla Firefox'] = 'Safari',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -290,7 +295,7 @@ class MacOSConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
     @check_if_analysis_initialized
@@ -312,7 +317,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_browser: Literal['Safari', 'Google Chrome', 'Mozilla Firefox'] = 'Safari',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -364,7 +369,7 @@ class MacOSConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data
@@ -391,7 +396,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         opt_privacy_hidesource: bool = False,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -445,7 +450,7 @@ class MacOSConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
     @check_if_analysis_initialized
@@ -471,7 +476,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         opt_privacy_hidesource: bool = False,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -531,7 +536,7 @@ class MacOSConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

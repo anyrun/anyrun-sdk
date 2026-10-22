@@ -1,11 +1,10 @@
-from typing import Optional, Union, Any
 from datetime import datetime
+from typing import Any, Optional, Union
 
 import aiohttp
 
 from anyrun import RunTimeException
 from anyrun.connectors.base_connector import AnyRunConnector
-
 from anyrun.utils.config import Config
 from anyrun.utils.utility_functions import execute_synchronously
 
@@ -15,6 +14,7 @@ class FeedsConnector(AnyRunConnector):
     Provides ANY.RUN TI Feeds endpoints management.
     Uses aiohttp library for the asynchronous calls
     """
+
     def __init__(
         self,
         api_key: str,
@@ -27,7 +27,9 @@ class FeedsConnector(AnyRunConnector):
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -41,19 +43,23 @@ class FeedsConnector(AnyRunConnector):
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root URL for the API.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
         """
         super().__init__(
-            api_key,
-            integration,
-            trust_env,
-            verify_ssl,
-            proxy,
-            proxy_username,
-            proxy_password,
-            connector,
-            timeout,
-            enable_requests,
-            root_url
+            api_key=api_key,
+            integration=integration,
+            trust_env=trust_env,
+            verify_ssl=verify_ssl,
+            proxy=proxy,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+            connector=connector,
+            timeout=timeout,
+            enable_requests=enable_requests,
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
         )
 
         self._taxii_delta_timestamp: datetime = datetime(year=1970, month=1, day=1)
@@ -82,7 +88,6 @@ class FeedsConnector(AnyRunConnector):
         await self.get_taxii_stix_async()
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
-
     def get_taxii_stix(
         self,
         collection: str = 'full',
@@ -94,7 +99,7 @@ class FeedsConnector(AnyRunConnector):
         modified_after: Optional[str] = None,
         limit: int = 10000,
         next_page: Optional[str] = None,
-        get_delta: bool = False
+        get_delta: bool = False,
     ) -> dict:
         """
         Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters
@@ -122,7 +127,7 @@ class FeedsConnector(AnyRunConnector):
             modified_after,
             limit,
             next_page,
-            get_delta
+            get_delta,
         )
 
     async def get_taxii_stix_async(
@@ -136,7 +141,7 @@ class FeedsConnector(AnyRunConnector):
         modified_after: Optional[str] = None,
         limit: int = 10000,
         next_page: Optional[str] = None,
-        get_delta: bool = False
+        get_delta: bool = False,
     ) -> dict:
         """
         Returns a list of ANY.RUN Feeds TAXII stix objects according to the specified query parameters
@@ -170,8 +175,8 @@ class FeedsConnector(AnyRunConnector):
                 'added_after': added_after,
                 'modified_after': modified_after,
                 'limit': limit,
-                'next': next_page
-             }
+                'next': next_page,
+            },
         )
 
         response_data = await self._make_request_async('GET', url)
@@ -187,16 +192,11 @@ class FeedsConnector(AnyRunConnector):
         :param params: Dictionary with query parameters
         :return: Complete url
         """
-        query_params = '&'.join(
-            [
-                f'{param}={await self._parse_boolean(value)}'
-                for param, value in params.items() if value is not None
-            ]
-        )
+        query_params = '&'.join([f'{param}={await self._parse_boolean(value)}' for param, value in params.items() if value is not None])
         return url + query_params
 
     async def _update_taxii_delta_timestamp(self) -> None:
-        """ Updates taxii delta timestamp """
+        """Updates taxii delta timestamp"""
         delta_timestamp = self._response_headers.get('X-TAXII-Date-Modified-Last')
 
         if delta_timestamp:
@@ -207,8 +207,8 @@ class FeedsConnector(AnyRunConnector):
 
     @staticmethod
     async def _parse_boolean(param: Any) -> Union[str, Any]:
-        """ Converts a boolean value to a lowercase string """
-        return str(param).lower() if str(param) in ("True", "False") else param
+        """Converts a boolean value to a lowercase string"""
+        return str(param).lower() if str(param) in ('True', 'False') else param
 
     @staticmethod
     async def _get_collection_id(collection_name: str) -> str:

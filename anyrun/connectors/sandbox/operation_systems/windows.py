@@ -1,11 +1,11 @@
+from typing import Literal, Optional, Union
 from uuid import UUID
-from typing import Optional, Union, Literal
 
 import aiohttp
 
 from anyrun.connectors.sandbox.base_connector import BaseSandboxConnector
 from anyrun.utils.config import Config
-from anyrun.utils.utility_functions import execute_synchronously, check_if_analysis_initialized
+from anyrun.utils.utility_functions import check_if_analysis_initialized, execute_synchronously
 
 
 class WindowsConnector(BaseSandboxConnector):
@@ -13,6 +13,7 @@ class WindowsConnector(BaseSandboxConnector):
     Provides ANY.RUN Sandbox endpoints management for Windows VM.
     Uses aiohttp library for the asynchronous calls
     """
+
     def __init__(
         self,
         api_key: str,
@@ -25,7 +26,10 @@ class WindowsConnector(BaseSandboxConnector):
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -39,19 +43,25 @@ class WindowsConnector(BaseSandboxConnector):
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root url.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         super().__init__(
-            api_key,
-            integration,
-            trust_env,
-            verify_ssl,
-            proxy,
-            proxy_username,
-            proxy_password,
-            connector,
-            timeout,
-            enable_requests,
-            root_url
+            api_key=api_key,
+            integration=integration,
+            trust_env=trust_env,
+            verify_ssl=verify_ssl,
+            proxy=proxy,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+            connector=connector,
+            timeout=timeout,
+            enable_requests=enable_requests,
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
+            case_id=case_id,
         )
 
     def run_file_analysis(
@@ -81,7 +91,7 @@ class WindowsConnector(BaseSandboxConnector):
         auto_confirm_uac: bool = True,
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -149,7 +159,7 @@ class WindowsConnector(BaseSandboxConnector):
             auto_confirm_uac=auto_confirm_uac,
             obj_ext_extension=obj_ext_extension,
             task_rerun_uuid=task_rerun_uuid,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
     @check_if_analysis_initialized
@@ -180,7 +190,7 @@ class WindowsConnector(BaseSandboxConnector):
         auto_confirm_uac: bool = True,
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -246,7 +256,7 @@ class WindowsConnector(BaseSandboxConnector):
             'auto_confirm_uac': auto_confirm_uac,
             'obj_ext_extension': obj_ext_extension,
             'task_rerun_uuid': task_rerun_uuid,
-            'user_tags': user_tags
+            'user_tags': user_tags,
         }
 
         if self._enable_requests:
@@ -254,12 +264,7 @@ class WindowsConnector(BaseSandboxConnector):
             files = {filename: (filename, file_content)}
             response_data = await self._make_request_async('POST', url, json=params, files=files)
         else:
-            body = await self._generate_multipart_request_body(
-                file_content=file_content,
-                filename=filename,
-                filepath=filepath,
-                **params
-            )
+            body = await self._generate_multipart_request_body(file_content=file_content, filename=filename, filepath=filepath, **params)
             response_data = await self._make_request_async('POST', url, data=body)
         return response_data
 
@@ -285,12 +290,12 @@ class WindowsConnector(BaseSandboxConnector):
         obj_ext_browser: Literal['Microsoft Edge', 'Internet Explorer', 'Google Chrome', 'Mozilla Firefox'] = 'Microsoft Edge',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
-        
+
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
         :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025
@@ -341,7 +346,7 @@ class WindowsConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
     @check_if_analysis_initialized
@@ -367,7 +372,7 @@ class WindowsConnector(BaseSandboxConnector):
         obj_ext_browser: Literal['Microsoft Edge', 'Internet Explorer', 'Google Chrome', 'Mozilla Firefox'] = 'Microsoft Edge',
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -426,7 +431,7 @@ class WindowsConnector(BaseSandboxConnector):
             task_rerun_uuid=task_rerun_uuid,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
         response_data = await self._make_request_async('POST', url, json=body)
         return response_data
@@ -456,12 +461,12 @@ class WindowsConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         opt_privacy_hidesource: bool = False,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
         You can find extended documentation `here <https://any.run/api-documentation/#api-Analysis-PostAnalysis>`_
-        
+
         :param obj_url: Target URL. Size range 5-512. Example: (http/https)://(your-link)
         :param env_version: Version of OS. Supports: 7, 10, 11, server 2025.
         :param env_bitness: Bitness of Operation System. Supports 32, 64 for Windows. 64 for Windows Server 2025 for Windows.
@@ -518,7 +523,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
     @check_if_analysis_initialized
@@ -547,7 +552,7 @@ class WindowsConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         opt_privacy_hidesource: bool = False,
         user_tags: Optional[str] = None,
-        task_rerun_uuid: Optional[str] = None
+        task_rerun_uuid: Optional[str] = None,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -612,7 +617,7 @@ class WindowsConnector(BaseSandboxConnector):
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
             opt_privacy_hidesource=opt_privacy_hidesource,
-            user_tags=user_tags
+            user_tags=user_tags,
         )
 
         response_data = await self._make_request_async('POST', url, json=body)

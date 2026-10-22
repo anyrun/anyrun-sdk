@@ -34,6 +34,9 @@ class BaseSandboxConnector(AnyRunConnector):
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
         root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -47,19 +50,25 @@ class BaseSandboxConnector(AnyRunConnector):
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root url.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         super().__init__(
-            api_key,
-            integration,
-            trust_env,
-            verify_ssl,
-            proxy,
-            connector,
-            proxy_username,
-            proxy_password,
-            timeout,
-            enable_requests,
-            root_url,
+            api_key=api_key,
+            integration=integration,
+            trust_env=trust_env,
+            verify_ssl=verify_ssl,
+            proxy=proxy,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+            connector=connector,
+            timeout=timeout,
+            enable_requests=enable_requests,
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
+            case_id=case_id,
         )
 
     def check_authorization(self) -> dict:
@@ -104,7 +113,7 @@ class BaseSandboxConnector(AnyRunConnector):
         url = f'{self.ANY_RUN_API_URL}/analysis'
         body = {'team': str(team).lower(), 'skip': skip, 'limit': limit}
 
-        response_data = await self._make_request_async('GET', url, params=body)
+        response_data = await self._make_request_async('GET', url, params=body, scoped=False)
         return response_data.get('data').get('tasks')
 
     def get_analysis_report(
@@ -256,28 +265,16 @@ class BaseSandboxConnector(AnyRunConnector):
         """
         url = f'{self.ANY_RUN_API_URL}/analysis/monitor/{task_uuid}'
 
-        if self._enable_requests:
-            with requests.Session().get(url, headers=self._headers, stream=True) as response:
-                await self._check_response_content_type(response.headers.get('Content-Type'), response)
+        response = await self._make_request_async('GET', url, parse_response=False, stream=True)
+        await self._check_response_content_type(
+            response.headers.get('Content-Type') if self._enable_requests else response.content_type,
+            response,
+        )
 
-                for chunk in response.iter_lines():
-                    if chunk:
-                        yield await self._prepare_response(chunk, simplify, task_uuid)
-        else:
-            response = await self._make_request_async('GET', url, parse_response=False)
-            await self._check_response_content_type(response.content_type, response)
-
-            while True:
-                # Read the next chunk from the event stream
-                chunk = await response.content.readuntil(b'\n')
-                # Skip the end of chunk and any meta information
-                # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
-                if chunk == b'\n' or any(chunk.startswith(prefix) for prefix in [b'id', b'event', b'entry']):
-                    continue
-                # Stop interation if event stream is closed
-                elif not chunk:
-                    break
-                # Decode and yield the next chunk
+        async for chunk in self._iterate_event_stream(response):
+            # Skip the end of chunk and any meta information
+            # https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#fields
+            if chunk.strip() and not chunk.startswith((b'id', b'event', b'entry')):
                 yield await self._prepare_response(chunk, simplify, task_uuid)
 
     def get_user_environment(self) -> dict:
@@ -312,7 +309,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :return: API response json
         """
         url = f'{self.ANY_RUN_API_URL}/user'
-        return (await self._make_request_async('GET', url)).get('data').get('limits')
+        return (await self._make_request_async('GET', url, scoped=False)).get('data').get('limits')
 
     def get_user_presets(self) -> list[dict]:
         """
@@ -479,6 +476,25 @@ class BaseSandboxConnector(AnyRunConnector):
             }
         return status_data
 
+    async def _iterate_event_stream(self, response: Union[requests.Response, aiohttp.ClientResponse]) -> AsyncIterator[bytes]:
+        """
+        Yields the raw lines of the event stream until it is closed
+
+        :param response: API response
+        """
+        if self._enable_requests:
+            with response:
+                for line in response.iter_lines():
+                    yield line + b'\n'
+        else:
+            while True:
+                chunk = await response.content.readuntil(b'\n')
+
+                # Stop iteration if event stream is closed
+                if not chunk:
+                    break
+                yield chunk
+
     async def _read_content_stream(self, response: Union[requests.Response, aiohttp.ClientResponse]) -> Union[bytes, dict, str]:
         """
         Receives the first fragment of the stream and decodes it
@@ -547,16 +563,8 @@ class BaseSandboxConnector(AnyRunConnector):
         :param filepath: Path to save the sample
         :return: Content bytes if **filepath** option is not specified
         """
-        sample = b''
-        response_data = await self._make_request_async('GET', url, parse_response=False)
-
-        if self._enable_requests:
-            with requests.Session().get(url, headers=self._headers, stream=True) as response:
-                for chunk in response.iter_lines():
-                    if chunk:
-                        sample += chunk
-        else:
-            sample = await response_data.content.read()
+        response = await self._make_request_async('GET', url, parse_response=False)
+        sample = response.content if self._enable_requests else await response.content.read()
 
         if filepath:
             await self._dump_response_content(sample, filepath, task_uuid, content_type)

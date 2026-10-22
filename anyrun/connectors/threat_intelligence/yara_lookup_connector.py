@@ -1,18 +1,21 @@
+import asyncio
+from collections.abc import AsyncIterator, Iterator
+from typing import Optional, Union
 from uuid import UUID
-from typing import Optional, Union, Iterator, AsyncIterator
 
 import aiohttp
-import asyncio
 
 from anyrun.connectors.base_connector import AnyRunConnector
 from anyrun.utils.config import Config
-from anyrun.utils.utility_functions import execute_synchronously, execute_async_iterator
+from anyrun.utils.utility_functions import execute_async_iterator, execute_synchronously
+
 
 class YaraLookupConnector(AnyRunConnector):
     """
     Provides ANY.RUN TI Yara Lookup endpoints management.
     Uses aiohttp library for the asynchronous calls
     """
+
     def __init__(
         self,
         api_key: str,
@@ -25,7 +28,9 @@ class YaraLookupConnector(AnyRunConnector):
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -39,19 +44,23 @@ class YaraLookupConnector(AnyRunConnector):
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root URL for the API.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
         """
         super().__init__(
-            api_key,
-            integration,
-            trust_env,
-            verify_ssl,
-            proxy,
-            proxy_username,
-            proxy_password,
-            connector,
-            timeout,
-            enable_requests,
-            root_url
+            api_key=api_key,
+            integration=integration,
+            trust_env=trust_env,
+            verify_ssl=verify_ssl,
+            proxy=proxy,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+            connector=connector,
+            timeout=timeout,
+            enable_requests=enable_requests,
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
         )
 
     def check_authorization(self) -> dict:
@@ -70,14 +79,14 @@ class YaraLookupConnector(AnyRunConnector):
 
         return: Verification status
         """
-        url = f"{self.ANY_RUN_API_URL}/intelligence/keycheck"
+        url = f'{self.ANY_RUN_API_URL}/intelligence/keycheck'
         await self._make_request_async('GET', url)
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
     def run_yara_search(self, yara_rule: str) -> str:
         """
          Initializes a new search according to the specified YARA rule
-`
+        `
         :param yara_rule: Valid YARA rule
         :return: Search ID
         """
@@ -86,7 +95,7 @@ class YaraLookupConnector(AnyRunConnector):
     async def run_yara_search_async(self, yara_rule: str) -> Union[UUID, str]:
         """
         Initializes a new search according to the specified YARA rule
-`
+        `
         :param yara_rule: Valid YARA rule
         :return: Search ID
         """
@@ -104,7 +113,6 @@ class YaraLookupConnector(AnyRunConnector):
         :param simplify: Returns a simplified dict with the current search status
         :return: Number of matches
         """
-
         return execute_async_iterator(self.get_search_status_async(search_uuid, simplify))
 
     async def get_search_status_async(self, search_uuid: Union[UUID, str], simplify: bool = True) -> AsyncIterator[dict]:
@@ -152,7 +160,7 @@ class YaraLookupConnector(AnyRunConnector):
         matches = response_data.get('matches')
 
         if simplify and not matches:
-            return
+            return None
         return matches
 
     def get_stix_search_result(self, search_uuid: Union[UUID, str], simplify: bool = False) -> Optional[list[dict]]:
@@ -179,7 +187,7 @@ class YaraLookupConnector(AnyRunConnector):
         objects = response_data.get('data').get('objects')
 
         if simplify and not objects:
-            return
+            return None
         return objects
 
     def get_yara(self, yara_rule: str, stix: bool = False) -> list[Optional[dict]]:
@@ -204,7 +212,7 @@ class YaraLookupConnector(AnyRunConnector):
 
         # Wait for the search to complete
         async for _ in self.get_search_status_async(search_uuid):
-             pass
+            pass
 
         if stix:
             return await self.get_search_result_async(search_uuid)
@@ -219,14 +227,12 @@ class YaraLookupConnector(AnyRunConnector):
         :return: Response dict
         """
         if simplify:
-            return {
-                'status': await self._resolve_task_status(response.get('searchInfo').get('status'))
-            }
+            return {'status': await self._resolve_task_status(response.get('searchInfo').get('status'))}
         return response
 
     @staticmethod
     async def _resolve_task_status(status: Optional[str]) -> Optional[str]:
-        """ Converts status code to the string representation """
+        """Converts status code to the string representation"""
         if status:
             if status == 'new':
                 return 'PREPARING'

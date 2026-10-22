@@ -2,17 +2,13 @@ from typing import Optional
 
 import aiohttp
 
+from anyrun.connectors.sandbox.operation_systems import AndroidConnector, LinuxConnector, MacOSConnector, WindowsConnector
 from anyrun.utils.config import Config
-from anyrun.connectors.sandbox.operation_systems import (
-    WindowsConnector,
-    AndroidConnector,
-    LinuxConnector,
-    MacOSConnector
-)
 
 
 class SandboxConnector:
-    """ Connectors Factory. Creates a concrete connector instance according to the method called """
+    """Connectors Factory. Creates a concrete connector instance according to the method called"""
+
     @staticmethod
     def windows(
         api_key: str,
@@ -25,7 +21,10 @@ class SandboxConnector:
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> WindowsConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -39,6 +38,9 @@ class SandboxConnector:
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root url.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         return WindowsConnector(
             api_key=api_key,
@@ -51,7 +53,10 @@ class SandboxConnector:
             connector=connector,
             timeout=timeout,
             enable_requests=enable_requests,
-            root_url=root_url
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
+            case_id=case_id,
         )
 
     @staticmethod
@@ -66,7 +71,10 @@ class SandboxConnector:
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> LinuxConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -80,6 +88,9 @@ class SandboxConnector:
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root URL for the API.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         return LinuxConnector(
             api_key=api_key,
@@ -92,7 +103,10 @@ class SandboxConnector:
             connector=connector,
             timeout=timeout,
             enable_requests=enable_requests,
-            root_url=root_url
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
+            case_id=case_id,
         )
 
     @staticmethod
@@ -107,7 +121,10 @@ class SandboxConnector:
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> AndroidConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -121,6 +138,9 @@ class SandboxConnector:
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root URL for the API.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         return AndroidConnector(
             api_key=api_key,
@@ -133,7 +153,10 @@ class SandboxConnector:
             connector=connector,
             timeout=timeout,
             enable_requests=enable_requests,
-            root_url=root_url
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
+            case_id=case_id,
         )
 
     @staticmethod
@@ -148,7 +171,10 @@ class SandboxConnector:
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> MacOSConnector:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -162,6 +188,9 @@ class SandboxConnector:
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root URL for the API.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         return MacOSConnector(
             api_key=api_key,
@@ -174,6 +203,8 @@ class SandboxConnector:
             connector=connector,
             timeout=timeout,
             enable_requests=enable_requests,
-            root_url=root_url
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
+            case_id=case_id,
         )
-

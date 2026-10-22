@@ -1,22 +1,21 @@
+import asyncio
 import os
-from http import HTTPStatus
-from typing import Optional, Union, Any
-from typing_extensions import Self
 from abc import abstractmethod
+from http import HTTPStatus
+from typing import Any, Optional, Union
 from warnings import warn
 
 import aiohttp
-import asyncio
 import requests
-
 from aiohttp import BasicAuth
+from typing_extensions import Self
 
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
 from anyrun.utils.utility_functions import execute_synchronously, get_running_loop
 
-class AnyRunConnector:
 
+class AnyRunConnector:
     def __init__(
         self,
         api_key: str,
@@ -29,7 +28,10 @@ class AnyRunConnector:
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+        case_id: Optional[str] = None,
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -43,6 +45,9 @@ class AnyRunConnector:
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root url.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
+        :param case_id: Teamspace case identifier. Used only by the Sandbox requests.
         """
         self._proxy = proxy
         self._proxy_username = proxy_username
@@ -58,6 +63,7 @@ class AnyRunConnector:
         self._api_key_validator(api_key)
         self._setup_connector()
         self._setup_headers(integration)
+        self._setup_teamspace_scope(team_id=team_id, case_id=case_id, customer_id=customer_id)
 
         self._response_headers: dict[str, Any] = dict()
 
@@ -89,13 +95,16 @@ class AnyRunConnector:
         return execute_synchronously(self.check_proxy_async)
 
     async def check_proxy_async(self) -> dict:
-        """"
+        """
+        "
         Executes test proxy request to google.com
 
         :returns: Verification status
         """
         try:
-            await self._make_request_async('GET', 'https://google.com', request_timeout=5, parse_response=False)
+            await self._make_request_async(
+                'GET', 'https://google.com', request_timeout=5, parse_response=False, scoped=False
+            )
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
             raise RunTimeException('The proxy request failed. Check the proxy settings are correct') from exception
         return {'status': 'ok', 'description': 'Successful proxy verification'}
@@ -109,7 +118,9 @@ class AnyRunConnector:
         files: Optional[dict[str, tuple[str, bytes]]] = None,
         parse_response: bool = True,
         request_timeout: Optional[int] = None,
-        params: Optional[dict] = None
+        params: Optional[dict] = None,
+        stream: bool = False,
+        scoped: bool = True,
     ) -> Union[dict, list[dict], aiohttp.ClientResponse, requests.Response]:
         """
         Provides async interface for making any request
@@ -122,10 +133,17 @@ class AnyRunConnector:
         :param parse_response: Enable/disable API response parsing. If enabled, returns response.json() object dict
             else aiohttp.ClientResponse instance
         :param request_timeout: HTTP Request timeout
+        :param params: Request query parameters
+        :param stream: Do not read the response body in advance (only for the requests package, aiohttp always streams)
+        :param scoped: Attach the Teamspace scope to the request. POST requests receive it in the body,
+            GET requests in the query parameters
         :return: Api response
         :raises RunTimeException: If the connector was executed outside the context manager
         """
-        url = os.environ.get("ANYRUN_GENERIC_ENDPOINT_URL") or url
+        url = os.environ.get('ANYRUN_GENERIC_ENDPOINT_URL') or url
+
+        if scoped:
+            json, data, params = self._apply_teamspace_scope(method, json, data, files, params)
 
         try:
             if self._enable_requests:
@@ -134,39 +152,102 @@ class AnyRunConnector:
                     url,
                     headers=self._headers,
                     json=json,
+                    data=data if isinstance(data, dict) else None,
                     params=params,
                     files=files,
                     verify=self._verify_ssl,
                     proxies=self._generate_proxy_config() if self._proxy else None,
-                    timeout=request_timeout
+                    timeout=request_timeout,
+                    stream=stream,
                 )
             else:
                 response: aiohttp.ClientResponse = await self._session.request(
-                    method,
-                    url,
-                    json=json,
-                    data=data,
-                    ssl=True if self._verify_ssl else False,
-                    timeout=request_timeout,
-                    params=params
+                    method, url, json=json, data=data, ssl=True if self._verify_ssl else False, timeout=request_timeout, params=params
                 )
 
             self._response_headers = response.headers
 
             if parse_response:
                 response_data = response.json() if self._enable_requests else await response.json()
-                return await self._check_response_status(
-                    response_data,
-                    response.status_code if self._enable_requests else response.status
-                )
+                return await self._check_response_status(response_data, response.status_code if self._enable_requests else response.status)
             return response
 
         except AttributeError:
             raise RunTimeException('The connector object must be executed using the context manager')
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
-            raise RunTimeException('Connection error: {}'.format(exception))
+            raise RunTimeException(f'Connection error: {exception}')
         except Exception as e:
-            raise RunTimeException('Unknown error: {}'.format(e))
+            raise RunTimeException(f'Unknown error: {e}')
+
+    def _setup_teamspace_scope(
+        self,
+        team_id: Optional[str] = None,
+        case_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
+    ) -> None:
+        """
+        Builds Teamspace scope parameters.
+        Parameters that are not set are omitted so the server applies its own defaults.
+
+        :param team_id: Teamspace team identifier.
+        :param customer_id: Teamspace customer identifier.
+        :param case_id: Teamspace case identifier.
+        :return: None
+        """
+        self.teamspace_scope = {}
+
+        if team_id is not None:
+            self.teamspace_scope['teamId'] = team_id
+
+        if customer_id is not None:
+            self.teamspace_scope['customerId'] = customer_id
+
+        if case_id is not None:
+            self.teamspace_scope['caseId'] = case_id
+
+    def _apply_teamspace_scope(
+        self,
+        method: str,
+        json: Optional[dict],
+        data: Union[dict, aiohttp.MultipartWriter, None],
+        files: Optional[dict[str, tuple[str, bytes]]],
+        params: Optional[dict],
+    ) -> tuple[Optional[dict], Union[dict, aiohttp.MultipartWriter, None], Optional[dict]]:
+        """
+        Attaches the Teamspace scope to the request: to the body of POST requests (json, form-data or multipart)
+        and to the query parameters of GET requests. Other HTTP methods are left untouched.
+
+        :param method: HTTP method
+        :param json: Request json
+        :param data: Request data
+        :param files: Request files (only for the requests package)
+        :param params: Request query parameters
+        :return: Request json, data and query parameters including the scope
+        """
+        if not self.teamspace_scope:
+            return json, data, params
+
+        if method == 'GET':
+            return json, data, {**(params or {}), **self.teamspace_scope}
+
+        if method != 'POST':
+            return json, data, params
+
+        if isinstance(data, aiohttp.MultipartWriter):
+            for field, value in self.teamspace_scope.items():
+                data.append(value).set_content_disposition('form-data', name=field)
+        elif files:
+            # The requests package ignores json if files are sent, so the fields are sent as form-data instead
+            data = {
+                **{field: value for field, value in (json or {}).items() if value or value in (True, False)},
+                **(data or {}),
+                **self.teamspace_scope,
+            }
+            json = None
+        else:
+            json = {**(json or {}), **self.teamspace_scope}
+
+        return json, data, params
 
     def _setup_connector(self) -> None:
         if not self._connector and self._verify_ssl:
@@ -175,11 +256,7 @@ class AnyRunConnector:
             self._connector = aiohttp.TCPConnector(ssl=self._verify_ssl, loop=event_loop)
 
     def _setup_headers(self, integration: str) -> None:
-        self._headers = {
-            'Authorization': self._api_key,
-            'x-anyrun-connector': integration,
-            'x-anyrun-sdk': Config.SDK_VERSION
-        }
+        self._headers = {'Authorization': self._api_key, 'x-anyrun-connector': integration, 'x-anyrun-sdk': Config.SDK_VERSION}
 
     async def _open_session(self) -> None:
         if not self._session:
@@ -189,7 +266,7 @@ class AnyRunConnector:
                 proxy=self._proxy,
                 auth=BasicAuth(self._proxy_username, self._proxy_password) if self._proxy_username else None,
                 timeout=aiohttp.ClientTimeout(total=self._timeout),
-                headers=self._headers
+                headers=self._headers,
             )
 
     async def _close_session(self) -> None:
@@ -207,10 +284,12 @@ class AnyRunConnector:
             protocol = self._proxy.split(':')[0]
 
             if self._proxy_username and self._proxy_password:
-                connection = self._proxy[self._proxy.index('//') + 2:]
+                connection = self._proxy[self._proxy.index('//') + 2 :]
                 return {protocol: f'{protocol}://{self._proxy_username}:{self._proxy_password}@{connection}'}
 
             return {protocol: self._proxy}
+
+        return None
 
     @abstractmethod
     def check_authorization(self) -> dict:
@@ -220,7 +299,6 @@ class AnyRunConnector:
 
         :return: Verification status
         """
-        pass
 
     @abstractmethod
     async def check_authorization_async(self) -> dict:
@@ -230,7 +308,6 @@ class AnyRunConnector:
 
         :return: Verification status
         """
-        pass
 
     @staticmethod
     async def _check_response_status(response_data: dict, status: int) -> dict:
@@ -246,10 +323,7 @@ class AnyRunConnector:
         if status in (HTTPStatus.OK, HTTPStatus.CREATED, HTTPStatus.ACCEPTED):
             return response_data
 
-        raise RunTimeException(
-            response_data.get('message') or response_data.get('description'),
-            status or HTTPStatus.BAD_REQUEST
-        )
+        raise RunTimeException(response_data.get('message') or response_data.get('description'), status or HTTPStatus.BAD_REQUEST)
 
     def _api_key_validator(self, api_key: str) -> None:
         """
@@ -260,9 +334,9 @@ class AnyRunConnector:
         """
         if not api_key:
             raise RunTimeException('The ANY.RUN API key can not be empty.')
-        elif not isinstance(api_key, str):
+        if not isinstance(api_key, str):
             raise RunTimeException('The ANY.RUN API key must be a valid string')
-        elif api_key.lower().startswith('api-key') or api_key.lower().startswith('basic'):
+        if api_key.lower().startswith('api-key') or api_key.lower().startswith('basic'):
             warn(
                 'To access all ANY.RUN services, please use an API key without a prefix. '
                 'API keys with a prefix and access to TI Feeds via Basic Authentication are '

@@ -1,13 +1,12 @@
-from typing import Optional, Union
 from datetime import datetime, timedelta
+from typing import Optional, Union
 
 import aiohttp
 
 from anyrun.connectors.base_connector import AnyRunConnector
-
+from anyrun.models.lookup_summary import LookupSummary
 from anyrun.utils.config import Config
 from anyrun.utils.utility_functions import execute_synchronously
-from anyrun.models.lookup_summary import LookupSummary
 
 
 class LookupConnector(AnyRunConnector):
@@ -15,6 +14,7 @@ class LookupConnector(AnyRunConnector):
     Provides ANY.RUN TI Lookup endpoint management.
     Uses aiohttp library for the asynchronous calls
     """
+
     def __init__(
         self,
         api_key: str,
@@ -27,7 +27,9 @@ class LookupConnector(AnyRunConnector):
         connector: Optional[aiohttp.BaseConnector] = None,
         timeout: int = Config.DEFAULT_REQUEST_TIMEOUT_IN_SECONDS,
         enable_requests: bool = False,
-        root_url: Optional[str] = Config.DEFAULT_ROOT_URL
+        root_url: Optional[str] = Config.DEFAULT_ROOT_URL,
+        team_id: Optional[str] = None,
+        customer_id: Optional[str] = None,
     ) -> None:
         """
         :param api_key: ANY.RUN API-KEY without a prefix.
@@ -41,19 +43,23 @@ class LookupConnector(AnyRunConnector):
         :param timeout: Override the session’s timeout.
         :param enable_requests: Use requests.request to make api calls. May block the event loop.
         :param root_url: Root URL for the API.
+        :param team_id: Teamspace team identifier. Applied to every request made by the connector.
+        :param customer_id: Teamspace customer identifier. Applied to every request made by the connector.
         """
         super().__init__(
-            api_key,
-            integration,
-            trust_env,
-            verify_ssl,
-            proxy,
-            proxy_username,
-            proxy_password,
-            connector,
-            timeout,
-            enable_requests,
-            root_url
+            api_key=api_key,
+            integration=integration,
+            trust_env=trust_env,
+            verify_ssl=verify_ssl,
+            proxy=proxy,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+            connector=connector,
+            timeout=timeout,
+            enable_requests=enable_requests,
+            root_url=root_url,
+            team_id=team_id,
+            customer_id=customer_id,
         )
 
     def check_authorization(self) -> dict:
@@ -72,7 +78,7 @@ class LookupConnector(AnyRunConnector):
 
         return: Verification status
         """
-        url = f"{self.ANY_RUN_API_URL}/intelligence/keycheck"
+        url = f'{self.ANY_RUN_API_URL}/intelligence/keycheck'
         await self._make_request_async('GET', url)
         return {'status': 'ok', 'description': 'Successful credential verification'}
 
@@ -106,7 +112,7 @@ class LookupConnector(AnyRunConnector):
         domain_name: Optional[str] = None,
         ja3: Optional[str] = None,
         ja3s: Optional[str] = None,
-        jarm : Optional[str] = None,
+        jarm: Optional[str] = None,
         file_path: Optional[str] = None,
         file_event_path: Optional[str] = None,
         file_extension: Optional[str] = None,
@@ -125,7 +131,7 @@ class LookupConnector(AnyRunConnector):
         http_response_content_type: Optional[str] = None,
         http_request_file_type: Optional[str] = None,
         http_response_file_type: Optional[str] = None,
-        parse_response: bool = False
+        parse_response: bool = False,
     ) -> Union[dict, LookupSummary]:
         """
         Returns Lookup object according to the specified query parameters.
@@ -254,7 +260,7 @@ class LookupConnector(AnyRunConnector):
             http_response_content_type=http_response_content_type,
             http_request_file_type=http_request_file_type,
             http_response_file_type=http_response_file_type,
-            parse_response=parse_response
+            parse_response=parse_response,
         )
 
     async def get_intelligence_async(
@@ -287,7 +293,7 @@ class LookupConnector(AnyRunConnector):
         domain_name: Optional[str] = None,
         ja3: Optional[str] = None,
         ja3s: Optional[str] = None,
-        jarm : Optional[str] = None,
+        jarm: Optional[str] = None,
         file_path: Optional[str] = None,
         file_event_path: Optional[str] = None,
         file_extension: Optional[str] = None,
@@ -306,7 +312,7 @@ class LookupConnector(AnyRunConnector):
         http_response_content_type: Optional[str] = None,
         http_request_file_type: Optional[str] = None,
         http_response_file_type: Optional[str] = None,
-        parse_response: bool = False
+        parse_response: bool = False,
     ) -> Union[dict, LookupSummary]:
         """
         Returns Lookup object according to the specified query parameters.
@@ -433,8 +439,8 @@ class LookupConnector(AnyRunConnector):
                 'httpRequestContentType': http_request_content_type,
                 'httpResponseContentType': http_response_content_type,
                 'httpRequestFileType': http_request_file_type,
-                'httpResponseFileType': http_response_file_type
-            }
+                'httpResponseFileType': http_response_file_type,
+            },
         )
         url = f'{self.ANY_RUN_API_URL}/intelligence/api/search'
         response_data = await self._make_request_async('POST', url, json=body)
@@ -445,7 +451,7 @@ class LookupConnector(AnyRunConnector):
         start_date: Optional[str],
         end_date: Optional[str],
         query: Optional[str],
-        params: dict[str, str]
+        params: dict[str, str],
     ) -> dict[str, str]:
         """
         Builds complete request body according to specified parameters
@@ -471,11 +477,7 @@ class LookupConnector(AnyRunConnector):
         return ' AND '.join(f'{param}:"{value}"' for param, value in params.items() if value)
 
     @staticmethod
-    async def _add_time_ranges(
-        body: dict[str, str],
-        start_date: Optional[str],
-        end_date: Optional[str]
-    ) -> dict[str, str]:
+    async def _add_time_ranges(body: dict[str, str], start_date: Optional[str], end_date: Optional[str]) -> dict[str, str]:
         """
         Checks if time range parameters specified. If specified, appends them to request body
 

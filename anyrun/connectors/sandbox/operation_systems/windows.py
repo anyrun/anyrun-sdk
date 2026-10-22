@@ -261,7 +261,7 @@ class WindowsConnector(BaseSandboxConnector):
 
         if self._enable_requests:
             file_content, filename = await self._get_file_payload(file_content, filename, filepath)
-            files = {filename: (filename, file_content)}
+            files = {'file': (filename, file_content)}
             response_data = await self._make_request_async('POST', url, json=params, files=files)
         else:
             body = await self._generate_multipart_request_body(file_content=file_content, filename=filename, filepath=filepath, **params)

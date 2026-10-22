@@ -146,7 +146,7 @@ class BaseSandboxConnector(AnyRunConnector):
     async def get_analysis_report_async(
         self,
         task_uuid: Union[UUID, str],
-        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp', 'brief'] = 'json',
+        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp', 'brief', 'tier1', 'tier1-html'] = 'json',
         filepath: Optional[str] = None,
         ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'suspicious',
     ) -> Union[dict, list[dict], str, None]:
@@ -177,6 +177,10 @@ class BaseSandboxConnector(AnyRunConnector):
         elif report_format == 'brief':
             url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/brief'
             response_data = await self._make_request_async('GET', url)
+        elif report_format == 'tier1-html':
+            url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/tier1-html'
+            response = await self._make_request_async('GET', url, parse_response=False)
+            response_data = await self._read_content_stream(response)
         else:
             url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/{report_format}'
             response_data = await self._make_request_async('GET', url)
@@ -629,8 +633,9 @@ class BaseSandboxConnector(AnyRunConnector):
                 raise RunTimeException(f'Received not valid filepath: {filepath}')
 
             async with aiofiles.open(filepath, mode='rb') as file:
+                content = await file.read()
                 return (
-                    file_content if self._enable_requests else aiohttp.get_payload(await file.read()),
+                    content if self._enable_requests else aiohttp.get_payload(content),
                     os.path.basename(filepath),
                 )
         else:

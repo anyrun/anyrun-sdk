@@ -97,11 +97,11 @@ def test_file_upload_scope_is_sent_as_form_fields_with_requests():
 
     with patch('requests.request', return_value=requests_response()) as request:
         run(connector._make_request_async(
-            'POST', 'https://any.run', json={'env_os': 'windows', 'user_tags': None}, files={'f': ('f', b'1')}
+            'POST', 'https://any.run', json={'env_os': 'windows', 'user_tags': None, 'opt_auto_delete_after': '', 'opt_timeout': 30, 'opt_network_tor': False}, files={'f': ('f', b'1')}
         ))
 
     assert request.call_args.kwargs['json'] is None
-    assert request.call_args.kwargs['data'] == {'env_os': 'windows', **SCOPE, 'caseId': 'case'}
+    assert request.call_args.kwargs['data'] == {'env_os': 'windows', 'opt_timeout': 30, 'opt_network_tor': False, **SCOPE, 'caseId': 'case'}
 
 
 def test_file_upload_scope_is_appended_to_multipart_with_aiohttp():
@@ -167,3 +167,20 @@ def test_task_status_stream_uses_the_common_request_helper_and_skips_meta_lines(
     assert request.call_args.kwargs['stream'] is True
     assert request.call_args.kwargs['params'] == SCOPE
     session.assert_not_called()
+
+
+def test_requests_file_upload_sends_the_file_in_the_file_field_for_filepath_and_content(tmp_path):
+    sample = tmp_path / 'sample.bin'
+    sample.write_bytes(b'MZ\x00binary')
+
+    for kwargs, expected in (
+        ({'filepath': str(sample)}, ('sample.bin', b'MZ\x00binary')),
+        ({'file_content': b'abc', 'filename': 'a.txt'}, ('a.txt', b'abc')),
+    ):
+        for scope in ({}, KWARGS):
+            connector = SandboxConnector.windows('key', enable_requests=True, **scope)
+
+            with patch('requests.request', return_value=requests_response(payload={'data': {'taskid': 'id'}})) as request:
+                run(connector.run_file_analysis_async(**kwargs))
+
+            assert request.call_args.kwargs['files'] == {'file': expected}

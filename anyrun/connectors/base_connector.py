@@ -239,7 +239,7 @@ class AnyRunConnector:
         elif files:
             # The requests package ignores json if files are sent, so the fields are sent as form-data instead
             data = {
-                **{field: value for field, value in (json or {}).items() if value is not None},
+                **{field: value for field, value in (json or {}).items() if value or value in (True, False)},
                 **(data or {}),
                 **self.teamspace_scope,
             }

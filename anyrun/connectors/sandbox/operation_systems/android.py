@@ -211,6 +211,7 @@ class AndroidConnector(BaseSandboxConnector):
 
         if self._enable_requests:
             file_content, filename = await self._get_file_payload(file_content, filename, filepath)
+            params = await self._set_task_object_type(params, 'file')
             files = {'file': (filename, file_content)}
             response_data = await self._make_request_async('POST', url, json=params, files=files)
         else:

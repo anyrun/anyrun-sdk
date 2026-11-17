@@ -33,6 +33,11 @@ def get_running_loop() -> asyncio.AbstractEventLoop:
         return event_loop
 
 
+def drop_empty_values(params: dict) -> dict:
+    """ Returns a copy of params without None and empty values. Boolean values (including False) are kept """
+    return {key: value for key, value in params.items() if value or value in (True, False)}
+
+
 def check_if_analysis_initialized(func):
     """ Checks if taskid in Sandbox API response JSON """
     @functools.wraps(func)

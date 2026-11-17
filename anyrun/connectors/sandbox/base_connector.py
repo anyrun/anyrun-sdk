@@ -12,7 +12,7 @@ import requests
 from anyrun.connectors.base_connector import AnyRunConnector
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
-from anyrun.utils.utility_functions import execute_async_iterator, execute_synchronously
+from anyrun.utils.utility_functions import drop_empty_values, execute_async_iterator, execute_synchronously
 
 
 class BaseSandboxConnector(AnyRunConnector):
@@ -443,10 +443,9 @@ class BaseSandboxConnector(AnyRunConnector):
         params = await self._set_task_object_type(params, 'file')
 
         # Prepare analysis settings payload
-        for param, value in params.items():
-            if value or value in (True, False):
-                part = form_data.append(str(value))
-                part.set_content_disposition('form-data', name=param)
+        for param, value in drop_empty_values(params).items():
+            part = form_data.append(str(value))
+            part.set_content_disposition('form-data', name=param)
 
         return form_data
 
@@ -458,7 +457,7 @@ class BaseSandboxConnector(AnyRunConnector):
         :param params: Dictionary with task settings
         :return: Request payload stored in dictionary
         """
-        request_body = {param: value for param, value in params.items() if value or value in (True, False)}
+        request_body = drop_empty_values(params)
         return await self._set_task_object_type(request_body, object_type)
 
     async def _prepare_response(self, chunk: bytes, simplify: bool, task_uuid: str) -> dict:

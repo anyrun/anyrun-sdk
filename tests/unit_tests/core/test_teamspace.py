@@ -43,9 +43,11 @@ def test_no_scope_by_default_leaves_every_request_untouched():
         run(connector._make_request_async('GET', 'https://any.run'))
         assert request.call_args.kwargs['params'] is None
 
+        # The requests package ignores json if files are sent, so the fields must be moved to form-data
         files = {'f': ('f', b'1')}
-        run(connector._make_request_async('POST', 'https://any.run', json={'a': 1}, files=files))
-        assert (request.call_args.kwargs['json'], request.call_args.kwargs['data']) == ({'a': 1}, None)
+        run(connector._make_request_async('POST', 'https://any.run', json={'a': 1, 'b': None, 'c': False}, files=files))
+        assert (request.call_args.kwargs['json'], request.call_args.kwargs['data']) == (None, {'a': 1, 'c': False})
+        assert request.call_args.kwargs['files'] is files
 
 
 def test_no_scope_by_default_leaves_aiohttp_multipart_untouched():

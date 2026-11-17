@@ -12,7 +12,7 @@ from typing_extensions import Self
 
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
-from anyrun.utils.utility_functions import execute_synchronously, get_running_loop
+from anyrun.utils.utility_functions import drop_empty_values, execute_synchronously, get_running_loop
 
 
 class AnyRunConnector:
@@ -142,6 +142,11 @@ class AnyRunConnector:
         """
         url = os.environ.get('ANYRUN_GENERIC_ENDPOINT_URL') or url
 
+        if self._enable_requests and files and json is not None:
+            # The requests package ignores json if files are sent, so the fields are sent as form-data instead
+            data = {**drop_empty_values(json), **(data or {})}
+            json = None
+
         if scoped:
             json, data, params = self._apply_teamspace_scope(method, json, data, files, params)
 
@@ -237,13 +242,8 @@ class AnyRunConnector:
             for field, value in self.teamspace_scope.items():
                 data.append(value).set_content_disposition('form-data', name=field)
         elif files:
-            # The requests package ignores json if files are sent, so the fields are sent as form-data instead
-            data = {
-                **{field: value for field, value in (json or {}).items() if value or value in (True, False)},
-                **(data or {}),
-                **self.teamspace_scope,
-            }
-            json = None
+            # Files are sent as multipart form-data, so the scope is sent as form fields as well
+            data = {**(data or {}), **self.teamspace_scope}
         else:
             json = {**(json or {}), **self.teamspace_scope}
 

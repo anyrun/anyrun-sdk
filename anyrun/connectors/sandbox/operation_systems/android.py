@@ -84,6 +84,7 @@ class AndroidConnector(BaseSandboxConnector):
         obj_ext_cmd: Optional[str] = None,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -111,7 +112,10 @@ class AndroidConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         return execute_synchronously(
             self.run_file_analysis_async,
@@ -132,6 +136,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_cmd=obj_ext_cmd,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=queue_parallel,
             user_tags=user_tags,
         )
 
@@ -156,6 +161,7 @@ class AndroidConnector(BaseSandboxConnector):
         obj_ext_cmd: Optional[str] = None,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -183,7 +189,10 @@ class AndroidConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         url = f'{self.ANY_RUN_API_URL}/analysis'
         params = {
@@ -206,6 +215,7 @@ class AndroidConnector(BaseSandboxConnector):
             'obj_ext_startfolder': 'downloads',
             'obj_ext_cmd': obj_ext_cmd,
             'task_rerun_uuid': task_rerun_uuid,
+            'queue_parallel': 'true' if queue_parallel else None,
             'user_tags': user_tags,
         }
 
@@ -236,6 +246,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -259,7 +270,10 @@ class AndroidConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         return execute_synchronously(
             self.run_url_analysis_async,
@@ -277,6 +291,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=queue_parallel,
             user_tags=user_tags,
         )
 
@@ -298,6 +313,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -321,7 +337,10 @@ class AndroidConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         url = f'{self.ANY_RUN_API_URL}/analysis'
 
@@ -345,6 +364,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=True if queue_parallel else None,
             user_tags=user_tags,
         )
 
@@ -371,6 +391,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -397,7 +418,10 @@ class AndroidConnector(BaseSandboxConnector):
         :param opt_privacy_hidesource: Option for hiding of source URL.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         return execute_synchronously(
             self.run_download_analysis_async,
@@ -415,6 +439,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=queue_parallel,
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             opt_privacy_hidesource=opt_privacy_hidesource,
@@ -442,6 +467,7 @@ class AndroidConnector(BaseSandboxConnector):
         opt_auto_delete_after: Literal['day', 'week', '2 weeks', 'month', ''] = '',
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -468,7 +494,10 @@ class AndroidConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         url = f'{self.ANY_RUN_API_URL}/analysis'
 
@@ -492,6 +521,7 @@ class AndroidConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             obj_ext_startfolder='downloads',
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=True if queue_parallel else None,
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             opt_privacy_hidesource=opt_privacy_hidesource,

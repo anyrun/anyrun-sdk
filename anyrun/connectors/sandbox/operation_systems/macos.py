@@ -86,6 +86,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -115,7 +116,10 @@ class MacOSConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         return execute_synchronously(
             self.run_file_analysis_async,
@@ -138,6 +142,7 @@ class MacOSConnector(BaseSandboxConnector):
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_extension=obj_ext_extension,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=queue_parallel,
             user_tags=user_tags,
         )
 
@@ -164,6 +169,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new file analysis according to the specified parameters
@@ -193,7 +199,10 @@ class MacOSConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         url = f'{self.ANY_RUN_API_URL}/analysis'
         params = {
@@ -219,6 +228,7 @@ class MacOSConnector(BaseSandboxConnector):
             'auto_confirm_uac': None,
             'obj_ext_extension': obj_ext_extension,
             'task_rerun_uuid': task_rerun_uuid,
+            'queue_parallel': 'true' if queue_parallel else None,
             'user_tags': user_tags,
         }
 
@@ -251,6 +261,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -276,7 +287,10 @@ class MacOSConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         return execute_synchronously(
             self.run_url_analysis_async,
@@ -294,6 +308,7 @@ class MacOSConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=queue_parallel,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
             user_tags=user_tags,
@@ -319,6 +334,7 @@ class MacOSConnector(BaseSandboxConnector):
         obj_ext_extension: bool = True,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -344,7 +360,10 @@ class MacOSConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         url = f'{self.ANY_RUN_API_URL}/analysis'
 
@@ -368,6 +387,7 @@ class MacOSConnector(BaseSandboxConnector):
             opt_automated_interactivity=opt_automated_interactivity,
             opt_auto_delete_after=opt_auto_delete_after,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=True if queue_parallel else None,
             obj_ext_browser=obj_ext_browser,
             obj_ext_extension=obj_ext_extension,
             user_tags=user_tags,
@@ -398,6 +418,7 @@ class MacOSConnector(BaseSandboxConnector):
         opt_privacy_hidesource: bool = False,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -427,7 +448,10 @@ class MacOSConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         return execute_synchronously(
             self.run_download_analysis_async,
@@ -447,6 +471,7 @@ class MacOSConnector(BaseSandboxConnector):
             opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=queue_parallel,
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,
@@ -478,6 +503,7 @@ class MacOSConnector(BaseSandboxConnector):
         opt_privacy_hidesource: bool = False,
         user_tags: Optional[str] = None,
         task_rerun_uuid: Optional[str] = None,
+        queue_parallel: bool = False,
     ) -> Union[UUID, str]:
         """
         Initializes a new analysis according to the specified parameters
@@ -507,7 +533,10 @@ class MacOSConnector(BaseSandboxConnector):
             are allowed. Max tag length: 16 characters. Max unique tags per task: 8.
         :param task_rerun_uuid: Completed task identifier. Re-runs an existent task if uuid is specified. You can re-run
             task with new parameters
-        :return: Task uuid
+        :param queue_parallel: Queue the task if no parallel slot is available instead of failing. If the task is
+            queued, the method returns a queue task id: follow it with get_task_status and cancel it with
+            remove_task_from_queue.
+        :return: Task uuid. If the task was queued (queue_parallel is enabled), returns the queue task id
         """
         url = f'{self.ANY_RUN_API_URL}/analysis'
 
@@ -533,6 +562,7 @@ class MacOSConnector(BaseSandboxConnector):
             opt_auto_delete_after=opt_auto_delete_after,
             obj_ext_startfolder=obj_ext_startfolder,
             task_rerun_uuid=task_rerun_uuid,
+            queue_parallel=True if queue_parallel else None,
             obj_ext_cmd=obj_ext_cmd,
             obj_ext_useragent=obj_ext_useragent,
             obj_ext_extension=obj_ext_extension,

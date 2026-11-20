@@ -102,9 +102,7 @@ class AnyRunConnector:
         :returns: Verification status
         """
         try:
-            await self._make_request_async(
-                'GET', 'https://google.com', request_timeout=5, parse_response=False, scoped=False
-            )
+            await self._make_request_async('GET', 'https://google.com', request_timeout=5, parse_response=False, scoped=False)
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
             raise RunTimeException('The proxy request failed. Check the proxy settings are correct') from exception
         return {'status': 'ok', 'description': 'Successful proxy verification'}
@@ -173,7 +171,7 @@ class AnyRunConnector:
             self._response_headers = response.headers
 
             if parse_response:
-                response_data = response.json() if self._enable_requests else await response.json()
+                response_data = response.json() if self._enable_requests else await response.json(content_type=None)
                 return await self._check_response_status(response_data, response.status_code if self._enable_requests else response.status)
             return response
 

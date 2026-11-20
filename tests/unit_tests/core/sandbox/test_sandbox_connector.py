@@ -87,6 +87,7 @@ async def test_prepare_response_returns_a_valid_simplified_dict_if_simplify_is_s
     assert response == {
         "status": "RUNNING",
         "seconds_remaining": "30.123123",
+        "task_uuid": None,
         "info": "For interactive analysis follow: https://app.any.run/tasks/task_uuid"
     }
 

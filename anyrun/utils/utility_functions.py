@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import warnings
 import functools
 from typing import Callable, Any, AsyncIterator
@@ -39,7 +40,14 @@ def drop_empty_values(params: dict) -> dict:
 
 
 def check_if_analysis_initialized(func):
-    """ Checks if taskid in Sandbox API response JSON """
+    """
+    Checks if taskid in Sandbox API response JSON.
+
+    If the task was queued, returns queueTaskId when the decorated function was called with the enabled
+    **queue_parallel** option, otherwise raises an exception
+    """
+    signature = inspect.signature(func)
+
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         params = await func(*args, **kwargs)
@@ -48,11 +56,23 @@ def check_if_analysis_initialized(func):
             raise RunTimeException('Analysis is not started.', 500)
 
         if 'queueTaskId' in params.get('data'):
-            raise RunTimeException(f'Analysis is not started. Queue ID: {params.get("data").get("queueTaskId")}', 500)
+            queue_task_id = params.get('data').get('queueTaskId')
+
+            if is_queue_parallel_enabled(signature, args, kwargs):
+                return queue_task_id
+
+            raise RunTimeException(f'Analysis is not started. Queue ID: {queue_task_id}', 500)
 
         return params.get('data').get('taskid')
 
     return wrapper
+
+
+def is_queue_parallel_enabled(signature: inspect.Signature, args: tuple, kwargs: dict) -> bool:
+    """ Reads the **queue_parallel** option from the call arguments, no matter if it was passed positionally or by keyword """
+    bound_arguments = signature.bind(*args, **kwargs)
+    bound_arguments.apply_defaults()
+    return bool(bound_arguments.arguments.get('queue_parallel', False))
 
 
 def deprecated(reason: str = ""):

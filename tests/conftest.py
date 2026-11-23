@@ -3,9 +3,7 @@ import pytest
 
 @pytest.fixture(scope='function')
 def query_params_config() -> dict:
-    params = {
-                'match[revoked]': False
-             }
+    params = {'match[revoked]': False}
 
     yield params
     del params
@@ -16,5 +14,5 @@ class MockAiohttpClientResponse:
         self.content_type = content_type
         self.status = 401
 
-    async def json(self) -> dict:
+    async def json(self, content_type: str) -> dict:
         return {'message': 'Error message'}

@@ -119,7 +119,7 @@ class BaseSandboxConnector(AnyRunConnector):
     def get_analysis_report(
         self,
         task_uuid: Union[UUID, str],
-        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp', 'brief'] = 'json',
+        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp', 'brief', 'tier1', 'tier1-html', 'ai'] = 'json',
         filepath: Optional[str] = None,
         ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'suspicious',
     ) -> Union[dict, list[dict], str]:
@@ -146,7 +146,7 @@ class BaseSandboxConnector(AnyRunConnector):
     async def get_analysis_report_async(
         self,
         task_uuid: Union[UUID, str],
-        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp', 'brief', 'tier1', 'tier1-html'] = 'json',
+        report_format: Literal['json', 'ioc', 'html', 'stix', 'misp', 'brief', 'tier1', 'tier1-html', 'ai'] = 'json',
         filepath: Optional[str] = None,
         ioc_reputation: Literal['all', 'suspicious', 'malicious'] = 'suspicious',
     ) -> Union[dict, list[dict], str, None]:
@@ -181,6 +181,9 @@ class BaseSandboxConnector(AnyRunConnector):
             url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/tier1-html'
             response = await self._make_request_async('GET', url, parse_response=False)
             response_data = await self._read_content_stream(response)
+        elif report_format == 'ai':
+            url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/ai'
+            response_data = await self._make_request_async('GET', url)
         else:
             url = f'{self.ANY_RUN_REPORT_URL}/{task_uuid}/summary/{report_format}'
             response_data = await self._make_request_async('GET', url)
@@ -679,7 +682,7 @@ class BaseSandboxConnector(AnyRunConnector):
         """
         if content_type == 'binary':
             await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_traffic', content, 'wb')
-        elif content_type == 'html':
+        elif content_type in {'html', 'tier1-html'}:
             await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_report.html', content, 'w')
         elif content_type == 'zip':
             await self._process_dump(f'{os.path.abspath(filepath)}/{task_uuid}_file_sample.zip', content, 'wb')

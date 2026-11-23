@@ -248,14 +248,82 @@ class BaseSandboxConnector(AnyRunConnector):
         url = f'{self.ANY_RUN_API_URL}/analysis/delete/{task_uuid}'
         return await self._make_request_async('DELETE', url)
 
+    def remove_task_from_queue(self, queue_task_id: Union[UUID, str]) -> dict:
+        """
+        Removes a queued task from the queue. The task must belong to the current user and must not have been started.
+        Use the queue task id received from the analysis run method with the **queue_parallel** option.
+        The stop_task and delete_task methods do not remove queued tasks.
+
+        :param queue_task_id: Queue task id
+        :return: API response json
+        :raises RunTimeException: The server answers 404 if there is no such queued task or it belongs to another user,
+            409 if the task is already being started, 400 if the id is not valid
+        """
+        return execute_synchronously(self.remove_task_from_queue_async, queue_task_id)
+
+    async def remove_task_from_queue_async(self, queue_task_id: Union[UUID, str]) -> dict:
+        """
+        Removes a queued task from the queue. The task must belong to the current user and must not have been started.
+        Use the queue task id received from the analysis run method with the **queue_parallel** option.
+        The stop_task and delete_task methods do not remove queued tasks.
+
+        :param queue_task_id: Queue task id
+        :return: API response json
+        :raises RunTimeException: The server answers 404 if there is no such queued task or it belongs to another user,
+            409 if the task is already being started, 400 if the id is not valid
+        """
+        url = f'{self.ANY_RUN_API_URL}/analysis/queue/{queue_task_id}'
+        return await self._make_request_async('DELETE', url)
+
+    def get_queued_tasks(self) -> list[dict]:
+        """
+        Returns the tasks of the current user that are waiting in the queue (see the **queue_parallel** option).
+        Each task is a dict with the keys:
+
+        * queueTaskId - queue task id, the same as the analysis run method returned
+        * tasksAhead - the number of tasks ahead. An approximate position: the value may lag behind for a few seconds
+        * queueLastReason - why the task is still waiting, for example "user-parallels-limit"
+        * environments - dict with the environment of the task (os, bitness, version, variant, locale, type, ...)
+        * createdAt - when the task was created, ISO 8601 UTC string
+
+        A task appears in the list a few seconds after the analysis run method has returned its queue task id, and
+        leaves it when the task starts. To find out if a task has started, use get_task_status.
+
+        :return: The list of queued tasks. It is empty if nothing is waiting in the queue
+        """
+        return execute_synchronously(self.get_queued_tasks_async)
+
+    async def get_queued_tasks_async(self) -> list[dict]:
+        """
+        Returns the tasks of the current user that are waiting in the queue (see the **queue_parallel** option).
+        Each task is a dict with the keys:
+
+        * queueTaskId - queue task id, the same as the analysis run method returned
+        * tasksAhead - the number of tasks ahead. An approximate position: the value may lag behind for a few seconds
+        * queueLastReason - why the task is still waiting, for example "user-parallels-limit"
+        * environments - dict with the environment of the task (os, bitness, version, variant, locale, type, ...)
+        * createdAt - when the task was created, ISO 8601 UTC string
+
+        A task appears in the list a few seconds after the analysis run method has returned its queue task id, and
+        leaves it when the task starts. To find out if a task has started, use get_task_status.
+
+        :return: The list of queued tasks. It is empty if nothing is waiting in the queue
+        """
+        url = f'{self.ANY_RUN_API_URL}/analysis/queue'
+        return (await self._make_request_async('GET', url)).get('data', [])
+
     def get_task_status(self, task_uuid: Union[UUID, str], simplify: bool = True) -> Iterator[dict]:
         """
         Information about the task status is sent to the event stream.
         Returns a synchronous iterator to process the actual status until the task is completed.
 
-        :param task_uuid: Task uuid
-        :param simplify: If enabled, returns a simplified dict with the remaining scan time and the current task status
-            else returns the entire response
+        A queue task id (see the **queue_parallel** option) can be used instead of the task uuid. A queued task has the
+        QUEUED status. After the task has started, the simplified dict contains its real uuid in the **task_uuid** key.
+        Read the stream to the end: the connection of a stream that is abandoned half-way stays open.
+
+        :param task_uuid: Task uuid or queue task id
+        :param simplify: If enabled, returns a simplified dict with the remaining scan time, the current task status
+            and the task uuid else returns the entire response
         """
         return execute_async_iterator(self.get_task_status_async(task_uuid, simplify))
 
@@ -264,8 +332,12 @@ class BaseSandboxConnector(AnyRunConnector):
         Information about the task status is sent to the event stream.
         Returns an asynchronous iterator to process the actual status until the task is completed.
 
-        :param task_uuid: Task uuid
-        :param simplify: Returns a simplified dict with the remaining scan time and the current task status
+        A queue task id (see the **queue_parallel** option) can be used instead of the task uuid. A queued task has the
+        QUEUED status. After the task has started, the simplified dict contains its real uuid in the **task_uuid** key.
+        Read the stream to the end: the connection of a stream that is abandoned half-way stays open.
+
+        :param task_uuid: Task uuid or queue task id
+        :param simplify: Returns a simplified dict with the remaining scan time, the current task status and the task uuid
         """
         url = f'{self.ANY_RUN_API_URL}/analysis/monitor/{task_uuid}'
 
@@ -471,13 +543,27 @@ class BaseSandboxConnector(AnyRunConnector):
         # Exclude 'data: ' field from the chunk and decode entire dictionary
         status_data = json.loads(chunk[6:].decode())
 
-        if simplify:
+        if not simplify:
+            return status_data
+
+        task = status_data.get('task')
+
+        # Queued, canceled and failed to start tasks are described by a message without the task data
+        if not isinstance(task, dict):
             return {
-                'status': await self._resolve_task_status(status_data.get('task').get('status')),
-                'seconds_remaining': status_data.get('task').get('remaining'),
-                'info': f'For interactive analysis follow: {self.ANY_RUN_APP_URL}/tasks/{task_uuid}',
+                'status': await self._resolve_message_status(status_data),
+                'seconds_remaining': None,
+                'task_uuid': None,
+                'info': status_data.get('message'),
             }
-        return status_data
+
+        real_task_uuid = task.get('uuid')
+        return {
+            'status': await self._resolve_task_status(task.get('status')),
+            'seconds_remaining': task.get('remaining'),
+            'task_uuid': real_task_uuid,
+            'info': f'For interactive analysis follow: {self.ANY_RUN_APP_URL}/tasks/{real_task_uuid or task_uuid}',
+        }
 
     async def _iterate_event_stream(self, response: Union[requests.Response, aiohttp.ClientResponse]) -> AsyncIterator[bytes]:
         """
@@ -531,7 +617,7 @@ class BaseSandboxConnector(AnyRunConnector):
             status = response.status_code if self._enable_requests else response.status
 
             if content_type.startswith('application/json'):
-                description = response.json() if self._enable_requests else await response.json()
+                description = response.json() if self._enable_requests else await response.json(content_type=None)
                 raise RunTimeException(description.get('message'), status)
             raise RunTimeException('An unspecified error occurred while reading the stream', status)
 
@@ -639,6 +725,22 @@ class BaseSandboxConnector(AnyRunConnector):
                 )
         else:
             raise RunTimeException('You must specify file_content with filename or filepath to start analysis')
+
+    @staticmethod
+    async def _resolve_message_status(status_data: dict) -> str:
+        """
+        Converts a stream message without task data to a string status representation.
+        Supports the queued, canceled and failed to start states
+        """
+        message = str(status_data.get('message') or '').lower()
+
+        if status_data.get('error'):
+            return 'FAILED'
+        if 'queue' in message or 'launched soon' in message:
+            return 'QUEUED'
+        if 'cancel' in message or 'unknown' in message:
+            return 'CANCELED'
+        return 'UNKNOWN'
 
     @staticmethod
     async def _resolve_task_status(status_code: int) -> str:

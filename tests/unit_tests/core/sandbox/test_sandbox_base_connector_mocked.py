@@ -199,6 +199,7 @@ async def test_get_task_status_async_yields_prepared_response():
     mock_response = AsyncMock()
     mock_response.content = mock_content
     mock_response.content_type = 'text/event-stream'
+    mock_response.close = MagicMock()  # closing a real response is a plain, not an async, call
 
     with patch.object(connector, '_make_request_async', new_callable=AsyncMock, return_value=mock_response):
         async with connector:
@@ -435,6 +436,7 @@ async def test_get_task_status_async_skips_meta_lines():
     mock_response = AsyncMock()
     mock_response.content = mock_content
     mock_response.content_type = 'text/event-stream'
+    mock_response.close = MagicMock()  # closing a real response is a plain, not an async, call
     with patch.object(connector, '_make_request_async', new_callable=AsyncMock, return_value=mock_response):
         async with connector:
             chunks = []

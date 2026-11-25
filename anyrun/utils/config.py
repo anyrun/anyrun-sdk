@@ -21,3 +21,15 @@ class Config:
     PUBLIC_INTEGRATION: str = f'Public:{sys.version.split()[0]}'
     SDK_VERSION: str = f'anyrun_sdk:{__version__}'
 
+    ENABLE_THROTTLING: bool = False
+    THROTTLE_TTL_IN_SECONDS: int = 1800
+    # 429 messages (lowercase substrings) that must not cause a throttle: a parallel task limit is fine to retry
+    # right away, an AI summary limit concerns only AI reports
+    THROTTLE_IGNORED_429_MESSAGES: tuple[str, ...] = ('parallel task limit', 'ai summary limit exceeded')
+    THROTTLE_LICENSE_ERROR_MESSAGES: tuple[str, ...] = (
+        'authorization required',
+        'wrong authorization data',
+        "can't recognize you",
+        'api is not available on the free plan',
+        'api is disabled in your account',
+    )

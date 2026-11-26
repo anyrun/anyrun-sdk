@@ -6,7 +6,7 @@ from anyrun.connectors import FeedsConnector
 
 def main():
     with FeedsConnector(api_key) as connector:
-        feeds = connector.get_taxii_stix(collection='url', added_after='2025-01-01')
+        feeds = connector.get_taxii_stix(collection='url', modified_after='2025-01-01')
         pprint(feeds)
 
 

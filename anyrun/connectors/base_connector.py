@@ -12,6 +12,7 @@ from typing_extensions import Self
 
 from anyrun.utils.config import Config
 from anyrun.utils.exceptions import RunTimeException
+from anyrun.utils.throttler import throttle_requests
 from anyrun.utils.utility_functions import drop_empty_values, execute_synchronously, get_running_loop
 
 
@@ -59,6 +60,7 @@ class AnyRunConnector:
         self._verify_ssl = verify_ssl
         self._session: Optional[aiohttp.ClientSession] = None
         self._api_key: Optional[str] = None
+        self._root_url = root_url
 
         self._api_key_validator(api_key)
         self._setup_connector()
@@ -107,6 +109,7 @@ class AnyRunConnector:
             raise RunTimeException('The proxy request failed. Check the proxy settings are correct') from exception
         return {'status': 'ok', 'description': 'Successful proxy verification'}
 
+    @throttle_requests
     async def _make_request_async(
         self,
         method: str,
@@ -175,6 +178,8 @@ class AnyRunConnector:
                 return await self._check_response_status(response_data, response.status_code if self._enable_requests else response.status)
             return response
 
+        except RunTimeException:
+            raise
         except AttributeError:
             raise RunTimeException('The connector object must be executed using the context manager')
         except (aiohttp.ClientError, requests.RequestException, OSError) as exception:
